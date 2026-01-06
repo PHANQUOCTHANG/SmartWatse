@@ -8,17 +8,17 @@ import validationMiddleware from "@/middleware/validate.middleware";
 
 const router = Router();
 
-// URL: /api/v1/users
+// URL: /api/users
 router
   .route("/")
-  .get(userCtrl.getAll) // GET | Lấy danh sách người dùng
-  .post(validationMiddleware(CreateUserRequest), userCtrl.create); // POST | Tạo người dùng
+  .get(userCtrl.getUsers)
+  .post(validationMiddleware(CreateUserRequest), userCtrl.createUser);
 
-// URL: /api/v1/users/:id
+// URL: /api/users/:id
 router
   .route("/:id")
-  .get(userCtrl.getOne) // GET | Chi tiết người dùng
-  .patch(validationMiddleware(UpdateUserRequest), userCtrl.update) // PATCH | Cập nhật người dùng
-  .delete(userCtrl.remove); // DELETE | Xóa người dùng
+  .get(userCtrl.getUser)
+  .patch(validationMiddleware(UpdateUserRequest), userCtrl.updateUser)
+  .delete(userCtrl.deleteUser);
 
 export default router;

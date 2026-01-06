@@ -1,6 +1,95 @@
-import { UserRepository } from "@/repositories/user.repository";
-import { UserService } from "@/services/user.service";
+import {
+  AreaRepository,
+  IAreaRepository,
+} from "@/repositories/area.repository";
+import { BinRepository, IBinRepository } from "@/repositories/bin.repository";
+import {
+  CitizenReportRepository,
+  ICitizenReportRepository,
+} from "@/repositories/citizenReport.repository";
+import {
+  CollectionPointRepository,
+  ICollectionPointRepository,
+} from "@/repositories/collectionPoint.repository";
+import { CollectionScheduleRepository, ICollectionScheduleRepository } from "@/repositories/collectionSchedule.repository";
+import { IOtpRepository, OtpRepository } from "@/repositories/otp.repository";
+import {
+  IRefreshTokenRepository,
+  RefreshTokenRepository,
+} from "@/repositories/refreshToken.repository";
+import {
+  IUserRepository,
+  UserRepository,
+} from "@/repositories/user.repository";
+import {
+  IVehicleRepository,
+  VehicleRepository,
+} from "@/repositories/vehicle.repository";
+import { AreaService, IAreaService } from "@/services/area.service";
+import { AuthService, IAuthService } from "@/services/auth.service";
+import { BinService, IBinService } from "@/services/bin.service";
+import {
+  CitizenReportService,
+  ICitizenReportService,
+} from "@/services/citizenReport.service";
+import {
+  CollectionPointService,
+  ICollectionPointService,
+} from "@/services/collectionPoint.service";
+import { CollectionScheduleService, ICollectionScheduleService } from "@/services/collectionSchedule.service";
+import { EmailService, IEmailService } from "@/services/email.service";
+import { IOtpService, OtpService } from "@/services/otp.service";
+import { IUserService, UserService } from "@/services/user.service";
+import { IVehicleService, VehicleService } from "@/services/vehicle.service";
+
+// ==================== INITIALIZE REPOSITORIES ====================
+
+const userRepository: IUserRepository = new UserRepository();
+const refreshTokenRepository: IRefreshTokenRepository =
+  new RefreshTokenRepository();
+const otpRepository: IOtpRepository = new OtpRepository();
+const binRepository: IBinRepository = new BinRepository();
+const areaRepository: IAreaRepository = new AreaRepository();
+const collectionPointRepository: ICollectionPointRepository =
+  new CollectionPointRepository();
+const vehicleRepository: IVehicleRepository = new VehicleRepository();
+const citizenReportRepository: ICitizenReportRepository =
+  new CitizenReportRepository();
+const collectionScheduleRepository: ICollectionScheduleRepository =
+  new CollectionScheduleRepository();
 
 
-const userRepository = new UserRepository();
-export const userService = new UserService(userRepository);
+// ==================== INITIALIZE SERVICES ====================
+
+export const authService: IAuthService = new AuthService(
+  userRepository,
+  refreshTokenRepository,
+  otpRepository
+);
+
+export const userService: IUserService = new UserService(userRepository);
+
+export const otpService: IOtpService = new OtpService(
+  otpRepository,
+  userRepository
+);
+
+export const emailService: IEmailService = new EmailService();
+
+export const binService: IBinService = new BinService(binRepository);
+
+export const areaService: IAreaService = new AreaService(areaRepository);
+
+export const collectionPointService: ICollectionPointService =
+  new CollectionPointService(collectionPointRepository);
+
+export const vehicleService: IVehicleService = new VehicleService(
+  vehicleRepository
+);
+
+export const citizenReportService: ICitizenReportService =
+  new CitizenReportService(citizenReportRepository);
+
+export const collectionScheduleService: ICollectionScheduleService =
+  new CollectionScheduleService(collectionScheduleRepository);
+
