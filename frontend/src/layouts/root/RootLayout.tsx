@@ -1,4 +1,4 @@
-// src/layouts/RootLayout.tsx
+// src/layouts/root/RootLayout.tsx
 import { Outlet } from "react-router-dom";
 import { useAppSelector } from "@/store/store";
 import { useInitAuth } from "@/features/auth";
@@ -7,15 +7,21 @@ const RootLayout = () => {
   const { isAuthChecking } = useAppSelector((state) => state.auth);
   useInitAuth();
 
-  if (isAuthChecking)
-    // return <PulseLoader fullscreen text="Đang tải dữ liệu..." />;
+  // ⏳ Đang check auth → show loading (hoặc null)
+  if (isAuthChecking) {
+    return null;
+    // hoặc:
+    // return <div>Loading...</div>;
+    // hoặc loader sau này
+  }
 
-    return (
-      <>
-        <Outlet />
-        {/* Player luôn nằm đè lên tất cả (position fixed trong component) */}
-      </>
-    );
+  // ✅ AUTH CHECK XONG → LUÔN render Outlet
+  return (
+    <>
+      <Outlet />
+      {/* Global components đặt ở đây (toast, modal, v.v.) */}
+    </>
+  );
 };
 
 export default RootLayout;
