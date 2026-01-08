@@ -38,7 +38,6 @@ export const ADMIN_PATHS = {
   ALBUMS: "albums",
   PLAYLISTS: "playlists",
   ANALYTICS: "analytics",
-  DASHBOARD: "/",
   GENRES: "genres",
   SETTINGS: "settings",
   // Track
