@@ -10,6 +10,13 @@ import { StaffTaskDetailPage } from "@/pages/staff";
 import { StaffMapPage } from "@/pages/staff";
 import { StaffProfilePage } from "@/pages/staff";
 import StaffTaskHistoryPage from "@/pages/staff/StaffTaskHistoryPage";
+import { CitizenLayout } from "@/layouts/citizen";
+import {
+  CitizenSchedulePage,
+  CitizenHomePage,
+  CitizenReportPage,
+  CitizenReportDetailPage,
+} from "@/pages/citizen";
 
 export const router = createBrowserRouter([
   {
@@ -56,7 +63,51 @@ export const router = createBrowserRouter([
       // },
 
       // ===================================================
-      // 3. NHÓM STAFF PORTAL  🔥🔥🔥 (THÊM MỚI)
+      // 3. NHÓM CITIZEN PORTAL  🔥🔥🔥 (THÊM MỚI)
+      // ===================================================
+      {
+        element: <ProtectedRoute roles={["CITIZEN"]} />,
+        children: [
+          {
+            path: "/citizen",
+            element: <CitizenLayout />,
+            children: [
+              {
+                index: true,
+                element: <CitizenHomePage />,
+              },
+              {
+                path: "home",
+                element: <CitizenHomePage />,
+              },
+              {
+                path: "schedule",
+                element: <CitizenSchedulePage />,
+              },
+              {
+                path: "report/*",
+                children: [
+                  {
+                    index: true,
+                    element: <CitizenReportPage />,
+                  },
+                  {
+                    path: ":id",
+                    element: <CitizenReportDetailPage />,
+                  },
+                ],
+              },
+              {
+                path: "notifications",
+                element: <CitizenSchedulePage />,
+              },
+            ],
+          },
+        ],
+      },
+
+      // ===================================================
+      // 4. NHÓM STAFF PORTAL
       // ===================================================
       {
         path: "/staff",
@@ -91,7 +142,7 @@ export const router = createBrowserRouter([
       },
 
       // ===================================================
-      // 4. NHÓM ADMIN PORTAL
+      // 5. ADMIN PORTAL
       // ===================================================
       // {
       //   path: ADMIN_PATHS.ADMIN,
@@ -114,7 +165,7 @@ export const router = createBrowserRouter([
       // },
 
       // ===================================================
-      // 5. 404 NOT FOUND
+      // 6. 404 NOT FOUND
       // ===================================================
       {
         path: "*",
