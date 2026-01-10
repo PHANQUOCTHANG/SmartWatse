@@ -2,6 +2,12 @@ import { createBrowserRouter } from "react-router-dom";
 
 import { NotFoundPage } from "@/pages";
 import { RootLayout } from "@/layouts";
+import ManagerLayout from "@/layouts/manager/ManagerLayout";
+import  MapMonitorPage  from "@/pages/manager/MapMonitorPage";
+import ManagerSchedulePage from "@/features/schedule/pages/ManagerSchedulePage";
+import TaskAssignmentPage from './../../features/task-assignment/pages/TaskAssignmentPage';
+import ManagerFeedbackPage from "@/features/feedback/pages/ManagerFeedbackPage";
+import ManagerReportsPage from "@/features/reports/pages/ManagerReportsPage";
 
 export const router = createBrowserRouter([
   {
@@ -97,7 +103,32 @@ export const router = createBrowserRouter([
       //     },
       //   ],
       // },
-
+      {
+        path: "/manager",
+        element: <ManagerLayout />,
+        children: [
+          {
+            path: "map",
+            element: <MapMonitorPage />,
+          },
+          {
+            path: "schedule",
+            element: <ManagerSchedulePage />,
+          },
+          {
+            path: "tasks",
+            element: <TaskAssignmentPage />,
+          },
+          {
+            path: "/manager/feedback",
+            element: <ManagerFeedbackPage />,
+          },
+          {
+            path: "reports",
+            element: <ManagerReportsPage />,
+          }
+        ],
+      },
       // ===================================================
       // 4. 404 NOT FOUND
       // ===================================================
