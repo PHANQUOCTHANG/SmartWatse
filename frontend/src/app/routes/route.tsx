@@ -16,6 +16,7 @@ import {
   CitizenHomePage,
   CitizenReportPage,
   CitizenReportDetailPage,
+  CitizenReportCreatePage,
 } from "@/pages/citizen";
 
 export const router = createBrowserRouter([
@@ -90,6 +91,10 @@ export const router = createBrowserRouter([
                   {
                     index: true,
                     element: <CitizenReportPage />,
+                  },
+                  {
+                    path: "new",
+                    element: <CitizenReportCreatePage />,
                   },
                   {
                     path: ":id",

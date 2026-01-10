@@ -78,6 +78,7 @@ const REPORTS = [
 ];
 
 export default function CitizenReportPage() {
+  const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const [filterStatus, setFilterStatus] = useState("all");
   const [selectedDate, setSelectedDate] = useState("");
@@ -127,7 +128,10 @@ export default function CitizenReportPage() {
       <div className="max-w-[1400px] mx-auto flex flex-col gap-8">
         {/* HEADER SECTION */}
         <div className="flex justify-end">
-          <button className="flex items-center gap-2 px-6 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-all shadow-lg hover:shadow-xl">
+          <button
+            onClick={() => navigate("/citizen/report/new")}
+            className="flex items-center gap-2 px-6 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary/90 transition-all shadow-lg hover:shadow-xl"
+          >
             <span className="material-symbols-outlined">add</span>
             Gửi phản ánh mới
           </button>
