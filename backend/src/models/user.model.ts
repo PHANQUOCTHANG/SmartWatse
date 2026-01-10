@@ -5,7 +5,7 @@ export interface IUserDocument extends IUser, Document {}
 
 const userSchema = new Schema<IUserDocument>(
   {
-    full_name: {
+    fullName: {
       type: String,
       required: [true, "Họ tên là bắt buộc"],
       maxlength: 100,
@@ -18,7 +18,7 @@ const userSchema = new Schema<IUserDocument>(
       lowercase: true,
       maxlength: 100,
     },
-    password_hash: {
+    passwordHash: {
       type: String,
       required: [true, "Mật khẩu là bắt buộc"],
       maxlength: 255,
@@ -29,20 +29,20 @@ const userSchema = new Schema<IUserDocument>(
       default: UserRole.CITIZEN,
     },
     phone: { type: String, maxlength: 20 },
-    area_id: { type: Number },
+    areaId: { type: Number },
     status: {
       type: String,
       enum: Object.values(UserStatus),
       default: UserStatus.ACTIVE,
     },
-    created_at: { type: Date, default: Date.now },
+    createdAt: { type: Date, default: Date.now },
   },
   {
     versionKey: false,
-    timestamps: { createdAt: "created_at", updatedAt: false },
+    timestamps: { createdAt: "createdAt", updatedAt: false },
   }
 );
 
 userSchema.index({ email: 1 });
 
-export const UserModel = model<IUserDocument>("User", userSchema);
+export const User = model<IUserDocument>("User", userSchema);

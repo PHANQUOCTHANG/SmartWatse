@@ -11,12 +11,13 @@ export enum UserStatus {
 }
 
 export interface IUser {
-  full_name: string;
+  id: string;
+  fullName: string;
   email: string;
-  password_hash: string;
+  passwordHash: string;
   role: UserRole;
   phone?: string;
-  area_id?: number;
+  areaId?: number;
   status: UserStatus;
-  created_at: Date;
+  createdAt: Date;
 }

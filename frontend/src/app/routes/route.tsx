@@ -9,6 +9,14 @@ import TaskAssignmentPage from './../../features/task-assignment/pages/TaskAssig
 import ManagerFeedbackPage from "@/features/feedback/pages/ManagerFeedbackPage";
 import ManagerReportsPage from "@/features/reports/pages/ManagerReportsPage";
 
+import ProtectedRoute from "@/app/routes/ProtectedRoute";
+import { StaffLayout } from "@/layouts/staff";
+import { StaffTaskListPage } from "@/pages/staff";
+import { StaffTaskDetailPage } from "@/pages/staff";
+import { StaffMapPage } from "@/pages/staff";
+import { StaffProfilePage } from "@/pages/staff";
+import StaffTaskHistoryPage from "@/pages/staff/StaffTaskHistoryPage";
+
 export const router = createBrowserRouter([
   {
     // 🔥 QUAN TRỌNG: RootLayout bao trùm toàn bộ ứng dụng
@@ -24,6 +32,7 @@ export const router = createBrowserRouter([
       //     ...guestAuthRoutes, // Login, Register
       //   ],
       // },
+
       // ===================================================
       // 2. NHÓM CLIENT (USER APP)
       // ===================================================
@@ -34,13 +43,9 @@ export const router = createBrowserRouter([
       //     { index: true, element: <HomePage /> },
       //     { path: CLIENT_PATHS.BROWSE, element: <BrowsePage /> },
       //     { path: CLIENT_PATHS.SEARCH, element: <SearchPage /> },
-
-      //     // Bung các route feature
       //     ...playlistRoutes,
       //     ...artistRoutes,
       //     ...albumRoutes,
-
-      //     // Protected Routes
       //     {
       //       element: <ProtectedRoute />,
       //       children: [
@@ -56,9 +61,44 @@ export const router = createBrowserRouter([
       //   ],
       // },
 
-      // // ===================================================
-      // // 3. NHÓM ADMIN PORTAL
-      // // ===================================================
+      // ===================================================
+      // 3. NHÓM STAFF PORTAL  🔥🔥🔥 (THÊM MỚI)
+      // ===================================================
+      {
+        path: "/staff",
+        element: <ProtectedRoute roles={["STAFF"]} />,
+        children: [
+          {
+            element: <StaffLayout />,
+            children: [
+              {
+                path: "tasks",
+                element: <StaffTaskListPage />,
+              },
+              {
+                path: "tasks/:taskId",
+                element: <StaffTaskDetailPage />,
+              },
+              {
+                path: "map",
+                element: <StaffMapPage />,
+              },
+              {
+                path: "profile",
+                element: <StaffProfilePage />,
+              },
+              {
+                path: "history",
+                element: <StaffTaskHistoryPage />,
+              },
+            ],
+          },
+        ],
+      },
+
+      // ===================================================
+      // 4. NHÓM ADMIN PORTAL
+      // ===================================================
       // {
       //   path: ADMIN_PATHS.ADMIN,
       //   element: <ProtectedRoute />,
@@ -66,39 +106,14 @@ export const router = createBrowserRouter([
       //     {
       //       element: <AdminLayout />,
       //       children: [
-      //         { index: true, element: <DashboardPage /> },
-      //         {
-      //           path: ADMIN_PATHS.USERS,
-      //           element: <UserPage />,
-      //         },
-      //         {
-      //           path: ADMIN_PATHS.SONGS,
-      //           element: <SongPage />,
-      //         },
-      //         {
-      //           path: ADMIN_PATHS.ARTISTS,
-      //           element: <ArtistManagementPage />,
-      //         },
-      //         {
-      //           path: ADMIN_PATHS.ALBUMS,
-      //           element: <AlbumManagementPage />,
-      //         },
-      //         {
-      //           path: ADMIN_PATHS.ANALYTICS,
-      //           element: <AnalyticPage />,
-      //         },
-      //         {
-      //           path: ADMIN_PATHS.GENRES,
-      //           element: <GenrePage />,
-      //         },
-      //         {
-      //           path: ADMIN_PATHS.SETTINGS,
-      //           element: <SettingPage />,
-      //         },
-      //         {
-      //           path: ADMIN_PATHS.PLAYLISTS,
-      //           element: <PlaylistManagementPage />,
-      //         },
+      //         { path: ADMIN_PATHS.USERS, element: <UserPage /> },
+      //         { path: ADMIN_PATHS.SONGS, element: <SongPage /> },
+      //         { path: ADMIN_PATHS.ARTISTS, element: <ArtistManagementPage /> },
+      //         { path: ADMIN_PATHS.ALBUMS, element: <AlbumManagementPage /> },
+      //         { path: ADMIN_PATHS.ANALYTICS, element: <AnalyticPage /> },
+      //         { path: ADMIN_PATHS.GENRES, element: <GenrePage /> },
+      //         { path: ADMIN_PATHS.SETTINGS, element: <SettingPage /> },
+      //         { path: ADMIN_PATHS.PLAYLISTS, element: <PlaylistManagementPage /> },
       //       ],
       //     },
       //   ],
@@ -130,7 +145,7 @@ export const router = createBrowserRouter([
         ],
       },
       // ===================================================
-      // 4. 404 NOT FOUND
+      // 5. 404 NOT FOUND
       // ===================================================
       {
         path: "*",

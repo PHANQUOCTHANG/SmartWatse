@@ -14,7 +14,7 @@ export class CreateUserRequest {
   @IsNotEmpty({ message: "Họ tên không được để trống" })
   @IsString()
   @MaxLength(100)
-  full_name!: string;
+  fullName!: string;
 
   @IsNotEmpty({ message: "Email là bắt buộc" })
   @IsEmail({}, { message: "Email không đúng định dạng" })
@@ -22,7 +22,7 @@ export class CreateUserRequest {
 
   @IsNotEmpty({ message: "Mật khẩu là bắt buộc" })
   @MinLength(6, { message: "Mật khẩu tối thiểu 6 ký tự" })
-  password_hash!: string;
+  password!: string;
 
   @IsNotEmpty()
   @IsEnum(UserRole, { message: "Role không hợp lệ" })
@@ -34,14 +34,14 @@ export class CreateUserRequest {
 
   @IsOptional()
   @IsNumber()
-  area_id?: number;
+  areaId?: number;
 }
 
 export class UpdateUserRequest {
   @IsOptional()
   @IsString()
   @MaxLength(100)
-  full_name?: string;
+  fullName?: string;
 
   @IsOptional()
   @IsEmail()
@@ -57,7 +57,7 @@ export class UpdateUserRequest {
 
   @IsOptional()
   @IsNumber()
-  area_id?: number;
+  areaId?: number;
 
   @IsOptional()
   @IsEnum(UserStatus)

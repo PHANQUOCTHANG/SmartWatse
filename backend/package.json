@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "ts-node src/server.ts",
+    "start": "ts-node -r tsconfig-paths/register src/server.ts",
     "dev": "nodemon --exec ts-node -r tsconfig-paths/register src/server.ts",
     "build": "tsc",
     "serve": "node dist/server.js"
@@ -29,6 +29,8 @@
     "reflect-metadata": "^0.2.2",
     "slugify": "^1.6.6",
     "socket.io": "^4.8.1",
+    "swagger-jsdoc": "^6.2.8",
+    "swagger-ui-express": "^5.0.1",
     "unicode": "^14.0.0",
     "unidecode": "^1.1.0",
     "winston": "^3.18.3"
@@ -42,6 +44,8 @@
     "@types/mongoose": "^5.11.96",
     "@types/node": "^24.10.1",
     "@types/nodemailer": "^7.0.4",
+    "@types/swagger-jsdoc": "^6.0.4",
+    "@types/swagger-ui-express": "^4.1.8",
     "@types/unidecode": "^1.1.0",
     "@types/winston": "^2.4.4",
     "nodemon": "^3.1.11",
