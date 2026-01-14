@@ -2,6 +2,9 @@ import { createBrowserRouter } from "react-router-dom";
 
 import { NotFoundPage } from "@/pages";
 import { RootLayout } from "@/layouts";
+import { GuestRoute } from "@/app/routes/GuestRoute";
+import { guestAuthRoutes } from "@/features/auth/routes";
+import ClientLayout from "@/layouts/client/ClientLayout";
 
 export const router = createBrowserRouter([
   {
@@ -12,43 +15,43 @@ export const router = createBrowserRouter([
       // ===================================================
       // 1. NHÓM AUTH (Login/Register)
       // ===================================================
-      // {
-      //   element: <GuestRoute />, // <--- Bọc ở đây
-      //   children: [
-      //     ...guestAuthRoutes, // Login, Register
-      //   ],
-      // },
+      {
+        element: <GuestRoute />, // <--- Bọc ở đây
+        children: [
+          ...guestAuthRoutes, // Login, Register
+        ],
+      },
       // ===================================================
       // 2. NHÓM CLIENT (USER APP)
       // ===================================================
-      // {
-      //   path: CLIENT_PATHS.CLIENT,
-      //   element: <ClientLayout />,
-      //   children: [
-      //     { index: true, element: <HomePage /> },
-      //     { path: CLIENT_PATHS.BROWSE, element: <BrowsePage /> },
-      //     { path: CLIENT_PATHS.SEARCH, element: <SearchPage /> },
+      {
+        path: "/",
+        element: <ClientLayout />,
+        // children: [
+        //   { index: true, element: <HomePage /> },
+        //   { path: CLIENT_PATHS.BROWSE, element: <BrowsePage /> },
+        //   { path: CLIENT_PATHS.SEARCH, element: <SearchPage /> },
 
-      //     // Bung các route feature
-      //     ...playlistRoutes,
-      //     ...artistRoutes,
-      //     ...albumRoutes,
+        //   // Bung các route feature
+        //   ...playlistRoutes,
+        //   ...artistRoutes,
+        //   ...albumRoutes,
 
-      //     // Protected Routes
-      //     {
-      //       element: <ProtectedRoute />,
-      //       children: [
-      //         { path: CLIENT_PATHS.PROFILE, element: <ProfilePage /> },
-      //         {
-      //           path: CLIENT_PATHS.CLAIM_PROFILE,
-      //           element: <ClaimProfilePage />,
-      //         },
-      //         { path: CLIENT_PATHS.SETTINGS, element: <SettingsPage /> },
-      //         ...protectedAuthRoutes,
-      //       ],
-      //     },
-      //   ],
-      // },
+        //   // Protected Routes
+        //   {
+        //     element: <ProtectedRoute />,
+        //     children: [
+        //       { path: CLIENT_PATHS.PROFILE, element: <ProfilePage /> },
+        //       {
+        //         path: CLIENT_PATHS.CLAIM_PROFILE,
+        //         element: <ClaimProfilePage />,
+        //       },
+        //       { path: CLIENT_PATHS.SETTINGS, element: <SettingsPage /> },
+        //       ...protectedAuthRoutes,
+        //     ],
+        //   },
+        // ],
+      },
 
       // // ===================================================
       // // 3. NHÓM ADMIN PORTAL

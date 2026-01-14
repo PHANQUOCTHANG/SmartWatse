@@ -1,9 +1,7 @@
 import React, { useState } from "react";
-import { Mail, Disc, ArrowLeft, KeyRound, AlertCircle } from "lucide-react";
+import { Mail, ArrowLeft, Loader2, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useNavigate } from "react-router-dom";
-
-// --- Logic Imports ---
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
@@ -12,109 +10,15 @@ import {
   forgotPasswordSchema,
   type ForgotPasswordInput,
 } from "@/features/auth/schemas/auth.schema";
-
-// ==========================================
-// UI COMPONENTS
-// ==========================================
-
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "neon" | "ghost";
-  isLoading?: boolean;
-}
-
-const Button: React.FC<ButtonProps> = ({
-  children,
-  className,
-  variant = "neon",
-  isLoading,
-  ...props
-}) => {
-  const variants = {
-    neon: "bg-white text-black hover:bg-gray-100 shadow-lg shadow-white/5 border border-transparent",
-    ghost: "bg-transparent text-gray-400 hover:text-white hover:bg-white/5",
-  };
-  return (
-    <button
-      className={cn(
-        "relative group w-full h-12 rounded-2xl font-semibold text-sm transition-all duration-300 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed overflow-hidden flex items-center justify-center",
-        variants[variant],
-        className
-      )}
-      {...props}
-    >
-      <span className="relative flex items-center justify-center gap-2">
-        {isLoading && <Disc className="animate-spin h-4 w-4" />}
-        {children}
-      </span>
-    </button>
-  );
-};
-
-interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  icon: React.ElementType;
-  label: string;
-  error?: boolean;
-}
-
-// ✅ INPUT FIELD (Đã nâng cấp forwardRef cho React Hook Form)
-const InputField = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ icon: Icon, className, label, id, error, ...props }, ref) => (
-    <div className="relative group w-full">
-      {/* Glow Effect */}
-      <div
-        className={cn(
-          "absolute -inset-0.5 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-2xl blur opacity-0 group-focus-within:opacity-100 transition-opacity duration-500",
-          error && "from-red-500/30 to-red-500/30 opacity-100"
-        )}
-      />
-
-      <div className="relative w-full">
-        <div
-          className={cn(
-            "absolute left-4 top-1/2 -translate-y-1/2 z-10 pointer-events-none transition-colors duration-300",
-            error
-              ? "text-red-400"
-              : "text-gray-400 group-focus-within:text-white"
-          )}
-        >
-          <Icon className="w-4 h-4" />
-        </div>
-        <input
-          ref={ref}
-          id={id}
-          className={cn(
-            "w-full h-12 bg-white/5 hover:bg-white/10 rounded-2xl border pl-11 pr-4 outline-none placeholder:text-gray-500 text-sm font-medium transition-all duration-300 shadow-inner shadow-black/20 backdrop-blur-sm",
-            error
-              ? "border-red-500/50 focus:border-red-500 text-red-100 placeholder:text-red-300/30"
-              : "border-white/5 focus:border-white/20 text-white",
-            className
-          )}
-          placeholder={label}
-          {...props}
-        />
-
-        {/* Icon báo lỗi */}
-        {error && (
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 text-red-500 animate-in fade-in zoom-in duration-300">
-            <AlertCircle className="w-4 h-4" />
-          </div>
-        )}
-      </div>
-    </div>
-  )
-);
-InputField.displayName = "InputField";
-
-// ==========================================
-// MAIN LOGIC: FORGOT PASSWORD FORM
-// ==========================================
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 const ForgotPasswordForm = () => {
   const navigate = useNavigate();
-  const [isSent, setIsSent] = useState(false); // Trạng thái chuyển màn hình
-  const [sentEmail, setSentEmail] = useState(""); // Lưu email để hiển thị ở màn hình thành công
+  const [isSent, setIsSent] = useState(false);
+  const [sentEmail, setSentEmail] = useState("");
 
-  // 1. Setup Form
   const {
     register,
     handleSubmit,
@@ -125,24 +29,16 @@ const ForgotPasswordForm = () => {
     mode: "onBlur",
   });
 
-  // 2. Xử lý Submit
   const onSubmit = async (data: ForgotPasswordInput) => {
     try {
-      // Gọi API thật
-      await authApi.forgotPassword(data.email);
-
-      // Thành công -> Chuyển UI
+      // await authApi.forgotPassword(data.email); // API Call
+      await new Promise((resolve) => setTimeout(resolve, 1500)); // Mock API
       setSentEmail(data.email);
       setIsSent(true);
       toast.success("Email sent successfully!");
     } catch (error: any) {
       const msg = error.response?.data?.message || "Request failed.";
-
-      // Map lỗi vào ô input nếu liên quan đến email
-      if (
-        msg.toLowerCase().includes("email") ||
-        msg.toLowerCase().includes("tồn tại")
-      ) {
+      if (msg.toLowerCase().includes("email")) {
         setError("email", { type: "server", message: msg });
       } else {
         toast.error(msg);
@@ -150,100 +46,121 @@ const ForgotPasswordForm = () => {
     }
   };
 
-  // ------------------------------------------------------
-  // VIEW 2: SUCCESS (CHECK MAIL)
-  // ------------------------------------------------------
-  if (isSent) {
-    return (
-      <div className="animate-fade-in-up text-center">
-        <div className="w-20 h-20 bg-indigo-500/20 rounded-full flex items-center justify-center mx-auto mb-6 border border-indigo-500/30">
-          <Mail className="w-10 h-10 text-indigo-400 animate-pulse" />
-        </div>
-        <h2 className="text-3xl font-bold mb-3 tracking-tight text-white">
-          Check your mail
-        </h2>
-        <p className="text-gray-400 text-sm mb-8 leading-relaxed">
-          We have sent password recover instructions to your email{" "}
-          <span className="text-white font-medium">{sentEmail}</span>.
-        </p>
-
-        <div className="space-y-4">
-          <Button onClick={() => window.open("mailto:", "_blank")}>
-            Open Email App
-          </Button>
-
-          <p className="text-gray-500 text-xs">
-            Did not receive the email?{" "}
-            <button
-              onClick={() => setIsSent(false)} // Quay lại form nhập
-              className="text-indigo-400 hover:underline font-medium"
-            >
-              Try another email
-            </button>
-          </p>
-
-          <button
-            onClick={() => navigate("/login")}
-            className="flex items-center justify-center w-full text-gray-400 hover:text-white transition-colors text-sm mt-6"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" /> Back to Login
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  // ------------------------------------------------------
-  // VIEW 1: INPUT FORM
-  // ------------------------------------------------------
   return (
-    <div className="animate-fade-in-up">
-      <button
-        onClick={() => navigate("/login")}
-        className="flex items-center text-gray-400 hover:text-white mb-8 transition-colors group text-sm"
-      >
-        <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />{" "}
-        Back to Login
-      </button>
+    <div className="min-h-screen w-full flex items-center justify-center   p-4 font-sans relative overflow-hidden">
+      {/* Background Decor similar to screenshots */}
+      <div className="absolute top-[-20%] right-[-10%] w-[50%] h-[50%]   rounded-full blur-[100px]" />
+      <div className="absolute bottom-[-10%] left-[-10%] w-[40%] h-[40%]  rounded-full blur-[100px]" />
 
-      <div className="mb-8 text-center lg:text-left">
-        <div className="inline-flex items-center justify-center w-12 h-12 rounded-2xl bg-white/5 mb-6 border border-white/10 lg:hidden">
-          <KeyRound className="w-6 h-6 text-white" />
-        </div>
-        <h1 className="text-3xl font-bold mb-3 tracking-tight text-white">
-          Forgot Password?
-        </h1>
-        <p className="text-gray-400 text-sm">
-          No worries, we'll send you reset instructions.
-        </p>
+      {/* Main Card */}
+      <div className="w-full max-w-[480px] bg-white rounded-2xl shadow-xl p-8 md:p-10 relative z-10">
+        {/* -- VIEW 2: SUCCESS -- */}
+        {isSent ? (
+          <div className="text-center space-y-6 animate-in fade-in slide-in-from-bottom-2">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto text-green-600">
+              <Mail className="w-8 h-8" />
+            </div>
+            <div className="space-y-2">
+              <h2 className="text-2xl font-bold text-gray-900">
+                Kiểm tra email
+              </h2>
+              <p className="text-gray-500 text-sm">
+                Chúng tôi đã gửi hướng dẫn khôi phục mật khẩu đến <br />
+                <span className="font-semibold text-gray-900">{sentEmail}</span>
+              </p>
+            </div>
+
+            <div className="space-y-3 pt-2">
+              <Button
+                onClick={() => window.open("mailto:", "_blank")}
+                className="w-full h-11 bg-[#1A73E8] hover:bg-blue-700 text-white font-semibold rounded-lg"
+              >
+                Mở Email
+              </Button>
+              <Button
+                variant="ghost"
+                onClick={() => setIsSent(false)}
+                className="w-full h-11 text-gray-600 hover:text-gray-900 font-medium"
+              >
+                Thử lại với email khác
+              </Button>
+            </div>
+
+            <div className="pt-4 border-t border-gray-100">
+              <button
+                onClick={() => navigate("/login")}
+                className="text-sm text-[#1A73E8] font-semibold hover:underline flex items-center justify-center gap-2 mx-auto"
+              >
+                <ArrowLeft className="w-4 h-4" /> Quay lại đăng nhập
+              </button>
+            </div>
+          </div>
+        ) : (
+          /* -- VIEW 1: INPUT -- */
+          <div className="space-y-8 animate-in fade-in slide-in-from-bottom-2">
+            <div className="text-center space-y-2">
+              <div className="w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center mx-auto text-[#1A73E8] mb-4">
+                <CheckCircle2 className="w-6 h-6" /> {/* Placeholder Icon */}
+              </div>
+              <h1 className="text-2xl font-bold text-gray-900">
+                Quên mật khẩu?
+              </h1>
+              <p className="text-gray-500 text-sm">
+                Đừng lo, hãy nhập email của bạn và chúng tôi sẽ gửi hướng dẫn
+                lấy lại mật khẩu.
+              </p>
+            </div>
+
+            <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+              <div className="space-y-2">
+                <Label
+                  htmlFor="email"
+                  className="text-sm font-semibold text-gray-700"
+                >
+                  Email đã đăng ký
+                </Label>
+                <div className="relative group">
+                  <Input
+                    id="email"
+                    placeholder="name@example.com"
+                    className={cn(
+                      "pl-10 h-11 bg-gray-50 border-gray-200 focus:bg-white focus:border-[#1A73E8] transition-all rounded-lg",
+                      errors.email && "border-red-500 bg-red-50/10"
+                    )}
+                    {...register("email")}
+                  />
+                  <Mail className="absolute left-3 top-3.5 w-4 h-4 text-gray-400 group-focus-within:text-[#1A73E8]" />
+                </div>
+                {errors.email && (
+                  <p className="text-xs text-red-500 font-medium mt-1">
+                    {errors.email.message}
+                  </p>
+                )}
+              </div>
+
+              <Button
+                type="submit"
+                disabled={isSubmitting}
+                className="w-full h-11 bg-[#1A73E8] hover:bg-blue-700 text-white font-semibold rounded-lg shadow-lg shadow-blue-500/20"
+              >
+                {isSubmitting ? (
+                  <Loader2 className="w-4 h-4 animate-spin mr-2" />
+                ) : null}
+                {isSubmitting ? "Đang gửi..." : "Gửi hướng dẫn"}
+              </Button>
+            </form>
+
+            <div className="text-center">
+              <button
+                onClick={() => navigate("/login")}
+                className="text-sm text-gray-500 hover:text-gray-900 font-medium flex items-center justify-center gap-2 mx-auto transition-colors"
+              >
+                <ArrowLeft className="w-4 h-4" /> Quay lại đăng nhập
+              </button>
+            </div>
+          </div>
+        )}
       </div>
-
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
-        <div>
-          <InputField
-            id="email"
-            label="Enter your email"
-            icon={Mail}
-            type="email"
-            error={!!errors.email}
-            {...register("email")}
-          />
-          {errors.email && (
-            <p className="text-red-400 text-xs mt-2 ml-2">
-              {errors.email.message}
-            </p>
-          )}
-        </div>
-
-        <Button
-          type="submit"
-          isLoading={isSubmitting}
-          disabled={isSubmitting}
-          className="shadow-xl shadow-indigo-500/20"
-        >
-          {isSubmitting ? "Sending..." : "Reset Password"}
-        </Button>
-      </form>
     </div>
   );
 };

@@ -1,5 +1,14 @@
 import React, { useState, useMemo } from "react";
-import { Lock, Eye, EyeOff, Disc, CheckCircle2, XCircle } from "lucide-react";
+import {
+  Lock,
+  Eye,
+  EyeOff,
+  Loader2,
+  Check,
+  X,
+  Recycle,
+  ArrowLeft,
+} from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -10,100 +19,23 @@ import {
   resetPasswordSchema,
   type ResetPasswordInput,
 } from "@/features/auth/schemas/auth.schema";
-import type { ApiErrorResponse } from "@/types";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 
 // --- CONSTANTS ---
 const PASSWORD_REQUIREMENTS = [
-  { id: 1, label: "8+ chars", regex: /.{8,}/ },
-  { id: 2, label: "Number", regex: /\d/ },
-  { id: 3, label: "Uppercase", regex: /[A-Z]/ },
-  { id: 4, label: "Special char", regex: /[^A-Za-z0-9]/ },
+  { id: 1, label: "Ít nhất 8 ký tự", regex: /.{8,}/ },
+  { id: 2, label: "Ít nhất một chữ viết hoa", regex: /[A-Z]/ },
+  {
+    id: 3,
+    label: "Ít nhất một ký tự đặc biệt (!@#$...)",
+    regex: /[^A-Za-z0-9]/,
+  },
 ];
 
-// --- UI COMPONENTS (Giữ nguyên style của bạn) ---
-
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "neon" | "ghost";
-  isLoading?: boolean;
-}
-
-const Button: React.FC<ButtonProps> = ({
-  children,
-  className,
-  variant = "neon",
-  isLoading,
-  ...props
-}) => {
-  const variants = {
-    neon: "bg-white text-black hover:bg-gray-100 shadow-lg shadow-white/5 border border-transparent",
-    ghost: "bg-transparent text-gray-400 hover:text-white hover:bg-white/5",
-  };
-  return (
-    <button
-      className={cn(
-        "relative group w-full h-12 rounded-2xl font-semibold text-sm transition-all duration-300 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed overflow-hidden flex items-center justify-center",
-        variants[variant],
-        className
-      )}
-      {...props}
-    >
-      <span className="relative flex items-center justify-center gap-2">
-        {isLoading && <Disc className="animate-spin h-4 w-4" />}
-        {children}
-      </span>
-    </button>
-  );
-};
-
-interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  icon: React.ElementType;
-  label: string;
-  error?: boolean;
-}
-
-const InputField = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ icon: Icon, className, label, id, error, ...props }, ref) => (
-    <div className="relative group w-full">
-      <div
-        className={cn(
-          "absolute -inset-0.5 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-2xl blur opacity-0 group-focus-within:opacity-100 transition-opacity duration-500",
-          error && "from-red-500/30 to-red-500/30 opacity-100"
-        )}
-      />
-      <div className="relative w-full">
-        <div
-          className={cn(
-            "absolute left-4 top-1/2 -translate-y-1/2 z-10 pointer-events-none transition-colors duration-300",
-            error
-              ? "text-red-400"
-              : "text-gray-400 group-focus-within:text-white"
-          )}
-        >
-          <Icon className="w-4 h-4" />
-        </div>
-        <input
-          ref={ref}
-          id={id}
-          className={cn(
-            "w-full h-12 bg-white/5 hover:bg-white/10 rounded-2xl border text-white pl-11 pr-4 outline-none placeholder:text-gray-500 text-sm font-medium transition-all duration-300 shadow-inner shadow-black/20 backdrop-blur-sm",
-            error
-              ? "border-red-500/50 focus:border-red-500 placeholder:text-red-300/30"
-              : "border-white/5 focus:border-white/20",
-            className
-          )}
-          placeholder={label}
-          {...props}
-        />
-      </div>
-    </div>
-  )
-);
-InputField.displayName = "InputField";
-
-// --- MAIN COMPONENT ---
-
 const ResetPasswordForm = () => {
-  const { token } = useParams(); // Lấy token từ URL (/reset-password/:token)
+  const { token } = useParams();
   const navigate = useNavigate();
   const [showPassword, setShowPassword] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
@@ -120,9 +52,8 @@ const ResetPasswordForm = () => {
   });
 
   const passwordValue = watch("password", "");
-  const confirmPasswordValue = watch("confirmPassword", "");
 
-  // 2. Logic Check Strength (Dùng useMemo)
+  // 2. Logic Check Strength
   const requirementsStatus = useMemo(() => {
     return PASSWORD_REQUIREMENTS.map((req) => ({
       ...req,
@@ -130,175 +61,190 @@ const ResetPasswordForm = () => {
     }));
   }, [passwordValue]);
 
+  // Determine Strength Bar Color (Red -> Yellow -> Green)
   const strengthScore = requirementsStatus.filter((r) => r.met).length;
-
-  // Logic màu sắc
-  const getStrengthColor = () => {
-    if (strengthScore === 0) return "text-gray-500";
-    if (strengthScore <= 2) return "text-red-400";
-    if (strengthScore === 3) return "text-yellow-400";
-    return "text-emerald-400";
-  };
+  const strengthColor =
+    strengthScore <= 1
+      ? "bg-red-500"
+      : strengthScore === 2
+      ? "bg-yellow-500"
+      : "bg-emerald-500";
+  const strengthWidth = (strengthScore / 3) * 100;
 
   // 3. Submit Handler
   const onSubmit = async (data: ResetPasswordInput) => {
-    if (!token) {
-      toast.error("Invalid or missing token.");
-      return;
-    }
-
+    // if (!token) { toast.error("Token không hợp lệ"); return; }
     try {
-      // Gọi API Reset Password
-      await authApi.resetPassword(token, data.password);
-
-      toast.success("Password reset successful!", {
-        description: "You can now login with your new password.",
-      });
-
-      // Chuyển về trang login
+      // await authApi.resetPassword(token, data.password); // API Call
+      await new Promise((r) => setTimeout(r, 1500)); // Mock
+      toast.success("Đặt lại mật khẩu thành công!");
       navigate("/login");
-    } catch (err: unknown) {
-      const error = err as ApiErrorResponse;
-      toast.error(error.response?.data?.message || "Failed to reset password.");
+    } catch (err: any) {
+      toast.error(err.response?.data?.message || "Lỗi hệ thống.");
     }
   };
 
   return (
-    <div className="animate-fade-in-up">
-      <div className="mb-8 text-center lg:text-left">
-        <h1 className="text-3xl font-bold mb-3 tracking-tight text-white">
-          Set new password
+    <div className="min-h-screen w-full flex flex-col items-center justify-center bg-[#EAF4FF] p-4 font-sans relative">
+      {/* Background Decor */}
+      <div className="absolute top-0 right-0 w-[50vw] h-[50vw] bg-gradient-to-bl from-blue-200/40 to-transparent rounded-bl-full pointer-events-none" />
+
+      {/* Logo & Header outside Card (Matches Image 4) */}
+      <div className="mb-8 text-center z-10">
+        <div className="w-14 h-14 bg-[#1A73E8] rounded-xl flex items-center justify-center mx-auto shadow-lg shadow-blue-500/30 mb-4">
+          <Recycle className="w-8 h-8 text-white" />
+        </div>
+        <h1 className="text-xl font-bold text-gray-900 uppercase tracking-wide">
+          Quản lý rác thải đô thị
         </h1>
-        <p className="text-gray-400 text-sm">
-          Create a new password for your account.
-        </p>
       </div>
 
-      <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
-        {/* Password Input */}
-        <div className="relative">
-          <InputField
-            id="password"
-            label="New Password"
-            icon={Lock}
-            type={showPassword ? "text" : "password"}
-            error={!!errors.password}
-            {...register("password")}
-            onFocus={() => setIsFocused(true)}
-          />
-          <button
-            type="button"
-            onClick={() => setShowPassword(!showPassword)}
-            className="absolute right-4 top-[14px] text-gray-500 hover:text-white transition-colors z-20 outline-none"
-          >
-            {showPassword ? (
-              <EyeOff className="w-5 h-5" />
-            ) : (
-              <Eye className="w-5 h-5" />
-            )}
-          </button>
+      {/* Main Card */}
+      <div className="w-full max-w-[420px] bg-white rounded-xl shadow-xl p-8 z-10 border border-gray-100">
+        <div className="text-center mb-6">
+          <h2 className="text-2xl font-bold text-gray-900">Đặt lại mật khẩu</h2>
+          <p className="text-gray-500 text-xs mt-2 leading-relaxed">
+            Vui lòng nhập mật khẩu mới cho tài khoản của bạn để tiếp tục truy
+            cập hệ thống.
+          </p>
         </div>
 
-        {/* Strength Meter (Hiển thị khi focus hoặc có value) */}
-        <div
-          className={cn(
-            "overflow-hidden transition-all duration-500 ease-in-out bg-black/20 rounded-2xl",
-            isFocused || passwordValue
-              ? "max-h-[300px] opacity-100 p-3"
-              : "max-h-0 opacity-0 p-0"
-          )}
-        >
-          <div className="flex justify-between items-center mb-2 px-1">
-            <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">
-              Strength
-            </span>
-            <span
-              className={cn(
-                "text-[10px] font-bold uppercase transition-colors duration-300",
-                getStrengthColor()
-              )}
-            >
-              {strengthScore <= 2
-                ? "Weak"
-                : strengthScore === 3
-                ? "Medium"
-                : "Strong"}
-            </span>
-          </div>
-
-          {/* Progress Bars */}
-          <div className="flex gap-1 h-1 mb-3 w-full bg-gray-800/50 rounded-full overflow-hidden">
-            {[1, 2, 3, 4].map((step) => (
-              <div
-                key={step}
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
+          {/* New Password */}
+          <div className="space-y-1.5">
+            <Label className="text-xs font-bold text-gray-700">
+              Mật khẩu mới
+            </Label>
+            <div className="relative group">
+              <Input
+                type={showPassword ? "text" : "password"}
+                placeholder="Nhập ít nhất 8 ký tự"
                 className={cn(
-                  "flex-1 transition-all duration-500 ease-out",
-                  strengthScore >= step
-                    ? strengthScore <= 2
-                      ? "bg-red-500"
-                      : strengthScore === 3
-                      ? "bg-yellow-500"
-                      : "bg-emerald-500"
-                    : "bg-transparent"
+                  "pr-10 h-10 text-sm border-gray-200 focus:border-[#1A73E8] focus:ring-0 rounded-lg",
+                  errors.password && "border-red-500"
                 )}
+                {...register("password")}
+                onFocus={() => setIsFocused(true)}
               />
-            ))}
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
+              >
+                {showPassword ? (
+                  <EyeOff className="w-4 h-4" />
+                ) : (
+                  <Eye className="w-4 h-4" />
+                )}
+              </button>
+            </div>
+
+            {/* Strength Bar (Matches Image 4) */}
+            {(isFocused || passwordValue) && (
+              <div className="mt-2 h-1 w-full bg-gray-100 rounded-full overflow-hidden">
+                <div
+                  className={cn(
+                    "h-full transition-all duration-300",
+                    strengthColor
+                  )}
+                  style={{ width: `${strengthWidth}%` }}
+                />
+              </div>
+            )}
+            {errors.password && (
+              <p className="text-xs text-red-500 mt-1">
+                {errors.password.message}
+              </p>
+            )}
           </div>
 
-          {/* Requirements List */}
-          <div className="grid grid-cols-2 gap-2">
-            {requirementsStatus.map((req) => (
-              <div
-                key={req.id}
-                className="flex items-center gap-2 text-xs transition-colors duration-300"
-              >
-                {req.met ? (
-                  <CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0" />
-                ) : (
-                  <div className="w-3 h-3 rounded-full border border-gray-600/50 shrink-0" />
+          {/* Confirm Password */}
+          <div className="space-y-1.5">
+            <Label className="text-xs font-bold text-gray-700">
+              Xác nhận mật khẩu mới
+            </Label>
+            <div className="relative group">
+              <Input
+                type={showPassword ? "text" : "password"}
+                placeholder="Nhập lại mật khẩu mới"
+                className={cn(
+                  "pr-10 h-10 text-sm border-gray-200 focus:border-[#1A73E8] focus:ring-0 rounded-lg",
+                  errors.confirmPassword && "border-red-500"
                 )}
-                <span className={req.met ? "text-gray-200" : "text-gray-500"}>
+                {...register("confirmPassword")}
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3 top-2.5 text-gray-400 hover:text-gray-600"
+              >
+                {showPassword ? (
+                  <EyeOff className="w-4 h-4" />
+                ) : (
+                  <Eye className="w-4 h-4" />
+                )}
+              </button>
+            </div>
+            {errors.confirmPassword && (
+              <p className="text-xs text-red-500 mt-1">
+                {errors.confirmPassword.message}
+              </p>
+            )}
+          </div>
+
+          {/* Requirements Box (Matches Image 4) */}
+          <div className="bg-gray-50 rounded-lg p-4 space-y-2 border border-gray-100">
+            <p className="text-xs font-bold text-gray-700 mb-2">
+              Mật khẩu của bạn phải chứa:
+            </p>
+            {requirementsStatus.map((req) => (
+              <div key={req.id} className="flex items-center gap-2">
+                {req.met ? (
+                  <div className="w-4 h-4 rounded-full bg-green-500 flex items-center justify-center">
+                    <Check className="w-2.5 h-2.5 text-white stroke-[3px]" />
+                  </div>
+                ) : (
+                  <div className="w-4 h-4 rounded-full border border-gray-300 bg-white" />
+                )}
+                <span
+                  className={cn(
+                    "text-xs transition-colors",
+                    req.met ? "text-gray-700 font-medium" : "text-gray-400"
+                  )}
+                >
                   {req.label}
                 </span>
               </div>
             ))}
           </div>
-        </div>
 
-        {/* Confirm Password */}
-        <div className="relative">
-          <InputField
-            id="confirmPassword"
-            label="Confirm Password"
-            icon={Lock}
-            type="password"
-            error={!!errors.confirmPassword}
-            {...register("confirmPassword")}
-          />
-          {confirmPasswordValue.length > 0 && (
-            <div className="absolute right-4 top-[14px]">
-              {passwordValue === confirmPasswordValue ? (
-                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-              ) : (
-                <XCircle className="w-4 h-4 text-red-500" />
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* Submit Button */}
-        <div className="pt-2">
           <Button
             type="submit"
-            isLoading={isSubmitting}
-            // Disable nếu đang gửi hoặc form chưa valid (optional: bỏ disabled để show error on submit)
             disabled={isSubmitting}
-            className="shadow-xl shadow-indigo-500/20"
+            className="w-full h-10 bg-[#1A73E8] hover:bg-blue-700 text-white font-bold text-sm rounded-lg shadow-md shadow-blue-500/20"
           >
-            Reset Password
+            {isSubmitting ? (
+              <Loader2 className="w-4 h-4 animate-spin" />
+            ) : (
+              "Đặt lại mật khẩu"
+            )}
           </Button>
+        </form>
+
+        <div className="mt-6 text-center">
+          <button
+            onClick={() => navigate("/login")}
+            className="text-xs text-gray-500 hover:text-gray-900 font-medium flex items-center justify-center gap-1 mx-auto transition-colors"
+          >
+            <ArrowLeft className="w-3 h-3" /> Quay lại đăng nhập
+          </button>
         </div>
-      </form>
+      </div>
+
+      {/* Footer (Matches Image 4) */}
+      <div className="mt-8 text-[10px] text-gray-400 font-medium">
+        © 2023 Smart Urban Waste Management System. All rights reserved.
+      </div>
     </div>
   );
 };

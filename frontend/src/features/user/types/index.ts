@@ -23,7 +23,7 @@ export interface UserProfile {
   fullName: string;
   username: string;
   email: string;
-  role: "user" | "artist" | "admin";
+  role: "ADMIN" | "MANAGER" | "STAFF" | "CITIZEN" | "ORGANIZATION";
   avatar?: string;
   bio?: string;
   isActive: boolean;

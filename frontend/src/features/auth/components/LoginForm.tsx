@@ -1,400 +1,252 @@
 import React from "react";
-import {
-  Mail,
-  Lock,
-  Eye,
-  EyeOff,
-  Github,
-  Chrome,
-  Check,
-  Disc,
-  AlertCircle,
-  Play,
-} from "lucide-react";
-import { cn } from "@/lib/utils";
 import { Link } from "react-router-dom";
-
-// Import Hook vừa tạo
+import { Recycle, Eye, EyeOff, User, Facebook, Chrome } from "lucide-react";
 import { useLogin } from "../hooks/useLogin";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 
-// --- UI COMPONENTS (Giữ nguyên style của bạn) ---
-
-const AnimatedBackground = () => (
-  <div className="absolute inset-0 z-0 overflow-hidden bg-[#08080a]">
-    <div className="absolute top-[-10%] right-[-10%] w-[40vw] h-[40vw] bg-indigo-500/10 rounded-full blur-[100px] animate-blob mix-blend-screen" />
-    <div className="absolute bottom-[-10%] left-[-10%] w-[40vw] h-[40vw] bg-purple-500/10 rounded-full blur-[100px] animate-blob animation-delay-2000 mix-blend-screen" />
-    <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 brightness-100 contrast-150"></div>
-  </div>
-);
-
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "neon" | "outline" | "ghost";
-  isLoading?: boolean;
-}
-
-const Button: React.FC<ButtonProps> = ({
-  children,
-  className,
-  variant = "neon",
-  isLoading,
-  ...props
-}) => {
-  const baseStyles =
-    "relative group w-full h-12 rounded-2xl font-semibold text-sm transition-all duration-300 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed overflow-hidden flex items-center justify-center";
-  const variants = {
-    neon: "bg-white text-black hover:bg-gray-100 shadow-lg shadow-white/5 border border-transparent",
-    outline:
-      "bg-transparent border border-white/10 text-gray-300 hover:text-white hover:bg-white/5 hover:border-white/20",
-    ghost: "bg-transparent text-gray-400 hover:text-white",
-  };
-  return (
-    <button className={cn(baseStyles, variants[variant], className)} {...props}>
-      <span className="relative flex items-center justify-center gap-2">
-        {isLoading && <Disc className="animate-spin h-4 w-4" />}
-        {children}
-      </span>
-    </button>
-  );
-};
-
-const Checkbox: React.FC<{
-  id: string;
-  label: string;
-  checked: boolean;
-  onChange: (checked: boolean) => void;
-}> = ({ id, label, checked, onChange }) => (
-  <div className="flex items-center gap-2.5">
-    <button
-      type="button"
-      id={id}
-      onClick={() => onChange(!checked)}
-      className={cn(
-        "w-5 h-5 rounded-lg border flex items-center justify-center transition-all duration-200 shrink-0",
-        checked
-          ? "bg-indigo-500 border-indigo-500 text-white shadow-[0_0_10px_rgba(99,102,241,0.5)]"
-          : "border-white/10 bg-white/5 hover:border-white/30"
-      )}
-    >
-      {checked && <Check className="w-3.5 h-3.5" strokeWidth={3} />}
-    </button>
-    <label
-      htmlFor={id}
-      className="text-sm text-gray-400 select-none cursor-pointer hover:text-gray-300 transition-colors"
-      onClick={() => onChange(!checked)}
-    >
-      {label}
-    </label>
-  </div>
-);
-
-// Input Field (ForwardRef)
-interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  icon: React.ElementType;
-  error?: boolean;
-}
-
-const InputField = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ icon: Icon, className, error, ...props }, ref) => (
-    <div className="relative group w-full">
-      <div
-        className={cn(
-          "absolute -inset-0.5 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-2xl blur opacity-0 group-focus-within:opacity-100 transition-opacity duration-500",
-          error && "from-red-500/30 to-red-500/30 opacity-100"
-        )}
-      />
-      <div className="relative w-full">
-        <div
-          className={cn(
-            "absolute left-4 top-1/2 -translate-y-1/2 z-10 pointer-events-none transition-colors duration-300",
-            error
-              ? "text-red-400"
-              : "text-gray-400 group-focus-within:text-white"
-          )}
-        >
-          <Icon className="w-4 h-4" />
-        </div>
-        <input
-          ref={ref}
-          className={cn(
-            "w-full h-12 bg-white/5 hover:bg-white/10 rounded-2xl border pl-11 pr-4 outline-none placeholder:text-gray-500 text-sm font-medium transition-all duration-300 shadow-inner shadow-black/20 backdrop-blur-sm",
-            error
-              ? "border-red-500/50 focus:border-red-500 text-red-100 placeholder:text-red-300/30"
-              : "border-white/5 focus:border-white/20 text-white",
-            className
-          )}
-          {...props}
-        />
-        {error && (
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 text-red-500 animate-in fade-in zoom-in duration-300">
-            <AlertCircle className="w-4 h-4" />
-          </div>
-        )}
-      </div>
-    </div>
-  )
-);
-InputField.displayName = "InputField";
-
-const MusicBars: React.FC = () => (
-  <div className="flex items-end gap-0.5 h-4 mb-1">
-    {[0, 200, 100, 300].map((delay, i) => (
-      <div
-        key={i}
-        className="w-1 bg-indigo-400 rounded-t-sm animate-[music-bar_1.2s_ease-in-out_infinite]"
-        style={{ animationDelay: `${delay}ms` }}
-      />
-    ))}
-  </div>
-);
-
-// ============================================================================
-// MAIN COMPONENT (Sạch sẽ nhờ Custom Hook)
-// ============================================================================
-
-export default function LoginForm() {
-  // 1. Gọi Hook
+const LoginForm = () => {
   const { form, onSubmit, showPassword, toggleShowPassword } = useLogin();
 
-  // Destructuring các giá trị cần dùng từ form
   const {
     register,
-    setValue,
-    watch,
     formState: { errors, isSubmitting },
   } = form;
 
-  // Watch giá trị checkbox
-  const rememberMe = watch("rememberMe");
-
   return (
-    <>
-      <style>{`
-        @keyframes music-bar { 0%, 100% { height: 20%; opacity: 0.5; } 50% { height: 100%; opacity: 1; } }
-        @keyframes spin-slow { from { transform: rotate(0deg); } to { transform: rotate(360deg); } }
-        @keyframes blob { 0% { transform: translate(0px, 0px) scale(1); } 33% { transform: translate(30px, -50px) scale(1.1); } 66% { transform: translate(-20px, 20px) scale(0.9); } 100% { transform: translate(0px, 0px) scale(1); } }
-        @keyframes progress { 0% { width: 0%; } 100% { width: 100%; } }
-        .animate-spin-slow { animation: spin-slow 8s linear infinite; }
-        .animate-blob { animation: blob 10s infinite; }
-        .animate-progress { animation: progress 30s linear infinite; }
-        .animate-fade-in-up { animation: fadeInUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
-        input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:focus, input:-webkit-autofill:active { -webkit-text-fill-color: white !important; -webkit-box-shadow: 0 0 0 0 transparent inset !important; transition: background-color 9999s ease-in-out 0s; }
-      `}</style>
+    <div className="flex min-h-screen w-full bg-white font-sans">
+      {/* ========================================================
+          LEFT SIDE: BLUE BANNER
+          ======================================================== */}
+      <div className="hidden w-1/2 lg:flex flex-col justify-between p-12 text-white relative overflow-hidden">
+        {/* 1. BACKGROUND IMAGE (Từ public/login.img) */}
+        <div
+          className="absolute inset-0 z-0"
+          style={{
+            // Lưu ý: Đảm bảo file ảnh nằm đúng tại public/login.img (hoặc .jpg/.png)
+            backgroundImage:
+              "url('https://www.invert.vn/media/uploads/uploads/11184444-ecopark-nhon-trach-min.jpg')",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
+        />
 
-      <div className="min-h-screen w-full flex bg-[#09090b] text-white font-sans selection:bg-indigo-500/30 overflow-hidden">
-        {/* --- LEFT COLUMN: Visuals (Giữ nguyên) --- */}
-        <div className="hidden lg:flex w-1/2 relative flex-col justify-between p-12 overflow-hidden border-r border-[#27272a]/50 bg-black/40 backdrop-blur-sm z-10">
-          <div className="absolute inset-0 z-0">
-            <img
-              src="https://images.unsplash.com/photo-1614613535308-eb5fbd3d2c17?q=80&w=2070&auto=format&fit=crop"
-              alt="Music Background"
-              className="w-full h-full object-cover opacity-50 transition-transform duration-[40s] hover:scale-110 ease-linear"
-            />
-            <div className="absolute inset-0 bg-gradient-to-t from-[#09090b] via-[#09090b]/40 to-transparent" />
-            <div className="absolute inset-0 bg-[#09090b]/20" />
-          </div>
+        {/* 2. BLUE OVERLAY (Lớp phủ màu xanh để text rõ ràng) */}
+        {/* mix-blend-multiply giúp màu xanh hòa vào ảnh nền tạo chiều sâu */}
+        <div className="absolute inset-0 bg-[#0F4C81]/90 z-0 mix-blend-multiply" />
 
-          <div className="relative z-10 flex items-center gap-3">
-            <div className="h-10 w-10 rounded-full bg-white text-black flex items-center justify-center font-bold text-lg shadow-[0_0_20px_rgba(255,255,255,0.3)]">
-              M
+        {/* 3. GRID PATTERN (Tùy chọn: Thêm họa tiết lưới mờ nếu ảnh nền chưa có) */}
+        <div className="absolute inset-0 z-0 opacity-20 bg-[linear-gradient(rgba(255,255,255,0.1)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.1)_1px,transparent_1px)] bg-[size:40px_40px]" />
+
+        {/* --- CONTENT (z-10 để nổi lên trên nền) --- */}
+        <div className="relative z-10">
+          {/* Logo Section */}
+          <div className="flex items-center gap-3 mb-16 opacity-95">
+            <div className="bg-white/10 p-2 rounded-lg backdrop-blur-sm border border-white/10">
+              <Recycle className="h-6 w-6 text-white" />
             </div>
-            <span className="text-2xl font-bold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-white to-gray-400">
-              MusicHub
+            <span className="font-bold tracking-widest text-sm uppercase">
+              Ecomanage City
             </span>
           </div>
 
-          <div className="relative z-10 max-w-lg">
-            <div className="mb-8 space-y-4">
-              <h1 className="text-6xl font-extrabold leading-none tracking-tight text-white drop-shadow-2xl">
-                Midnight <br />
-                <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 via-purple-400 to-pink-400">
-                  Echoes
-                </span>
-              </h1>
-            </div>
+          {/* Big Typography */}
+          <h1 className="text-5xl text-background font-extrabold leading-[1.15] tracking-tight mb-8">
+            Hệ thống Quản lý <br />
+            Rác thải Đô thị <br />
+            Thông minh
+          </h1>
 
-            <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-2xl p-0 overflow-hidden shadow-2xl hover:shadow-indigo-500/20 transition-shadow duration-500 group">
-              <div className="p-5 flex items-center gap-5">
-                <div className="relative h-20 w-20 shrink-0">
-                  <div className="absolute inset-0 rounded-full bg-black shadow-lg animate-spin-slow border-2 border-gray-800 flex items-center justify-center overflow-hidden">
-                    <div className="absolute inset-0 rounded-full border border-gray-800/50 m-1"></div>
-                    <div className="w-8 h-8 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600"></div>
-                  </div>
-                  <div className="absolute inset-0 flex items-center justify-center z-10">
-                    <div className="bg-white/90 rounded-full p-1 shadow-md opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer">
-                      <Play className="h-4 w-4 text-black fill-current ml-0.5" />
-                    </div>
-                  </div>
-                </div>
-                <div className="flex-1 min-w-0">
-                  <div className="flex justify-between items-start">
-                    <div>
-                      <h3 className="font-bold text-lg text-white truncate">
-                        Aurora Dreams
-                      </h3>
-                      <div className="flex items-center gap-2 mt-1">
-                        <MusicBars />
-                        <p className="text-sm text-indigo-300 font-medium">
-                          Now Playing
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-xs text-gray-400 font-mono mt-1">
-                      3:42
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div className="h-1 w-full bg-white/10">
-                <div className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 animate-progress w-1/3 shadow-[0_0_10px_rgba(99,102,241,0.5)]"></div>
-              </div>
-            </div>
-          </div>
-
-          <div className="relative z-10 text-xs font-medium text-gray-500/80 uppercase tracking-widest">
-            © 2024 MusicHub Inc.
-          </div>
+          {/* Subtitle */}
+          <p className="text-lg text-blue-100/90 max-w-md font-medium leading-relaxed">
+            Smart Solutions for a Cleaner City. Giám sát thời gian thực, tối ưu
+            hóa lộ trình và kết nối cộng đồng vì một môi trường xanh.
+          </p>
         </div>
 
-        {/* --- RIGHT COLUMN: Login Form --- */}
-        <div className="w-full lg:w-1/2 relative flex items-center justify-center overflow-hidden">
-          <AnimatedBackground />
+        {/* Footer Text */}
+        <div className="relative z-10 text-xs text-blue-200/70 font-medium tracking-wide">
+          © 2023 Smart Urban Waste Management System
+        </div>
+      </div>
 
-          <div className="relative z-10 w-full max-w-[480px] p-6 sm:p-12">
-            <div className="animate-fade-in-up">
-              {/* Header */}
-              <div className="mb-8 text-center lg:text-left">
-                <div className="lg:hidden flex items-center justify-center gap-2 mb-4">
-                  <div className="h-8 w-8 rounded-full bg-white text-black flex items-center justify-center font-bold">
-                    M
-                  </div>
-                  <span className="text-xl font-bold">MusicHub</span>
-                </div>
-                <h1 className="text-4xl font-bold mb-2 tracking-tight">
-                  Welcome Back.
-                </h1>
-                <p className="text-gray-400 text-sm">
-                  Sign in to continue your journey.
-                </p>
+      {/* ========================================================
+          RIGHT SIDE: LOGIN FORM
+          ======================================================== */}
+      <div className="flex w-full items-center justify-center p-8 lg:w-1/2 bg-white">
+        <div className="mx-auto w-full max-w-[400px] space-y-8">
+          {/* Header Form */}
+          <div className="space-y-2">
+            <h2 className="text-3xl font-bold tracking-tight text-[#1a1a1a]">
+              Chào mừng trở lại
+            </h2>
+            <p className="text-muted-foreground text-gray-500 text-sm">
+              Vui lòng nhập thông tin đăng nhập để truy cập hệ thống quản lý.
+            </p>
+          </div>
+
+          {/* Form Inputs */}
+          <form onSubmit={onSubmit} className="space-y-5">
+            {/* Username / Email */}
+            <div className="space-y-2">
+              <Label
+                htmlFor="email"
+                className="text-sm font-semibold text-gray-700"
+              >
+                Tên đăng nhập
+              </Label>
+              <div className="relative group">
+                <Input
+                  id="email"
+                  placeholder="example@city.gov.vn"
+                  className={`h-11 bg-gray-50/50 pr-10 border-gray-200 focus:bg-white focus:border-blue-500 transition-all ${
+                    errors.email
+                      ? "border-red-500 ring-1 ring-red-500 bg-red-50/10"
+                      : ""
+                  }`}
+                  disabled={isSubmitting}
+                  {...register("email")}
+                />
+                <User className="absolute right-3 top-3 h-5 w-5 text-gray-400 group-focus-within:text-blue-500 transition-colors" />
               </div>
+              {errors.email && (
+                <span className="text-xs text-red-500 font-medium ml-1">
+                  {errors.email.message}
+                </span>
+              )}
+            </div>
 
-              {/* FORM CHÍNH */}
-              <form onSubmit={onSubmit} className="space-y-4">
-                {/* Email */}
-                <div>
-                  <InputField
-                    icon={Mail}
-                    type="email"
-                    placeholder="Email Address"
-                    error={!!errors.email}
-                    {...register("email")}
-                  />
-                  {errors.email && (
-                    <p className="text-red-400 text-xs mt-1 ml-2">
-                      {errors.email.message}
-                    </p>
-                  )}
-                </div>
-
-                {/* Password */}
-                <div className="space-y-4">
-                  <div className="relative">
-                    <InputField
-                      icon={Lock}
-                      type={showPassword ? "text" : "password"}
-                      placeholder="Password"
-                      error={!!errors.password}
-                      {...register("password")}
-                    />
-                    <button
-                      type="button"
-                      onClick={toggleShowPassword}
-                      className="absolute right-4 top-3.5 text-gray-500 hover:text-white transition-colors z-20"
-                    >
-                      {showPassword ? (
-                        <EyeOff className="w-4 h-4 cursor-pointer" />
-                      ) : (
-                        <Eye className="w-4 h-4 cursor-pointer" />
-                      )}
-                    </button>
-                  </div>
-                  {errors.password && (
-                    <p className="text-red-400 text-xs mt-1 ml-2">
-                      {errors.password.message}
-                    </p>
-                  )}
-
-                  {/* Remember & Forgot */}
-                  <div className="flex items-center justify-between pt-1">
-                    <Checkbox
-                      id="remember"
-                      label="Remember me"
-                      checked={!!rememberMe}
-                      onChange={(checked) => setValue("rememberMe", checked)}
-                    />
-                    <Link
-                      to="/forgot-password"
-                      className="text-xs font-medium text-gray-400 hover:text-white transition-colors"
-                    >
-                      Forgot password?
-                    </Link>
-                  </div>
-                </div>
-
-                {/* Submit Button */}
-                <div className="pt-4 ">
-                  <Button
-                    type="submit"
-                    isLoading={isSubmitting}
-                    disabled={isSubmitting}
-                    className="cursor-pointer"
-                  >
-                    {isSubmitting ? "Signing In..." : "Sign In"}
-                  </Button>
-                </div>
-              </form>
-
-              {/* Social Login */}
-              <div className="relative my-8">
-                <div className="absolute inset-0 flex items-center">
-                  <span className="w-full border-t border-white/10" />
-                </div>
-                <div className="relative flex justify-center text-xs uppercase tracking-widest">
-                  <span className="bg-[#09090b]/50 backdrop-blur-md px-3 text-gray-500 font-medium rounded-full">
-                    Or continue with
-                  </span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-4">
-                <Button variant="outline" className="w-full">
-                  <Github className="mr-2 h-4 w-4" /> Github
-                </Button>
-                <Link
-                  to={`${import.meta.env.VITE_API_URL}/auth/google`}
-                  className="w-full"
+            {/* Password */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <Label
+                  htmlFor="password"
+                  className="text-sm font-semibold text-gray-700"
                 >
-                  <Button variant="outline" className="w-full cursor-pointer">
-                    <Chrome className="mr-2 h-4 w-4" /> Google
-                  </Button>
+                  Mật khẩu
+                </Label>
+                <Link
+                  to="/forgot-password"
+                  className="text-xs font-semibold text-[#1A73E8] hover:text-blue-700 hover:underline"
+                >
+                  Quên mật khẩu?
                 </Link>
               </div>
-
-              <div className="mt-8 text-center text-sm">
-                <p className="text-gray-500">
-                  Don't have an account?{" "}
-                  <Link
-                    to="/register"
-                    className="text-white font-semibold hover:underline decoration-indigo-500 underline-offset-4 transition-all ml-1"
-                  >
-                    Sign up
-                  </Link>
-                </p>
+              <div className="relative group">
+                <Input
+                  id="password"
+                  type={showPassword ? "text" : "password"}
+                  placeholder="••••••••"
+                  className={`h-11 bg-gray-50/50 pr-10 border-gray-200 focus:bg-white focus:border-blue-500 transition-all ${
+                    errors.password
+                      ? "border-red-500 ring-1 ring-red-500 bg-red-50/10"
+                      : ""
+                  }`}
+                  disabled={isSubmitting}
+                  {...register("password")}
+                />
+                <button
+                  type="button"
+                  onClick={toggleShowPassword}
+                  className="absolute right-3 top-3 text-gray-400 hover:text-gray-600 focus:outline-none"
+                >
+                  {showPassword ? (
+                    <EyeOff className="h-5 w-5" />
+                  ) : (
+                    <Eye className="h-5 w-5" />
+                  )}
+                </button>
               </div>
+              {errors.password && (
+                <span className="text-xs text-red-500 font-medium ml-1">
+                  {errors.password.message}
+                </span>
+              )}
+            </div>
+
+            {/* Global Error Message */}
+            {errors.root && (
+              <div className="p-3 rounded-md bg-red-50 text-red-600 text-sm font-medium text-center border border-red-100 animate-in fade-in slide-in-from-top-1">
+                {errors.root.message}
+              </div>
+            )}
+
+            {/* Submit Button */}
+            <Button
+              type="submit"
+              className="w-full h-11 text-[15px] font-semibold bg-[#1A73E8] hover:bg-blue-700 shadow-lg shadow-blue-500/20 active:scale-[0.98] transition-all"
+              disabled={isSubmitting}
+            >
+              {isSubmitting ? (
+                <span className="flex items-center gap-2">
+                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                  Đang xử lý...
+                </span>
+              ) : (
+                "Đăng nhập"
+              )}
+            </Button>
+          </form>
+
+          {/* Social Divider */}
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t border-gray-200" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-white px-4 text-gray-400 font-medium tracking-wide">
+                Hoặc
+              </span>
+            </div>
+          </div>
+
+          {/* Social Buttons */}
+          <div className="grid grid-cols-2 gap-4">
+            <Button
+              variant="outline"
+              type="button"
+              className="h-11 font-medium text-gray-700 border-gray-200 hover:bg-gray-50 hover:text-black transition-colors"
+            >
+              <Chrome className="mr-2 h-4 w-4 text-red-500" /> Google
+            </Button>
+            <Button
+              variant="outline"
+              type="button"
+              className="h-11 font-medium text-gray-700 border-gray-200 hover:bg-gray-50 hover:text-black transition-colors"
+            >
+              <Facebook className="mr-2 h-4 w-4 text-[#1877F2]" /> Facebook
+            </Button>
+          </div>
+
+          {/* Footer Links */}
+          <div className="flex flex-col items-center gap-5 pt-2">
+            <div className="text-sm text-gray-500">
+              Bạn chưa có tài khoản?{" "}
+              <Link
+                to="/register"
+                className="font-semibold text-[#1A73E8] hover:underline"
+              >
+                Đăng ký tài khoản
+              </Link>
+            </div>
+
+            <div className="flex gap-6 text-[11px] text-gray-400 font-medium uppercase tracking-wide">
+              <Link to="#" className="hover:text-gray-600 transition-colors">
+                Điều khoản sử dụng
+              </Link>
+              <Link to="#" className="hover:text-gray-600 transition-colors">
+                Chính sách bảo mật
+              </Link>
+              <Link to="#" className="hover:text-gray-600 transition-colors">
+                Hỗ trợ kỹ thuật
+              </Link>
             </div>
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
-}
+};
+
+export default LoginForm;
