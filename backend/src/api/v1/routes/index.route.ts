@@ -7,10 +7,11 @@ import collectionScheduleRoute from "./collectionSchedule.route";
 import vehicleRoute from "./vehicle.route";
 import reportRoute from "./citizenReport.route";
 import authRoute from "./auth.route";
+import { requireAuth, requireRole } from "@/middleware/auth.middle.ware"
 
 const clientRoute = (app: Application) => {
   const path = "/api";
-  app.use(path + "/users", userRoute);
+  app.use(path + "/users", requireAuth , requireRole("admin") , userRoute);
   app.use(path + "/bins", binRoute);
   app.use(path + "/collection-points", collectionPointRoute);
   app.use(path + "/areas", areaRoute);
@@ -18,6 +19,6 @@ const clientRoute = (app: Application) => {
   app.use(path + "/vehicles", vehicleRoute);
   app.use(path + "/citizen-reports", reportRoute);
   app.use(path + "/auth", authRoute);
-};
+};  
 
 export default clientRoute;
