@@ -49,11 +49,12 @@ export const MANAGER_PATHS = {
   // Quản lý sự cố
   ALERTS: "alerts", // Cảnh báo từ cảm biến (Đầy, Hỏng)
   REPORTS: "reports", // Phản ánh từ người dân
-
+  FEEDBACK: "feedback", // Phản hồi từ nhân viên
+  SCHEDULE: "schedule", // Lịch trình thu gom
   // Điều phối
   TASKS: "tasks", // Lịch thu gom
   ROUTES: "routes", // Tối ưu lộ trình
-
+  REPORT: "reports",
   // Báo cáo
   REPORT_STAFF: "reports/staff-performance",
   REPORT_WASTE: "reports/waste-volume",

@@ -2,7 +2,7 @@ import { createRoot } from "react-dom/client";
 import React from "react";
 import { RouterProvider } from "react-router-dom";
 import { Provider } from "react-redux";
-import 'leaflet/dist/leaflet.css';
+import "leaflet/dist/leaflet.css";
 
 import "@/index.css";
 

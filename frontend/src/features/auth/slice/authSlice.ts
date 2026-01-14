@@ -13,7 +13,17 @@ import { UserProfile } from "@/features/user";
 // =================================================================
 const initialState: AuthState<UserProfile> = {
   token: null,
-  user: null,
+  user: {
+    role: "MANAGER",
+    _id: "",
+    fullName: "",
+    username: "",
+    email: "",
+    isActive: true,
+    isVerified: true,
+    mustChangePassword: false,
+    createdAt: "",
+  }, // Khởi tạo để tránh lỗi null
   isAuthChecking: true,
 };
 

@@ -1,7 +1,7 @@
-import React, { use, useMemo } from "react";
+import React, { useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { useTheme } from "next-themes";
-import { useAppSelector } from "@/store/store"; // Import Redux hook
+// import { useTheme } from "next-themes"; // Nếu bạn chưa dùng theme toggle ở đây thì có thể comment
+import { useAppSelector } from "@/store/store";
 import {
   ADMIN_PATHS,
   MANAGER_PATHS,
@@ -13,14 +13,13 @@ import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   LayoutDashboard,
-  Map,
+  Map as MapIcon, // Đổi tên để tránh trùng với Map constructor
   Users,
   FileWarning,
   Settings,
   Recycle,
   ChevronLeft,
   ChevronRight,
-  LogOut,
   ListTodo,
   History,
   Home,
@@ -29,72 +28,114 @@ import {
   Trash2,
   Truck,
   BarChart3,
+  CalendarDays,
+  MessageSquare,
 } from "lucide-react";
 
 // --- 1. MENU CONFIGURATIONS PER ROLE ---
 
 const adminSidebarItems = [
   {
-    title: "Overview",
+    title: "Tổng quan",
     items: [
-      { label: "Tổng quan", path: ADMIN_PATHS.ROOT, icon: LayoutDashboard },
+      { label: "Dashboard", path: ADMIN_PATHS.ROOT, icon: LayoutDashboard },
       {
-        label: "Thống kê",
-        path: `${ADMIN_PATHS.ROOT}/analytics`,
+        label: "Thống kê & Báo cáo",
+        path: `${ADMIN_PATHS.ROOT}/${ADMIN_PATHS.ANALYTICS}`,
         icon: BarChart3,
       },
     ],
   },
   {
-    title: "Management",
+    title: "Quản lý hệ thống",
     items: [
-      { label: "Khu vực", path: ADMIN_PATHS.AREAS, icon: Map },
-      { label: "Thùng rác", path: ADMIN_PATHS.BINS, icon: Trash2 },
-      { label: "Nhân viên", path: ADMIN_PATHS.USERS, icon: Users },
       {
-        label: "Xe thu gom",
-        path: `${ADMIN_PATHS.ROOT}/vehicles`,
+        label: "Khu vực",
+        path: `${ADMIN_PATHS.ROOT}/${ADMIN_PATHS.AREAS}`,
+        icon: MapIcon,
+      },
+      {
+        label: "Thiết bị (Thùng rác)",
+        path: `${ADMIN_PATHS.ROOT}/${ADMIN_PATHS.BINS}`,
+        icon: Trash2,
+      },
+      {
+        label: "Phương tiện",
+        path: `${ADMIN_PATHS.ROOT}/${ADMIN_PATHS.VEHICLES}`,
         icon: Truck,
+      },
+      {
+        label: "Người dùng",
+        path: `${ADMIN_PATHS.ROOT}/${ADMIN_PATHS.USERS}`,
+        icon: Users,
       },
     ],
   },
   {
-    title: "System",
-    items: [{ label: "Cài đặt", path: ADMIN_PATHS.SETTINGS, icon: Settings }],
+    title: "Cấu hình",
+    items: [
+      {
+        label: "Cài đặt chung",
+        path: `${ADMIN_PATHS.ROOT}/${ADMIN_PATHS.SETTINGS}`,
+        icon: Settings,
+      },
+    ],
   },
 ];
 
 const managerSidebarItems = [
   {
-    title: "Operation",
+    title: "Vận hành",
     items: [
-      { label: "Tổng quan", path: MANAGER_PATHS.ROOT, icon: LayoutDashboard },
-      { label: "Giám sát bản đồ", path: MANAGER_PATHS.MAP_MONITOR, icon: Map },
-      { label: "Lịch thu gom", path: MANAGER_PATHS.TASKS, icon: ListTodo },
+      {
+        label: "Bản đồ giám sát",
+        path: `${MANAGER_PATHS.ROOT}/${MANAGER_PATHS.MAP_MONITOR}`,
+        icon: MapIcon,
+      },
+      {
+        label: "Lịch thu gom",
+        path: `${MANAGER_PATHS.ROOT}/${MANAGER_PATHS.SCHEDULE}`,
+        icon: CalendarDays,
+      },
+      {
+        label: "Nhiệm vụ thu gom",
+        path: `${MANAGER_PATHS.ROOT}/${MANAGER_PATHS.TASKS}`,
+        icon: CalendarDays,
+      },
+
+      {
+        label: "Phân công",
+        path: `${MANAGER_PATHS.ROOT}/assignments`,
+        icon: ListTodo,
+      }, // Giả sử có path này
     ],
   },
   {
-    title: "Issues",
+    title: "Sự cố & Phản ánh",
     items: [
       {
-        label: "Cảnh báo & Sự cố",
-        path: MANAGER_PATHS.ALERTS,
+        label: "Cảnh báo thiết bị",
+        path: `${MANAGER_PATHS.ROOT}/${MANAGER_PATHS.ALERTS}`,
         icon: FileWarning,
       },
-      { label: "Báo cáo người dân", path: MANAGER_PATHS.REPORTS, icon: Users },
+      {
+        label: "Phản ánh cư dân",
+        path: `${MANAGER_PATHS.ROOT}/${MANAGER_PATHS.FEEDBACK}`,
+        icon: MessageSquare,
+      },
     ],
   },
   {
-    title: "Report",
+    title: "Báo cáo",
     items: [
       {
-        label: "Hiệu suất nhân viên",
-        path: MANAGER_PATHS.REPORT_STAFF,
-        icon: BarChart3,
+        label: "Báo cáo tổng thể",
+        path: `${MANAGER_PATHS.ROOT}/${MANAGER_PATHS.REPORT}`,
+        icon: Users,
       },
       {
-        label: "Lượng rác thải",
-        path: MANAGER_PATHS.REPORT_WASTE,
+        label: "Khối lượng rác",
+        path: `${MANAGER_PATHS.ROOT}/${MANAGER_PATHS.REPORT_WASTE}`,
         icon: Trash2,
       },
     ],
@@ -103,18 +144,22 @@ const managerSidebarItems = [
 
 const staffSidebarItems = [
   {
-    title: "Work",
+    title: "Công việc",
     items: [
-      { label: "Nhiệm vụ hôm nay", path: STAFF_PATHS.ROOT, icon: ListTodo },
       {
-        label: "Tuyến đường",
+        label: "Nhiệm vụ hôm nay",
+        path: `${STAFF_PATHS.ROOT}/${STAFF_PATHS.TASKS}`,
+        icon: ListTodo,
+      }, // Sửa lại path cho đúng với router
+      {
+        label: "Bản đồ lộ trình",
         path: `${STAFF_PATHS.ROOT}/${STAFF_PATHS.MY_ROUTE}`,
-        icon: Map,
+        icon: MapIcon,
       },
     ],
   },
   {
-    title: "Personal",
+    title: "Cá nhân",
     items: [
       {
         label: "Lịch sử công việc",
@@ -122,7 +167,12 @@ const staffSidebarItems = [
         icon: History,
       },
       {
-        label: "Hồ sơ cá nhân",
+        label: "Thông báo",
+        path: `${STAFF_PATHS.ROOT}/${STAFF_PATHS.NOTIFICATIONS}`,
+        icon: Bell,
+      },
+      {
+        label: "Hồ sơ",
         path: `${STAFF_PATHS.ROOT}/${STAFF_PATHS.PROFILE}`,
         icon: Users,
       },
@@ -132,27 +182,35 @@ const staffSidebarItems = [
 
 const citizenSidebarItems = [
   {
-    title: "Service",
+    title: "Dịch vụ",
     items: [
       { label: "Trang chủ", path: CITIZEN_PATHS.ROOT, icon: Home },
-      { label: "Tìm thùng rác", path: CITIZEN_PATHS.MAP_LOOKUP, icon: Map },
+      {
+        label: "Tra cứu điểm gom",
+        path: `/${CITIZEN_PATHS.MAP_LOOKUP}`,
+        icon: MapIcon,
+      },
       {
         label: "Gửi phản ánh",
-        path: CITIZEN_PATHS.REPORT_CREATE,
+        path: `/${CITIZEN_PATHS.REPORT_CREATE}`,
         icon: PlusCircle,
       },
     ],
   },
   {
-    title: "Account",
+    title: "Tài khoản",
     items: [
       {
         label: "Lịch sử phản ánh",
-        path: CITIZEN_PATHS.MY_REPORTS,
+        path: `/${CITIZEN_PATHS.MY_REPORTS}`,
         icon: History,
       },
-      { label: "Thông báo", path: CITIZEN_PATHS.NOTIFICATIONS, icon: Bell },
-      { label: "Cài đặt", path: CITIZEN_PATHS.SETTINGS, icon: Settings },
+      {
+        label: "Thông báo",
+        path: `/${CITIZEN_PATHS.NOTIFICATIONS}`,
+        icon: Bell,
+      },
+      { label: "Cài đặt", path: `/${CITIZEN_PATHS.SETTINGS}`, icon: Settings },
     ],
   },
 ];
@@ -174,7 +232,7 @@ const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { theme, setTheme } = useTheme();
+  // const { theme, setTheme } = useTheme();
 
   // Get User Role from Redux Store
   const { user } = useAppSelector((state) => state.auth);
@@ -191,9 +249,24 @@ const Sidebar: React.FC<SidebarProps> = ({
       case "CITIZEN":
         return citizenSidebarItems;
       default:
-        return []; // Fallback for guest or unknown role
+        return [];
     }
   }, [user?.role]);
+
+  // Helper function để check active state chính xác hơn
+  const checkIsActive = (itemPath: string) => {
+    if (
+      itemPath === "/" ||
+      itemPath === ADMIN_PATHS.ROOT ||
+      itemPath === MANAGER_PATHS.ROOT ||
+      itemPath === STAFF_PATHS.ROOT
+    ) {
+      // Với các root path, chỉ active khi pathname khớp hoàn toàn
+      return location.pathname === itemPath;
+    }
+    // Với các sub-path, active khi pathname bắt đầu bằng itemPath
+    return location.pathname.startsWith(itemPath);
+  };
 
   return (
     <aside
@@ -213,12 +286,15 @@ const Sidebar: React.FC<SidebarProps> = ({
           isCollapsed ? "justify-center" : "px-6"
         )}
       >
-        <div className="flex items-center gap-3 overflow-hidden">
+        <div
+          className="flex items-center gap-3 overflow-hidden cursor-pointer"
+          onClick={() => navigate("/")}
+        >
           <div className="flex size-8 shrink-0 items-center justify-center text-primary">
             <Recycle className="size-7" strokeWidth={2.5} />
           </div>
           {!isCollapsed && (
-            <span className="text-xl font-bold tracking-tight text-foreground">
+            <span className="text-xl font-bold tracking-tight text-foreground whitespace-nowrap">
               SmartWaste
             </span>
           )}
@@ -231,24 +307,26 @@ const Sidebar: React.FC<SidebarProps> = ({
           {sidebarGroups.map((group, index) => (
             <div key={index} className="flex flex-col gap-1.5">
               {!isCollapsed && group.title && (
-                <h4 className="px-3 mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground/70">
+                <h4 className="px-3 mb-1 text-xs font-semibold uppercase tracking-wider text-muted-foreground/70 animate-in fade-in duration-300">
                   {group.title}
                 </h4>
               )}
               {group.items.map((item) => {
-                const isActive =
-                  location.pathname === item.path ||
-                  (item.path !== "/" &&
-                    location.pathname.startsWith(item.path));
+                const isActive = checkIsActive(item.path);
+
                 return (
                   <button
                     key={item.label}
-                    onClick={() => navigate(item.path)}
+                    onClick={() => {
+                      navigate(item.path);
+                      // Trên mobile, đóng sidebar sau khi click
+                      if (window.innerWidth < 1024) setIsSidebarOpen(false);
+                    }}
                     title={isCollapsed ? item.label : undefined}
                     className={cn(
-                      "group relative flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200",
+                      "group relative flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium transition-all duration-200 outline-none focus-visible:ring-2 focus-visible:ring-primary",
                       isActive
-                        ? "bg-primary/10 text-primary"
+                        ? "bg-primary/10 text-primary font-semibold"
                         : "text-muted-foreground hover:bg-muted hover:text-foreground",
                       isCollapsed && "justify-center px-0 w-10 h-10 mx-auto"
                     )}
@@ -263,6 +341,11 @@ const Sidebar: React.FC<SidebarProps> = ({
                     />
                     {!isCollapsed && (
                       <span className="truncate">{item.label}</span>
+                    )}
+
+                    {/* Active Indicator Strip (Optional Design Choice) */}
+                    {isActive && !isCollapsed && (
+                      <div className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-primary" />
                     )}
                   </button>
                 );
@@ -289,23 +372,27 @@ const Sidebar: React.FC<SidebarProps> = ({
 
           {!isCollapsed && (
             <div className="flex flex-1 flex-col overflow-hidden transition-all">
-              <span className="truncate text-sm font-semibold text-foreground">
-                {user?.fullName || "User"}
+              <span
+                className="truncate text-sm font-semibold text-foreground"
+                title={user?.fullName}
+              >
+                {user?.fullName || "Guest User"}
               </span>
               <span className="truncate text-xs text-muted-foreground capitalize">
-                {user?.role?.toLowerCase() || "Role"}
+                {user?.role?.toLowerCase() || "Guest"}
               </span>
             </div>
           )}
         </div>
 
-        {/* Collapse Button (Desktop) */}
+        {/* Collapse Button (Desktop Only) */}
         <div className="mt-4 hidden lg:flex justify-end">
           <Button
             variant="ghost"
             size="sm"
             onClick={toggleSidebar}
-            className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground"
+            className="h-6 w-6 p-0 text-muted-foreground hover:text-foreground hover:bg-transparent"
+            title={isCollapsed ? "Mở rộng" : "Thu gọn"}
           >
             {isCollapsed ? (
               <ChevronRight className="size-4" />
