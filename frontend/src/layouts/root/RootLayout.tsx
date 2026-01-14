@@ -1,4 +1,4 @@
-// src/layouts/RootLayout.tsx
+// src/layouts/root/RootLayout.tsx
 import { Outlet } from "react-router-dom";
 import { useAppSelector } from "@/store/store";
 import { useInitAuth } from "@/features/auth";
