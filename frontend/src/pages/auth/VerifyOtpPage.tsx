@@ -21,12 +21,10 @@ export default function VerifyOtpPage() {
   useEffect(() => {
     if (!email) {
       toast.warning("Phiên giao dịch không hợp lệ. Vui lòng đăng nhập lại.");
-      navigate("/login", { replace: true });
+      // navigate("/login", { replace: true });
     }
   }, [email, navigate]);
 
-  // Nếu chưa có email (đang đợi redirect) thì không render gì cả để tránh nháy giao diện
-  if (!email) return null;
 
   return (
     <>
@@ -53,8 +51,8 @@ export default function VerifyOtpPage() {
         {/* --- RIGHT COLUMN: Content Area --- */}
         <div className="w-full relative flex items-center justify-center overflow-hidden">
           <AnimatedBackground />
-          <div className="relative z-10 w-full max-w-[480px] p-6 sm:p-12">
-            <VerifyOtpForm email={email} />
+          <div className="relative z-10 w-full">
+            <VerifyOtpForm email={email || "email@domain.com"} />
           </div>
         </div>
       </div>

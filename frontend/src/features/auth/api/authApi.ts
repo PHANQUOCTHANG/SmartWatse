@@ -23,6 +23,8 @@ const authApi = {
       "/auth/login",
       payload
     );
+
+    console.log(res.data);
     return res.data;
   },
 
@@ -32,19 +34,21 @@ const authApi = {
     secret?: string
   ): Promise<ApiResponse<RegisterResponse>> => {
     const res = await api.post<ApiResponse<RegisterResponse>>(
-      `/auth/register${secret ? `/admin/${secret}` : ""}`,
+      // `/auth/register${secret ? `/admin/${secret}` : ""}`,
+      "/auth/register",
       payload
     );
+    console.log(res.data);
     return res.data;
   },
 
-  // 3. Xác thực Email (OTP)
+  // 3. Xác thực Email (OTP)  
   verifyEmail: async (payload: {
     email: string;
     otp: string;
-  }): Promise<ApiResponse<LoginResponse>> => {
-    const res = await api.post<ApiResponse<LoginResponse>>(
-      "/auth/verify-email",
+  }): Promise<ApiResponse<any>> => {
+    const res = await api.post<ApiResponse<any>>(
+      "/auth/verify-otp",
       payload
     );
     return res.data;
@@ -52,7 +56,7 @@ const authApi = {
 
   // 4. Gửi lại mã OTP
   resendOtp: async (email: string): Promise<ApiResponse<void>> => {
-    const res = await api.post<ApiResponse<void>>("/auth/resend-otp", {
+    const res = await api.post<ApiResponse<void>>("/auth/forgot-password", {
       email,
     });
     return res.data;
@@ -77,13 +81,15 @@ const authApi = {
 
   // 7. Đặt lại mật khẩu (Từ mail quên mật khẩu)
   resetPassword: async (
-    token: string,
-    password: string
+    email: string,
+    newPassword: string,
+    otp: string
   ): Promise<ApiResponse<void>> => {
-    const res = await api.post<ApiResponse<void>>(
-      `/auth/reset-password/${token}`,
-      { password }
-    );
+    const res = await api.post<ApiResponse<void>>(`/auth/reset-password`, {
+      email,
+      newPassword,
+      otp,
+    });
     return res.data;
   },
 

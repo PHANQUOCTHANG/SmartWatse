@@ -103,20 +103,46 @@ export const sendOtp = asyncHandler(async (req: Request, res: Response) => {
 export const verifyOtp = asyncHandler(async (req: Request, res: Response) => {
   const { email, otp } = req.body;
 
-  // Xác thực OTP người dùng nhập
-  await otpService.verify(email, otp);
+  // Xác thực OTP và nhận resetToken
+  const resetToken = await otpService.verify(email, otp);
 
-  res.status(204).json({ status: "success", data: null });
+  res.status(200).json({
+    status: "success",
+    message: "OTP xác thực thành công",
+    data: {
+      resetToken,
+      expiresIn: 900, // 15 phút
+    },
+  });
 });
 
 // POST | /api/auth/reset-password | Đặt lại mật khẩu
 export const resetPassword = asyncHandler(
   async (req: Request, res: Response) => {
+
+    console.log(req.body)
+
     const { email, otp, newPassword } = req.body;
 
     // Đặt lại mật khẩu sau khi OTP hợp lệ
-    await authService.resetPassword(email, otp, newPassword);
+    const result = await authService.resetPassword(email, otp, newPassword);
 
-    res.status(204).json({ status: "success", data: null });
+    // Lưu refresh token vào cookie (HttpOnly)
+    res.cookie("refreshToken", result.refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "strict",
+      path: "/api/auth/refresh",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    // Trả access token và thông tin user
+    res.status(200).json({
+      status: "success",
+      data: {
+        accessToken: result.accessToken,
+        user: result.user,
+      },
+    });
   }
 );

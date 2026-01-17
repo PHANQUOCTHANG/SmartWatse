@@ -4,22 +4,16 @@ import { useAppSelector } from "@/store/store";
 import { useInitAuth } from "@/features/auth";
 
 const RootLayout = () => {
-  const { isAuthChecking } = useAppSelector((state) => state.auth);
-  useInitAuth();
+  // const { isAuthChecking } = useAppSelector((state) => state.auth);
+  // useInitAuth();
 
-  // ⏳ Đang check auth → show loading (hoặc null)
-  if (isAuthChecking) {
-    return null;
-    // hoặc:
-    // return <div>Loading...</div>;
-    // hoặc loader sau này
-  }
+  // if (isAuthChecking)
+  // return <PulseLoader fullscreen text="Đang tải dữ liệu..." />;
 
-  // ✅ AUTH CHECK XONG → LUÔN render Outlet
   return (
     <>
       <Outlet />
-      {/* Global components đặt ở đây (toast, modal, v.v.) */}
+      {/* Player luôn nằm đè lên tất cả (position fixed trong component) */}
     </>
   );
 };

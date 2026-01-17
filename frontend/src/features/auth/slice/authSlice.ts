@@ -13,7 +13,7 @@ import { UserProfile } from "@/features/user";
 // =================================================================
 const initialState: AuthState<UserProfile> = {
   token: null,
-  user: null,
+  user:null ,
   isAuthChecking: true,
 };
 

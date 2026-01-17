@@ -1,129 +1,115 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Navigate } from "react-router-dom";
 
+// 1. Core Imports
 import { NotFoundPage } from "@/pages";
 import { RootLayout } from "@/layouts";
-import ManagerLayout from "@/layouts/manager/ManagerLayout";
-import  MapMonitorPage  from "@/pages/manager/MapMonitorPage";
+import ClientLayout from "@/layouts/client/ClientLayout";
+
+// 2. Auth & Route Guards
+import { GuestRoute } from "@/app/routes/GuestRoute";
+import ProtectedRoute from "@/app/routes/ProtectedRoute";
+import { guestAuthRoutes } from "@/features/auth/routes";
+
+// 3. Config Paths
+import { MANAGER_PATHS, STAFF_PATHS } from "@/config/paths";
+
+// 4. Page Imports (Manager)
+import MapMonitorPage from "@/pages/manager/MapMonitorPage";
 import ManagerSchedulePage from "@/features/schedule/pages/ManagerSchedulePage";
-import TaskAssignmentPage from './../../features/task-assignment/pages/TaskAssignmentPage';
+import TaskAssignmentPage from "@/features/task-assignment/pages/TaskAssignmentPage";
 import ManagerFeedbackPage from "@/features/feedback/pages/ManagerFeedbackPage";
 import ManagerReportsPage from "@/features/reports/pages/ManagerReportsPage";
 
-import ProtectedRoute from "@/app/routes/ProtectedRoute";
-import { StaffLayout } from "@/layouts/staff";
-import { StaffTaskListPage } from "@/pages/staff";
-import { StaffTaskDetailPage } from "@/pages/staff";
-import { StaffMapPage } from "@/pages/staff";
-import { StaffProfilePage } from "@/pages/staff";
+// 5. Page Imports (Staff)
+import {
+  StaffTaskListPage,
+  StaffTaskDetailPage,
+  StaffMapPage,
+  StaffProfilePage,
+} from "@/pages/staff";
 import StaffTaskHistoryPage from "@/pages/staff/StaffTaskHistoryPage";
+import { RoleBasedHome } from "@/app/routes/RoleBasedHome";
+
+// 6. Page Imports (Citizen/Public)
+// import LandingPage from "@/pages/public/LandingPage";
 
 export const router = createBrowserRouter([
   {
-    // 🔥 QUAN TRỌNG: RootLayout bao trùm toàn bộ ứng dụng
-    // Nó không có path (pathless route), nhiệm vụ chỉ là chạy logic Init Auth
+    // RootLayout: Chứa Context, Toast, Theme...
     element: <RootLayout />,
     children: [
       // ===================================================
-      // 1. NHÓM AUTH (Login/Register)
-      // ===================================================
-      // {
-      //   element: <GuestRoute />, // <--- Bọc ở đây
-      //   children: [
-      //     ...guestAuthRoutes, // Login, Register
-      //   ],
-      // },
-
-      // ===================================================
-      // 2. NHÓM CLIENT (USER APP)
-      // ===================================================
-      // {
-      //   path: CLIENT_PATHS.CLIENT,
-      //   element: <ClientLayout />,
-      //   children: [
-      //     { index: true, element: <HomePage /> },
-      //     { path: CLIENT_PATHS.BROWSE, element: <BrowsePage /> },
-      //     { path: CLIENT_PATHS.SEARCH, element: <SearchPage /> },
-      //     ...playlistRoutes,
-      //     ...artistRoutes,
-      //     ...albumRoutes,
-      //     {
-      //       element: <ProtectedRoute />,
-      //       children: [
-      //         { path: CLIENT_PATHS.PROFILE, element: <ProfilePage /> },
-      //         {
-      //           path: CLIENT_PATHS.CLAIM_PROFILE,
-      //           element: <ClaimProfilePage />,
-      //         },
-      //         { path: CLIENT_PATHS.SETTINGS, element: <SettingsPage /> },
-      //         ...protectedAuthRoutes,
-      //       ],
-      //     },
-      //   ],
-      // },
-
-      // ===================================================
-      // 3. NHÓM STAFF PORTAL  🔥🔥🔥 (THÊM MỚI)
+      // 1. AUTH ROUTES (Login/Register)
       // ===================================================
       {
-        path: "/staff",
-        element: <ProtectedRoute roles={["STAFF"]} />,
+        element: <GuestRoute />,
+        children: [...guestAuthRoutes],
+      },
+
+      // ===================================================
+      // 2. MAIN APP ROUTES (All Roles share ClientLayout)
+      // ===================================================
+      {
+        element: <ClientLayout />, // Tự động hiển thị Sidebar/BottomNav theo Role
         children: [
+          // --- ROOT PATH ("/") ---
+          // Xử lý điều hướng thông minh khi user vào trang chủ
           {
-            element: <StaffLayout />,
+            path: "/",
+            element: <RoleBasedHome />, // <--- FIX: Tránh trang trắng
+          },
+
+          // --- A. MANAGER ROUTES ---
+          {
+            path: "manager",
+            element: <ProtectedRoute roles={["MANAGER", "ADMIN"]} />,
             children: [
               {
-                path: "tasks",
-                element: <StaffTaskListPage />,
+                index: true,
+                element: <Navigate to={MANAGER_PATHS.MAP_MONITOR} replace />,
               },
+              { path: MANAGER_PATHS.MAP_MONITOR, element: <MapMonitorPage /> },
               {
-                path: "tasks/:taskId",
-                element: <StaffTaskDetailPage />,
+                path: MANAGER_PATHS.SCHEDULE,
+                element: <ManagerSchedulePage />,
               },
+              { path: MANAGER_PATHS.TASKS, element: <TaskAssignmentPage /> },
               {
-                path: "map",
-                element: <StaffMapPage />,
+                path: MANAGER_PATHS.FEEDBACK,
+                element: <ManagerFeedbackPage />,
               },
-              {
-                path: "profile",
-                element: <StaffProfilePage />,
-              },
-              {
-                path: "history",
-                element: <StaffTaskHistoryPage />,
-              },
+              { path: MANAGER_PATHS.REPORTS, element: <ManagerReportsPage /> },
             ],
           },
+
+          // --- B. STAFF ROUTES ---
+          {
+            path: "staff",
+            element: <ProtectedRoute roles={["STAFF"]} />,
+            children: [
+              {
+                index: true,
+                element: <Navigate to={STAFF_PATHS.TASKS} replace />,
+              },
+              { path: STAFF_PATHS.TASKS, element: <StaffTaskListPage /> },
+              {
+                path: `${STAFF_PATHS.TASKS}/:taskId`,
+                element: <StaffTaskDetailPage />,
+              }, // Fix cú pháp params
+              { path: STAFF_PATHS.MY_ROUTE, element: <StaffMapPage /> },
+              { path: STAFF_PATHS.HISTORY, element: <StaffTaskHistoryPage /> },
+              { path: STAFF_PATHS.PROFILE, element: <StaffProfilePage /> },
+            ],
+          },
+
+          // --- C. CITIZEN ROUTES ---
+          // Các route công khai hoặc dành cho người dân
+          // { path: "map-lookup", element: <MapLookupPage /> },
         ],
       },
-      
-      {
-        path: "/manager",
-        element: <ManagerLayout />,
-        children: [
-          {
-            path: "map",
-            element: <MapMonitorPage />,
-          },
-          {
-            path: "schedule",
-            element: <ManagerSchedulePage />,
-          },
-          {
-            path: "tasks",
-            element: <TaskAssignmentPage />,
-          },
-          {
-            path: "/manager/feedback",
-            element: <ManagerFeedbackPage />,
-          },
-          {
-            path: "reports",
-            element: <ManagerReportsPage />,
-          }
-        ],
-      },
+
       // ===================================================
-      // 5. 404 NOT FOUND
+      // 3. 404 NOT FOUND
       // ===================================================
       {
         path: "*",
