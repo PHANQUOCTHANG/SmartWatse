@@ -1,42 +1,37 @@
-import { BinStatus } from "@/features/map-monitor/types/types";
 import L from "leaflet";
 
-export const createBinIcon = (status: BinStatus) => {
-  let colorClass = "bg-emerald-500 border-emerald-600 shadow-emerald-200";
-  let pulseClass = "";
+// Hàm tạo HTML cho Marker (Sử dụng Tailwind CSS trong chuỗi HTML)
+const createMarkerHtml = (colorClass: string, iconHtml: string) => `
+  <div class="relative flex items-center justify-center w-10 h-10">
+    <span class="absolute inline-flex w-full h-full rounded-full opacity-30 animate-ping ${colorClass}"></span>
+    <span class="relative inline-flex items-center justify-center w-8 h-8 rounded-full border-2 border-white shadow-md ${colorClass} text-white">
+      ${iconHtml}
+    </span>
+    <div class="absolute -bottom-1 w-2 h-2 bg-white transform rotate-45"></div>
+  </div>
+`;
 
-  switch (status) {
-    case BinStatus.FULL:
-      colorClass = "bg-yellow-500 border-yellow-600 shadow-yellow-200";
-      break;
-    case BinStatus.OVERLOAD:
-      colorClass = "bg-red-600 border-red-700 shadow-red-300";
-      pulseClass = "animate-ping"; // Hiệu ứng nhấp nháy báo động
-      break;
-    case BinStatus.BROKEN:
-      colorClass = "bg-gray-500 border-gray-600 shadow-gray-300";
-      break;
-  }
+// Icon Thùng rác (SVG string lấy từ Lucide)
+const TRASH_ICON_SVG = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/></svg>`;
 
-  const html = `
-    <div class="relative w-full h-full flex items-center justify-center">
-      ${pulseClass ? `<span class="absolute inline-flex h-full w-full rounded-full opacity-75 ${colorClass.split(" ")[0]} ${pulseClass}"></span>` : ""}
-      <span class="relative inline-flex rounded-full h-4 w-4 border-2 border-white shadow-md ${colorClass}"></span>
-    </div>
-  `;
+export const createBinIcon = (status: string) => {
+  let colorClass = "bg-emerald-500"; // Mặc định: Xanh (Trống)
+
+  if (status === "FULL") colorClass = "bg-amber-500"; // Vàng (Sắp đầy)
+  if (status === "OVERLOAD" || status === "BROKEN") colorClass = "bg-rose-500"; // Đỏ (Quá tải)
 
   return L.divIcon({
-    className: "custom-bin-marker",
-    html: html,
-    iconSize: [20, 20],
-    iconAnchor: [10, 10],
-    popupAnchor: [0, -12],
+    className: "custom-marker-icon", // Class rỗng để reset style mặc định
+    html: createMarkerHtml(colorClass, TRASH_ICON_SVG),
+    iconSize: [40, 40],
+    iconAnchor: [20, 40], // Căn giữa đáy
+    popupAnchor: [0, -40], // Popup hiện phía trên
   });
 };
 
+// Icon User (Vị trí hiện tại)
 export const userIcon = L.divIcon({
-  className: "user-marker",
-  html: `<div class="w-4 h-4 bg-blue-500 border-2 border-white rounded-full shadow-lg ring-4 ring-blue-500/30"></div>`,
+  className: "custom-user-icon",
+  html: `<div class="w-4 h-4 bg-blue-600 rounded-full border-2 border-white shadow-lg ring-4 ring-blue-600/30"></div>`,
   iconSize: [16, 16],
-  iconAnchor: [8, 8],
 });

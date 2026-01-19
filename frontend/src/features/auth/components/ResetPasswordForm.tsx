@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { useNavigate, useParams } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import authApi from "@/features/auth/api/authApi";
 import {
   resetPasswordSchema,
@@ -35,8 +35,11 @@ const PASSWORD_REQUIREMENTS = [
 ];
 
 const ResetPasswordForm = () => {
-  const { token } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
+  const emailFromState = location.state?.email || "";
+  const otpFromState = location.state?.otp || "";
+
   const [showPassword, setShowPassword] = useState(false);
   const [isFocused, setIsFocused] = useState(false);
 
@@ -73,14 +76,48 @@ const ResetPasswordForm = () => {
 
   // 3. Submit Handler
   const onSubmit = async (data: ResetPasswordInput) => {
-    // if (!token) { toast.error("Token không hợp lệ"); return; }
+    if (!emailFromState) {
+      toast.error(
+        "❌ Email không hợp lệ. Vui lòng qua lại từ trang verify OTP."
+      );
+      console.warn("⚠️ Email rỗng, không thể reset password");
+      return;
+    }
+
+    if (!otpFromState) {
+      toast.error("❌ OTP không hợp lệ. Vui lòng qua lại từ trang verify OTP.");
+      console.warn("⚠️ OTP rỗng, không thể reset password");
+      return;
+    }
+
     try {
-      // await authApi.resetPassword(token, data.password); // API Call
-      await new Promise((r) => setTimeout(r, 1500)); // Mock
-      toast.success("Đặt lại mật khẩu thành công!");
+      console.log("🚀 Resetting password for email:", emailFromState);
+
+      // Gửi email + otp + newPassword theo format backend yêu cầu
+      const payload = {
+        email: emailFromState,
+        otp: otpFromState,
+        newPassword: data.password,
+      };
+
+      console.log("📤 Payload sent to API:", payload);
+      await authApi.resetPassword(emailFromState, data.password, otpFromState);
+      
+      console.log("✅ Password reset successfully");
+      toast.success("✅ Đặt lại mật khẩu thành công!", {
+        description: "Vui lòng đăng nhập với mật khẩu mới.",
+      });
+
+      // Xóa email từ storage
+      sessionStorage.removeItem("otpEmail");
+      localStorage.removeItem("otpEmail");
+
       navigate("/login");
     } catch (err: any) {
-      toast.error(err.response?.data?.message || "Lỗi hệ thống.");
+      console.error("❌ Reset password error:", err);
+      const msg =
+        err.response?.data?.message || "Lỗi hệ thống. Vui lòng thử lại.";
+      toast.error(msg);
     }
   };
 
@@ -120,11 +157,12 @@ const ResetPasswordForm = () => {
                 type={showPassword ? "text" : "password"}
                 placeholder="Nhập ít nhất 8 ký tự"
                 className={cn(
-                  "pr-10 h-10 text-sm border-gray-200 focus:border-[#1A73E8] focus:ring-0 rounded-lg",
-                  errors.password && "border-red-500"
+                  "pr-10 h-10 text-sm bg-white text-gray-900 border border-gray-200 focus:border-[#1A73E8] focus:ring-1 focus:ring-[#1A73E8]/20 rounded-lg",
+                  errors.password && "border-red-500 bg-red-50"
                 )}
                 {...register("password")}
                 onFocus={() => setIsFocused(true)}
+                disabled={false}
               />
               <button
                 type="button"
@@ -168,8 +206,8 @@ const ResetPasswordForm = () => {
                 type={showPassword ? "text" : "password"}
                 placeholder="Nhập lại mật khẩu mới"
                 className={cn(
-                  "pr-10 h-10 text-sm border-gray-200 focus:border-[#1A73E8] focus:ring-0 rounded-lg",
-                  errors.confirmPassword && "border-red-500"
+                  "pr-10 h-10 text-sm bg-white text-gray-900 border border-gray-200 focus:border-[#1A73E8] focus:ring-1 focus:ring-[#1A73E8]/20 rounded-lg",
+                  errors.confirmPassword && "border-red-500 bg-red-50"
                 )}
                 {...register("confirmPassword")}
               />

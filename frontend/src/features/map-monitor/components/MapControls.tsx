@@ -15,7 +15,7 @@ export const MapControls = ({
   onRefresh,
 }: Props) => {
   return (
-    <div className="absolute top-4 right-4 z-[400] flex flex-col gap-2">
+    <div className="absolute top-4 right-4 z-1000 flex flex-col gap-2 pointer-events-auto">
       {/* Bộ lọc */}
       <div className="bg-white rounded-lg shadow-lg border border-gray-100 p-1 flex flex-col gap-1">
         <button

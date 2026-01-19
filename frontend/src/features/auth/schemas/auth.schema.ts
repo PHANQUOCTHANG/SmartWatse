@@ -14,10 +14,13 @@ export const registerSchema = z
     email: z.string().email("Email không đúng định dạng"),
     phone: z
       .string()
-      .regex(/(84|0[3|5|7|8|9])+([0-9]{8})\b/, "Số điện thoại không hợp lệ"),
+      .regex(
+        /^(\+84|0)[35789]\d{8}$/,
+        "Số điện thoại phải là 10 số bắt đầu từ 03-09 hoặc +84"
+      ),
     password: z.string().min(8, "Mật khẩu tối thiểu 8 ký tự"), // Tăng lên 8 cho bảo mật
     confirmPassword: z.string(),
-    role: z.enum(["CITIZEN", "ORGANIZATION"]), // Role Enum
+    role: z.enum(["CITIZEN", "ORGANIZATION"]).default("CITIZEN").optional(), // Role Enum with default
     terms: z
       .boolean()
       .refine((val) => val === true, "Bạn cần đồng ý điều khoản"),

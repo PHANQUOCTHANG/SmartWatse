@@ -5,9 +5,10 @@ import {
   IBinLocation,
   MapFilterMode,
 } from "@/features/map-monitor/types/types";
+import { IBin } from "@/features/bin";
 
 export const useMapBins = () => {
-  const [bins, setBins] = useState<IBinLocation[]>([]);
+  const [bins, setBins] = useState<IBin[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterMode, setFilterMode] = useState<MapFilterMode>("ALL");
 

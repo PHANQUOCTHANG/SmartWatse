@@ -1,4 +1,4 @@
-// config/managerRoutes.ts
+
 import {
   Map,
   Calendar,

@@ -6,8 +6,9 @@ import {
 } from "@/dto/request/user.request";
 import { UserResponse } from "@/dto/response/user.response";
 import { BaseQuery, IPaginatedResult } from "@/interface/query.interface";
-import { UserRole, UserStatus } from "@/interface/user.interface";
+import { IUser, UserRole, UserStatus } from "@/interface/user.interface";
 import AppError from "../utils/appError";
+import { IUserDocument } from "@/models/user.model";
 
 export interface IUserService {
   create(dto: CreateUserRequest): Promise<UserResponse>;
@@ -65,13 +66,14 @@ export class UserService implements IUserService {
 
   // Cập nhật các thông tin định danh hoặc trạng thái hoạt động của người dùng
   async update(id: string, dto: UpdateUserRequest): Promise<UserResponse> {
-    const user = await this.userRepository.updateById(id, dto);
+    const updateData: Partial<IUser> = { ...dto };
+    const user = await this.userRepository.updateById(id, updateData);
 
     // Kiểm tra tính hợp lệ của thực thể trước khi thực hiện thao tác sửa đổi dữ liệu
     if (!user)
       throw new AppError(
         "Người dùng không tồn tại hoặc cập nhật thất bại",
-        404
+        404,
       );
 
     return this.mapToResponse(user);
@@ -88,7 +90,7 @@ export class UserService implements IUserService {
   }
 
   // Chuẩn hóa dữ liệu trả về cho Client, đảm bảo không rò rỉ các thông tin nhạy cảm như passwordHash
-  private mapToResponse(user: any): UserResponse {
+  private mapToResponse(user: IUserDocument): UserResponse {
     return {
       id: user._id.toString(),
       fullName: user.fullName,

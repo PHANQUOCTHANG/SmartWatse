@@ -2,9 +2,9 @@ import { useEffect, useRef } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAppDispatch } from "@/store/store";
 import authApi from "@/features/auth/api/authApi";
-import { PulseLoader } from "@/components/ui/SmartWastLoadingEffects";
 import { login } from "@/features";
 import { toast } from "sonner";
+import { BrandLoader } from "@/components/ui/SmartWastLoadingEffects";
 
 const GoogleCallbackPage = () => {
   const [searchParams] = useSearchParams();
@@ -51,7 +51,7 @@ const GoogleCallbackPage = () => {
     }
   }, [searchParams, dispatch, navigate]);
 
-  return <PulseLoader fullscreen text="Đang đăng nhập với Google..." />;
+  return <BrandLoader fullscreen text="Đang đăng nhập với Google..." />;
 };
 
 export default GoogleCallbackPage;

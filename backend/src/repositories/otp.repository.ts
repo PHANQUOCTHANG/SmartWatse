@@ -1,7 +1,6 @@
 import { IOtp } from "@/interface/otp.interface";
 import { IOtpDocument, Otp } from "@/models/otp.model";
 
-
 export interface IOtpRepository {
   create(data: Partial<IOtp>): Promise<IOtpDocument>;
   findValidByEmail(email: string): Promise<IOtpDocument | null>;
@@ -17,11 +16,11 @@ export class OtpRepository implements IOtpRepository {
 
   // Tìm OTP còn hiệu lực
   async findValidByEmail(email: string): Promise<IOtpDocument | null> {
-    return Otp.findOne({
-      email,
-      expiresAt: { $gt: new Date() },
-      verified: false,
-    }).sort({ createdAt: -1 });
+    const otps = await Otp.find({ email, verified: false });
+    console.log(otps);
+    const record = await Otp.findOne({ email });
+    console.log(record);
+    return record;
   }
 
   // Đánh dấu OTP đã xác thực

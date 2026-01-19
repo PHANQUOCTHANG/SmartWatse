@@ -32,7 +32,7 @@ router.route("/refresh").post(refresh);
 router.route("/logout").post(logout);
 
 // URL: /api/auth/send-otp
-router.route("/send-otp").post(sendOtp);
+router.route("/forgot-password").post(sendOtp);
 
 // URL: /api/auth/verify-otp
 router.route("/verify-otp").post(verifyOtp);

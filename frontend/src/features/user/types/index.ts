@@ -1,98 +1,78 @@
-// 1. User Entity (Khớp với Model Mongo)
-export interface User {
+// 1. User Entity (Khớp với Model Mongo & Response API)
+export type UserRole = "ADMIN" | "MANAGER" | "STAFF" | "CITIZEN";
+
+export interface IUser {
   _id: string;
   fullName: string;
-  username: string;
+  username?: string; // Có thể optional nếu dùng email làm chính
   email: string;
-  role: "ADMIN" | "MANAGER" | "STAFF" | "CITIZEN" | "ORGANIZATION";
+  role: UserRole;
+
+  // Thông tin cá nhân & liên lạc
   avatar?: string;
-  bio?: string;
+  phoneNumber?: string;
+  address?: string;
+
+  // Trạng thái tài khoản
   isActive: boolean;
   isVerified: boolean;
+  mustChangePassword: boolean; // True nếu là acc nhân viên mới tạo
 
-  // Relations (Chỉ lấy count hoặc ID)
-  followersCount?: number;
-  followingCount?: number;
-  isFollowed?: boolean; // Backend trả về cờ này
+  // Metadata
   authProvider?: "local" | "google";
-  mustChangePassword: boolean;
+  lastLogin?: string;
   createdAt: string;
-}
-export interface UserProfile {
-  _id: string;
-  fullName: string;
-  username: string;
-  email: string;
-  role: "ADMIN" | "MANAGER" | "STAFF" | "CITIZEN" | "ORGANIZATION";
-  avatar?: string;
-  bio?: string;
-  isActive: boolean;
-  isVerified: boolean;
-
-  // Relations (Chỉ lấy count hoặc ID)
-  followersCount?: number;
-  followingCount?: number;
-  isFollowed?: boolean; // Backend trả về cờ này
-  authProvider?: "local" | "google";
-  mustChangePassword: boolean;
-  createdAt: string;
+  updatedAt: string;
 }
 
-export interface CreateUserRequest {
+// User Profile (Thường dùng cho trang "Thông tin cá nhân")
+export interface UserProfile extends IUser {
+  // Các trường thống kê cá nhân (nếu có)
+  totalReportsSubmitted?: number; // Số báo cáo sự cố đã gửi
+  assignedTasksCount?: number; // Số nhiệm vụ được giao (cho STAFF)
+}
+
+// 2. DTOs (Data Transfer Objects - Gửi lên Server)
+
+// Create User Request Payload
+export interface CreateUserDTO {
   fullName: string;
   email: string;
-  role: "user" | "artist" | "admin";
-  avatar?: File | null;
-  bio?: string;
-}
-export interface UpdateUserRequest {
-  fullName: string;
-  email: string;
-  role: "user" | "artist" | "admin";
-  avatar?: File | null;
-  bio?: string;
-}
-
-// 2. Artist Request Entity
-export interface ArtistRequest {
-  _id: string;
-  user: User;
-  stageName: string;
-  bio?: string;
-  avatar?: string;
-  genres: string[];
-  socialLinks: string[];
-  demoLink?: string;
-  status: "pending" | "approved" | "rejected";
-  createdAt: string;
-}
-
-// 3. DTOs (Data Transfer Objects)
-export interface UpdateProfileDTO {
-  fullName: string;
-  bio?: string;
-  avatar?: File | null; // Để upload
-}
-
-export interface ChangePasswordDTO {
-  currentPassword: string;
-  newPassword: string;
-  confirmPassword: string;
-}
-
-export interface RequestArtistDTO {
-  stageName: string;
-  bio: string;
-  genres: string[]; // Frontend gửi mảng string
-  socialLinks: string[];
-  demoLink: string;
+  role: UserRole;
+  phoneNumber?: string;
+  address?: string;
   avatar?: File | null;
 }
 
-// 4. Admin Filter Params
+// Update User Request Payload
+export interface UpdateUserDTO {
+  fullName?: string;
+  email?: string;
+  role?: UserRole;
+  phoneNumber?: string;
+  address?: string;
+  isActive?: boolean;
+  isVerified?: boolean;
+  password?: string;
+  avatar?: File | null | string; // File mới hoặc URL cũ
+}
+
+// 3. Client Filter Params (Cho trang danh sách User)
 export interface UserFilterParams {
   page?: number;
   limit?: number;
-  keyword?: string;
-  role?: string;
+  keyword?: string; // Tìm theo tên, email, sđt
+  role?: UserRole;
+  status?: "active" | "inactive";
+}
+
+// 4. Staff Specific (Nếu cần quản lý kỹ hơn về nhân viên)
+// Thay thế cho ArtistRequest cũ
+export interface StaffProfile {
+  userId: string;
+  employeeCode: string; // Mã nhân viên (VD: EMP-001)
+  department: "COLLECTION" | "MAINTENANCE" | "IT"; // Bộ phận
+  assignedAreaId?: string; // ID khu vực phụ trách (Quận/Phường)
+  licensePlate?: string; // Biển số xe (nếu là tài xế)
+  status: "ON_DUTY" | "OFF_DUTY" | "LEAVE";
 }

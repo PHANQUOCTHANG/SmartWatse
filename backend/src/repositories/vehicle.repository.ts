@@ -8,7 +8,7 @@ export interface IVehicleRepository {
   findByPlateNumber(plateNumber: string): Promise<IVehicleDocument | null>;
   updateById(
     id: string,
-    data: Partial<IVehicle>
+    data: Partial<IVehicle>,
   ): Promise<IVehicleDocument | null>;
   deleteById(id: string): Promise<void>;
   findAll(query: BaseQuery): Promise<IPaginatedResult<IVehicleDocument>>;
@@ -19,7 +19,6 @@ export class VehicleRepository implements IVehicleRepository {
   async create(data: Partial<IVehicle>) {
     return Vehicle.create(data);
   }
-
   // Truy vấn chi tiết xe theo ID hệ thống
   async findById(id: string) {
     return Vehicle.findById(id).exec();
@@ -45,20 +44,45 @@ export class VehicleRepository implements IVehicleRepository {
 
   // Lấy danh sách xe có phân trang và hỗ trợ tìm kiếm theo biển số
   async findAll(query: BaseQuery): Promise<IPaginatedResult<IVehicleDocument>> {
-    const { page = 1, limit = 10, search, sort = { createdAt: -1 } } = query;
-    const filter = search
-      ? { plateNumber: { $regex: search, $options: "i" } }
-      : {};
+    const { page = 1, limit = 10, search, sort = "-createdAt" } = query;
+    const filter: any = {};
+    if (search) filter.plateNumber = { $regex: search, $options: "i" };
 
     const [data, total] = await Promise.all([
       Vehicle.find(filter)
-        .sort(sort as any)
+        .sort(sort)
         .skip((page - 1) * limit)
         .limit(limit)
+        .lean()
         .exec(),
       Vehicle.countDocuments(filter).exec(),
     ]);
 
-    return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
+    return {
+      data: data as IVehicleDocument[],
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
+  }
+
+  // Cập nhật vị trí xe (API IoT sẽ gọi hàm này liên tục)
+  async updateLocation(
+    id: string,
+    lat: number,
+    lng: number,
+  ): Promise<IVehicleDocument | null> {
+    return Vehicle.findByIdAndUpdate(
+      id,
+      {
+        location: {
+          type: "Point",
+          coordinates: [lng, lat], // Mongo lưu Longitude trước
+          lastUpdated: new Date(),
+        },
+      },
+      { new: true },
+    ).exec();
   }
 }

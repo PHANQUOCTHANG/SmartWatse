@@ -10,6 +10,7 @@ import {
   IsEnum,
   MaxLength,
   IsNumber,
+  IsBoolean,
 } from "class-validator";
 
 // DTO đăng nhập
@@ -22,6 +23,10 @@ export class LoginRequestDto {
   @IsString({ message: "Mật khẩu phải là chuỗi ký tự" })
   @IsNotEmpty({ message: "Mật khẩu không được để trống" })
   password!: string; // Client gửi lên là password thuần
+
+  @IsOptional()
+  @IsBoolean({ message: "rememberMe phải là true hoặc false" })
+  rememberMe?: boolean;
 }
 
 // DTO đăng ký

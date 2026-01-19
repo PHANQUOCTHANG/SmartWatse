@@ -13,17 +13,7 @@ import { UserProfile } from "@/features/user";
 // =================================================================
 const initialState: AuthState<UserProfile> = {
   token: null,
-  user: {
-    role: "ADMIN",
-    _id: "",
-    fullName: "",
-    username: "",
-    email: "",
-    isActive: true,
-    isVerified: true,
-    mustChangePassword: false,
-    createdAt: "",
-  }, // Khởi tạo để tránh lỗi null
+  user: null,
   isAuthChecking: true,
 };
 
@@ -44,7 +34,7 @@ export const initAuth = createAsyncThunk(
     } catch (error: unknown) {
       return rejectWithValue(error || "Session expired");
     }
-  }
+  },
 );
 
 // B. Fetch Current User (Chạy khi update profile xong) - MỚI THÊM
@@ -58,7 +48,7 @@ export const fetchCurrentUser = createAsyncThunk(
     } catch (error: unknown) {
       return rejectWithValue(error);
     }
-  }
+  },
 );
 
 // =================================================================
@@ -70,7 +60,7 @@ const authSlice = createSlice({
   reducers: {
     login: (
       state,
-      action: PayloadAction<{ accessToken: string; user: UserProfile }>
+      action: PayloadAction<{ accessToken: string; user: UserProfile }>,
     ) => {
       state.token = action.payload.accessToken;
       state.user = action.payload.user;

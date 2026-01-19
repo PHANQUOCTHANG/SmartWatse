@@ -1,134 +1,119 @@
-import React from "react";
-import { Disc, Home, Search, Music, ArrowLeft } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { useNavigate } from "react-router-dom";
+import React from 'react';
+import { Home, Map, Globe, Mail, Share2 } from 'lucide-react';
 
-// ==========================================
-// 1. [COMPONENTS - REUSED]
-// (Tái sử dụng Button & Utility từ trang Login để đồng bộ)
-// ==========================================
-
-const Button = React.forwardRef<
-  HTMLButtonElement,
-  React.ButtonHTMLAttributes<HTMLButtonElement> & {
-    variant?: "primary" | "outline" | "ghost";
-    size?: string;
-  }
->(({ className, variant = "primary", size = "default", ...props }, ref) => {
-  const base =
-    "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-full text-sm font-bold transition-all duration-300 focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-zinc-400 disabled:pointer-events-none disabled:opacity-50 active:scale-95 touch-manipulation";
-
-  const variants = {
-    primary:
-      "bg-white text-black hover:bg-zinc-200 shadow-[0_0_20px_rgba(255,255,255,0.1)] hover:shadow-[0_0_25px_rgba(255,255,255,0.25)] hover:-translate-y-0.5 border-0",
-    outline:
-      "border border-zinc-700 bg-transparent text-zinc-400 hover:bg-white hover:text-black hover:border-white hover:shadow-[0_0_15px_rgba(255,255,255,0.3)] hover:-translate-y-0.5",
-    ghost: "hover:bg-white/10 text-zinc-400 hover:text-white bg-transparent",
-  };
-
-  const sizes = {
-    default: "h-12 px-8",
-    icon: "h-10 w-10 p-0",
-  };
-
+const NotFoundPage: React.FC = () => {
   return (
-    <button
-      ref={ref}
-      className={cn(
-        base,
-        variants[variant],
-        sizes[size as keyof typeof sizes],
-        className
-      )}
-      {...props}
-    />
-  );
-});
-Button.displayName = "Button";
-
-// ==========================================
-// 2. [NOT FOUND PAGE]
-// ==========================================
-
-export default function NotFoundPage() {
-  const navigate = useNavigate();
-  return (
-    <div className="min-h-screen w-full flex flex-col items-center justify-center bg-black font-sans text-zinc-100 selection:bg-white/30 overflow-hidden relative p-6">
-      {/* --- BACKGROUND EFFECTS --- */}
-      <div className="absolute inset-0 pointer-events-none">
-        {/* Static Noise */}
-        <div className="absolute inset-0 opacity-[0.07] bg-[url('https://grainy-gradients.vercel.app/noise.svg')]" />
-
-        {/* Ambient Glows */}
-        <div className="absolute top-1/4 left-1/4 w-[500px] h-[500px] bg-purple-900/20 rounded-full blur-[120px] animate-pulse" />
-        <div className="absolute bottom-1/4 right-1/4 w-[600px] h-[600px] bg-zinc-800/10 rounded-full blur-[150px] animate-pulse delay-1000" />
-      </div>
-
-      {/* --- MAIN CONTENT --- */}
-      <div className="relative z-10 flex flex-col items-center text-center max-w-2xl mx-auto space-y-8 animate-in fade-in zoom-in-95 duration-700">
-        {/* GLITCHING VINYL DISC */}
-        <div className="relative group">
-          {/* Glow behind disc */}
-          <div className="absolute inset-0 bg-white/5 rounded-full blur-2xl group-hover:bg-white/10 transition-all duration-500" />
-
-          {/* The Disc */}
-          <div className="relative w-40 h-40 md:w-56 md:h-56 flex items-center justify-center rounded-full bg-zinc-900 border-2 border-zinc-800 shadow-2xl">
-            {/* Spinning Animation (Slow & Broken) */}
-            <div className="absolute inset-0 rounded-full border border-white/5 animate-[spin_10s_linear_infinite_paused] group-hover:animate-play-state-running"></div>
-            <div className="absolute inset-2 rounded-full border border-white/5"></div>
-            <div className="absolute inset-8 rounded-full border border-white/5"></div>
-
-            {/* Center Label with Glitch Icon */}
-            <div className="w-16 h-16 md:w-24 md:h-24 bg-gradient-to-tr from-zinc-800 to-black rounded-full flex items-center justify-center border border-zinc-700 relative overflow-hidden">
-              <Music className="w-8 h-8 md:w-10 md:h-10 text-zinc-500 relative z-10" />
-              {/* Crack effect line */}
-              <div className="absolute top-0 left-1/2 w-[1px] h-full bg-zinc-600/50 -rotate-45 transform origin-center"></div>
-            </div>
-
-            {/* Floating '404' Text acting like a broken needle */}
-            <div className="absolute -top-4 -right-8 bg-white text-black text-xs font-bold px-2 py-1 rounded-sm rotate-12 shadow-lg">
-              ERR_404
+    <div className="min-h-screen bg-gray-50 flex flex-col">
+      {/* Header */}
+      <header className="bg-white shadow-sm">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex items-center h-16">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-blue-600 rounded flex items-center justify-center">
+                <div className="text-white text-xl font-bold">≋</div>
+              </div>
+              <span className="text-lg font-semibold text-gray-900">
+                Smart Waste Management
+              </span>
             </div>
           </div>
         </div>
+      </header>
 
-        {/* TEXT CONTENT */}
-        <div className="space-y-4 max-w-md">
-          <h1 className="text-6xl md:text-8xl font-black text-white tracking-tighter drop-shadow-2xl">
-            404
+      {/* Main Content */}
+      <main className="flex-1 flex items-center justify-center px-4 py-12">
+        <div className="max-w-2xl w-full text-center">
+          {/* 404 Icon */}
+          <div className="mb-8 flex justify-center">
+            <div className="relative">
+              <div className="w-64 h-64 bg-blue-50 rounded-full flex items-center justify-center">
+                <div className="relative">
+                  <div className="absolute -top-8 -right-8 w-16 h-16 bg-blue-200 rounded-full flex items-center justify-center">
+                    <svg className="w-8 h-8 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  </div>
+                  <div className="bg-white rounded-2xl shadow-lg px-12 py-8">
+                    <div className="text-8xl font-bold text-blue-600">404</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Error Message */}
+          <h1 className="text-3xl font-bold text-gray-900 mb-4">
+            Rất tiếc, trang bạn tìm kiếm không tồn tại
           </h1>
-          <h2 className="text-xl md:text-2xl font-bold text-zinc-300 uppercase tracking-widest">
-            Not Found
-          </h2>
-          <p className="text-zinc-500 text-sm md:text-base leading-relaxed">
-            Có vẻ như bài hát bạn đang tìm kiếm đã bị xóa hoặc đường dẫn bị
-            hỏng. Giai điệu này không tồn tại trong thư viện của chúng tôi.
+          <p className="text-gray-600 mb-8 max-w-md mx-auto">
+            Có vẻ như đường dẫn đã bị hỏng hoặc trang đã bị di chuyển. 
+            Hãy để chúng tôi đưa bạn trở lại lộ trình quản lý rác thải đúng cách.
           </p>
+
+          {/* Action Buttons */}
+          <div className="flex flex-wrap gap-4 justify-center mb-12">
+            <button className="flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
+              <Home size={20} />
+              Quay lại trang chủ
+            </button>
+            <button className="flex items-center gap-2 bg-white text-gray-900 px-6 py-3 rounded-lg border border-gray-300 hover:bg-gray-50 transition-colors">
+              <Map size={20} />
+              Xem bản đồ đô thị
+            </button>
+          </div>
+
+          {/* Help Section */}
+          <div className="bg-white rounded-xl shadow-sm border border-gray-200 p-6 max-w-md mx-auto">
+            <div className="flex items-start justify-between">
+              <div className="text-left">
+                <h3 className="font-semibold text-gray-900 mb-2">
+                  Bạn cần hỗ trợ thêm?
+                </h3>
+                <p className="text-sm text-gray-600">
+                  Nếu bạn tin rằng đây là lỗi hệ thống, vui lòng báo cáo cho chúng tôi.
+                </p>
+              </div>
+              <button className="flex items-center gap-2 text-blue-600 hover:text-blue-700 whitespace-nowrap ml-4">
+                Báo cáo sự cố
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                </svg>
+              </button>
+            </div>
+          </div>
         </div>
+      </main>
 
-        {/* ACTIONS */}
-        <div className="flex flex-col sm:flex-row items-center gap-4 w-full sm:w-auto pt-4">
-          <Button
-            variant="primary"
-            className="w-full sm:w-auto gap-3"
-            onClick={() => navigate("/")}
-          >
-            <Home className="w-4 h-4" />
-            Về Trang Chủ
-          </Button>
-
-          <Button variant="outline" className="w-full sm:w-auto gap-3">
-            <Search className="w-4 h-4" />
-            Tìm Bài Hát Khác
-          </Button>
+      {/* Footer */}
+      <footer className="bg-white border-t border-gray-200 py-8">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4">
+            <div className="flex flex-wrap gap-6 text-sm text-gray-600">
+              <a href="#" className="hover:text-gray-900">Chính sách bảo mật</a>
+              <a href="#" className="hover:text-gray-900">Điều khoản sử dụng</a>
+              <a href="#" className="hover:text-gray-900">Trung tâm hỗ trợ</a>
+            </div>
+            
+            <div className="flex items-center gap-4">
+              <button className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors">
+                <Globe size={20} className="text-gray-600" />
+              </button>
+              <button className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors">
+                <Mail size={20} className="text-gray-600" />
+              </button>
+              <button className="w-10 h-10 flex items-center justify-center rounded-full hover:bg-gray-100 transition-colors">
+                <Share2 size={20} className="text-gray-600" />
+              </button>
+            </div>
+          </div>
+          
+          <div className="mt-6 text-center text-sm text-gray-500">
+            © 2024 Smart Urban Waste Management System. All rights reserved.
+          </div>
         </div>
-      </div>
-
-      {/* FOOTER DECORATION */}
-      <div className="absolute bottom-8 text-[10px] text-zinc-700 font-mono uppercase tracking-widest flex items-center gap-2 opacity-50">
-        <Disc className="w-3 h-3 animate-spin" />
-        MusicHub System • Signal Lost
-      </div>
+      </footer>
     </div>
   );
-}
+};
+
+export default NotFoundPage;

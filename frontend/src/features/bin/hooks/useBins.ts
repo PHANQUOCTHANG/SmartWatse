@@ -46,7 +46,7 @@ export const useBins = (initialLimit = APP_CONFIG.PAGINATION_LIMIT) => {
   const meta = {
     totalItems: data?.total || 0,
     page: data?.page || 1,
-    pageSize: data?.total || APP_CONFIG.PAGINATION_LIMIT,
+    pageSize: data?.results || APP_CONFIG.PAGINATION_LIMIT,
     totalPages: data?.totalPages || 0,
   };
   // HOOKS MUTATION

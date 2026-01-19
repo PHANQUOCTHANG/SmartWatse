@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, Trash2, MapPin, AlertTriangle } from "lucide-react";
+import { Plus, MapPin, AlertTriangle } from "lucide-react";
 
 // 1. UI Components (Shared)
 import { Button } from "@/components/ui/button";
@@ -21,7 +21,6 @@ import TableSkeleton from "@/components/ui/TableSkeleton";
 // 3. Feature Components & Hooks
 import { APP_CONFIG } from "@/config/constants";
 import { BinFilters, BinTable, IBin, useBins } from "@/features/bin";
-import { BinFormValues } from "@/features/bin/schemas/bin.schema";
 import BinModal from "@/features/bin/components/BinModal";
 import Pagination from "@/utils/pagination";
 
@@ -41,9 +40,6 @@ const BinManagementPage = () => {
     setFilterParams,
     handlePageChange,
 
-    // Mutation Wrappers
-    createBin,
-    updateBin,
     deleteBin,
   } = useBins(APP_CONFIG.PAGINATION_LIMIT);
 
@@ -94,7 +90,7 @@ const BinManagementPage = () => {
   const pageSize = meta.pageSize || APP_CONFIG.PAGINATION_LIMIT;
 
   return (
-    <div className="space-y-8 pb-32 max-w-[1600px] mx-auto p-6">
+    <div className="space-y-8 max-w-400 mx-auto">
       {/* 1. HEADER */}
       <PageHeader
         title="Quản lý Điểm Thu Gom"
@@ -113,7 +109,7 @@ const BinManagementPage = () => {
       <BinFilters filters={filterParams} setFilters={setFilterParams} />
 
       {/* 3. TABLE AREA */}
-      <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden min-h-[400px]">
+      <div className="rounded-xl border border-border bg-card shadow-sm overflow-hidden">
         {isLoading ? (
           // Loading State: Render Skeleton đúng chuẩn Table Structure
           <Table>
@@ -133,7 +129,7 @@ const BinManagementPage = () => {
           </Table>
         ) : bins.length === 0 ? (
           // Empty State: Smart UI Result
-          <div className="py-20 flex items-center justify-center">
+          <div className="flex items-center justify-center">
             <SmartWasteResult
               status="empty"
               title="Không tìm thấy dữ liệu"

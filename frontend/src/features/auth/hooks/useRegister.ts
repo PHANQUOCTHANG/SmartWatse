@@ -93,22 +93,31 @@ export const useRegister = () => {
   // 3. Handle Submit
   const handleRegister = async (data: RegisterInput) => {
     try {
-      console.log(data);
-      await authApi.register(data); // API Call thật
-      // Giả lập API delay (Xóa dòng này khi lắp API thật)
-      console.log("Submitting:", data);
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      console.log("🚀 Sending register data:", data);
+
+      // Gửi theo format auth.request.ts - chỉ gửi các trường backend cần
+      const payload = {
+        fullName: data.fullName,
+        email: data.email,
+        phone: data.phone,
+        password: data.password,
+        role: data.role || "CITIZEN",
+        // confirmPassword và terms không gửi lên backend
+      };
+
+      await authApi.register(payload);
 
       toast.success("Tạo tài khoản thành công!", {
         description: "Vui lòng kiểm tra email để xác thực tài khoản.",
       });
 
-      // Chuyển hướng sang trang OTP hoặc Login
-      navigate("/login");
-      // navigate("/verify-otp", { state: { email: data.email } });
+      // Chuyển hướng sang trang xác thực OTP
+      navigate("/verify-otp", { state: { email: data.email } });
     } catch (err: unknown) {
+      console.error("❌ Register error:", err);
       const error = err as ApiErrorResponse;
-      const msg = error.response?.data?.message || "Đăng ký thất bại";
+      const msg =
+        error.response?.data?.message || "Đăng ký thất bại. Vui lòng thử lại.";
 
       // Map lỗi server vào input (Logic cũ + thêm Phone)
       const msgLower = msg.toLowerCase();

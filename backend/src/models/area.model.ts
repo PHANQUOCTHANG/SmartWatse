@@ -1,4 +1,4 @@
-import { Schema, model, Document } from "mongoose";
+import { Schema, model, Document, Types } from "mongoose";
 import { IArea, AreaType } from "../interface/area.interface";
 
 export interface IAreaDocument extends IArea, Document {}
@@ -9,29 +9,29 @@ const areaSchema = new Schema<IAreaDocument>(
       type: String,
       required: [true, "Tên khu vực là bắt buộc"],
       maxlength: 100,
+      trim: true,  
     },
     type: {
       type: String,
       enum: Object.values(AreaType),
       required: [true, "Loại khu vực là bắt buộc"],
     },
+    
     parentId: {
-      type: Number,
+      type: Schema.Types.ObjectId,
+      ref: "Area",
       default: null,
     },
-    createdAt: {
-      type: Date,
-      default: Date.now,
-    },
+     
   },
   {
     versionKey: false,
-    timestamps: { createdAt: "createdAt", updatedAt: false },
+    timestamps: true,
+    toJSON: { virtuals: true }, 
+    toObject: { virtuals: true },
   },
 );
 
-// Đánh index để tìm kiếm theo tên và lọc theo cấp cha nhanh hơn
-areaSchema.index({ name: 1 });
-areaSchema.index({ parentId: 1 });
+areaSchema.index({ name: 1, parentId: 1 }, { unique: true });
 
 export const Area = model<IAreaDocument>("Area", areaSchema);

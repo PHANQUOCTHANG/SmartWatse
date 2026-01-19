@@ -7,8 +7,6 @@ import {
   Lock,
   Eye,
   EyeOff,
-  Building,
-  Check,
   Loader2,
   Chrome,
   Facebook,
@@ -102,7 +100,7 @@ const RegisterForm = () => {
     setShowConfirmPassword,
   } = useRegister();
 
-  const currentRole = watch("role");
+  const termsValue = watch("terms");
 
   return (
     // Wrapper chính: Padding nhỏ trên mobile (p-3), lớn trên desktop
@@ -259,44 +257,6 @@ const RegisterForm = () => {
                   />
                 </div>
 
-                {/* Role Select - Responsive Grid */}
-                <div className="space-y-2 pt-1">
-                  <Label className="text-xs font-bold text-gray-700 uppercase ml-1">
-                    Vai trò đăng ký
-                  </Label>
-                  <div className="grid grid-cols-2 gap-4">
-                    {["CITIZEN", "ORGANIZATION"].map((role) => (
-                      <div
-                        key={role}
-                        onClick={() => setValue("role", role as any)}
-                        className={cn(
-                          "cursor-pointer group flex flex-col md:flex-row items-center justify-center gap-2 md:gap-3 p-3 md:p-4 rounded-xl border-2 transition-all relative active:scale-95",
-                          currentRole === role
-                            ? "border-[#1A73E8] bg-blue-50/50 text-[#1A73E8]"
-                            : "border-gray-100 bg-white text-gray-500 hover:border-gray-300"
-                        )}
-                      >
-                        {role === "CITIZEN" ? (
-                          <User className="size-5 md:size-6" />
-                        ) : (
-                          <Building className="size-5 md:size-6" />
-                        )}
-                        <span className="text-sm font-bold">
-                          {role === "CITIZEN" ? "Người dân" : "Tổ chức"}
-                        </span>
-                        {currentRole === role && (
-                          <div className="absolute top-2 right-2 md:top-3 md:right-3 text-[#1A73E8] bg-white rounded-full p-0.5 shadow-sm">
-                            <Check
-                              className="size-3 md:size-4"
-                              strokeWidth={4}
-                            />
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
                 {/* Checkbox */}
                 <div className="flex items-start space-x-3 bg-gray-50 p-3 rounded-xl">
                   <Checkbox
@@ -339,8 +299,8 @@ const RegisterForm = () => {
                 {/* Submit Button */}
                 <Button
                   type="submit"
-                  disabled={isSubmitting}
-                  className="w-full h-12 md:h-14 bg-[#1A73E8] hover:bg-blue-700 text-white font-bold text-base shadow-lg shadow-blue-500/30 rounded-xl active:scale-[0.98] transition-all"
+                  disabled={isSubmitting || !termsValue}
+                  className="w-full h-12 md:h-14 bg-[#1A73E8] hover:bg-blue-700 text-white font-bold text-base shadow-lg shadow-blue-500/30 rounded-xl active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                 >
                   {isSubmitting ? (
                     <Loader2 className="animate-spin" />

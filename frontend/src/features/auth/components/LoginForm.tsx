@@ -1,6 +1,7 @@
 import React from "react";
 import { Link } from "react-router-dom";
-import { Recycle, Eye, EyeOff, User, Facebook, Chrome } from "lucide-react";
+import { Recycle, Eye, EyeOff, User, Facebook } from "lucide-react";
+import { FaGoogle } from "react-icons/fa";
 import { useLogin } from "../hooks/useLogin";
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
@@ -208,7 +209,7 @@ const LoginForm = () => {
               type="button"
               className="h-11 font-medium text-gray-700 border-gray-200 hover:bg-gray-50 hover:text-black transition-colors"
             >
-              <Chrome className="mr-2 h-4 w-4 text-red-500" /> Google
+              <FaGoogle className="mr-2 h-4 w-4 text-[#EA4335]" /> Google
             </Button>
             <Button
               variant="outline"
