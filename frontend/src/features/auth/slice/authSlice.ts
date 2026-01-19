@@ -14,7 +14,7 @@ import { UserProfile } from "@/features/user";
 const initialState: AuthState<UserProfile> = {
   token: null,
   user: {
-    role: "MANAGER",
+    role: "ADMIN",
     _id: "",
     fullName: "",
     username: "",

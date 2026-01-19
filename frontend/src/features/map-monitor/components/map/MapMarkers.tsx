@@ -1,5 +1,5 @@
 import mapboxgl from "mapbox-gl";
-import { Bin } from "../../types";
+import { Bin } from "../../types/types";
 import { getMarkerColor } from "./mapboxStyles";
 import { useMapMonitorStore } from "../../store/mapMonitorStore";
 

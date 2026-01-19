@@ -1,4 +1,4 @@
-import { BinStatus } from "../../types";
+import { BinStatus } from "../../types/types";
 
 export const MAPBOX_STYLE = "mapbox://styles/mapbox/streets-v12";
 // Gợi ý khác:

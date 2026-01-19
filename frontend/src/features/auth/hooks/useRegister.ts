@@ -7,6 +7,7 @@ import { toast } from "sonner";
 // API & Schema
 // import authApi from "@/features/auth/api/authApi"; // Bỏ comment khi dùng thật
 import { registerSchema, type RegisterInput } from "../schemas/auth.schema";
+import authApi from "@/features/auth/api/authApi";
 
 // Interface cho lỗi API
 interface ApiErrorResponse {
@@ -92,8 +93,8 @@ export const useRegister = () => {
   // 3. Handle Submit
   const handleRegister = async (data: RegisterInput) => {
     try {
-      // await authApi.register(data); // API Call thật
-
+      console.log(data);
+      await authApi.register(data); // API Call thật
       // Giả lập API delay (Xóa dòng này khi lắp API thật)
       console.log("Submitting:", data);
       await new Promise((resolve) => setTimeout(resolve, 1500));

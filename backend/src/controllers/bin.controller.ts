@@ -1,5 +1,6 @@
 import { binService } from "@/config/container";
 import { normalizeQuery } from "@/interface/query.interface";
+import AppError from "@/utils/appError";
 import asyncHandler from "@/utils/asyncHandler";
 import { Request, Response } from "express";
 
@@ -65,3 +66,26 @@ export const deleteBin = asyncHandler(async (req: Request, res: Response) => {
     data: null,
   });
 });
+
+// [UPDATE] GET | /api/v1/bins/nearby?lat=10.1&lng=106.2&dist=5000
+export const getNearbyBins = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { lat, lng, dist } = req.query;
+
+    if (!lat || !lng) {
+      throw new AppError("Vui lòng cung cấp vĩ độ (lat) và kinh độ (lng)", 400);
+    }
+
+    const result = await binService.getNearbyBins(
+      Number(lat),
+      Number(lng),
+      dist ? Number(dist) : undefined,
+    );
+
+    res.status(200).json({
+      status: "success",
+      count: result.length,
+      data: result,
+    });
+  },
+);

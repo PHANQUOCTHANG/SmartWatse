@@ -29,6 +29,7 @@ export const ADMIN_PATHS = {
   // Cấu hình danh mục (Khu vực, Loại rác...)
   AREAS: "areas",
   BINS: "bins", // Quản lý thiết bị thùng rác
+  COLLECTION_POINTS: "collection-points",
   VEHICLES: "vehicles", // Quản lý xe thu gom
 
   SETTINGS: "settings",

@@ -10,6 +10,11 @@ export interface IBinService {
   findById(id: string): Promise<BinResponse>;
   update(id: string, dto: UpdateBinRequest): Promise<BinResponse>;
   delete(id: string): Promise<void>;
+  getNearbyBins(
+    lat: number,
+    lng: number,
+    distance?: number,
+  ): Promise<BinResponse[]>;
 }
 
 export class BinService implements IBinService {
@@ -20,8 +25,14 @@ export class BinService implements IBinService {
     const existed = await this.repo.findByCode(dto.code);
     if (existed)
       throw new AppError(`Mã thùng rác '${dto.code}' đã tồn tại`, 400);
-
-    const bin = await this.repo.create(dto as any);
+    const binData = {
+      ...dto,
+      location: {
+        type: "Point",
+        coordinates: [dto.longitude, dto.latitude],
+      },
+    };
+    const bin = await this.repo.create(binData as any);
     return this.mapToResponse(bin);
   }
 
@@ -51,12 +62,26 @@ export class BinService implements IBinService {
     if (!bin) throw new AppError("Thùng rác không tồn tại để xóa", 404);
     await this.repo.deleteById(id);
   }
-
+  // tìm kiếm gần nhất
+  async getNearbyBins(
+    lat: number,
+    lng: number,
+    distance: number = 2000,
+  ): Promise<BinResponse[]> {
+    // Mặc định tìm trong 2km (2000m)
+    const bins = await this.repo.findNearby(lng, lat, distance);
+    return bins.map((b) => this.mapToResponse(b));
+  }
   // Chuyển đổi Model sang DTO sạch (đảm bảo các ObjectId chuyển thành string)
   private mapToResponse(bin: any): BinResponse {
     return {
       id: bin._id.toString(),
       code: bin.code,
+      // Tách GeoJSON thành Lat/Lng cho Frontend dễ dùng
+      longitude: bin.location.coordinates[0],
+      latitude: bin.location.coordinates[1],
+      address: bin.address,
+
       collectionPointId: bin.collectionPointId.toString(),
       binType: bin.binType,
       capacity: bin.capacity,

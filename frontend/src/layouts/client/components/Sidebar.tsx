@@ -40,15 +40,20 @@ const adminSidebarItems = [
     items: [
       { label: "Dashboard", path: ADMIN_PATHS.ROOT, icon: LayoutDashboard },
       {
-        label: "Thống kê & Báo cáo",
+        label: "Bản đồ rác thải",
         path: `${ADMIN_PATHS.ROOT}/${ADMIN_PATHS.ANALYTICS}`,
         icon: BarChart3,
       },
     ],
   },
   {
-    title: "Quản lý hệ thống",
+    title: "Quản lý",
     items: [
+      {
+        label: "Người dùng",
+        path: `${ADMIN_PATHS.ROOT}/${ADMIN_PATHS.USERS}`,
+        icon: Users,
+      },
       {
         label: "Khu vực",
         path: `${ADMIN_PATHS.ROOT}/${ADMIN_PATHS.AREAS}`,
@@ -64,16 +69,16 @@ const adminSidebarItems = [
         path: `${ADMIN_PATHS.ROOT}/${ADMIN_PATHS.VEHICLES}`,
         icon: Truck,
       },
-      {
-        label: "Người dùng",
-        path: `${ADMIN_PATHS.ROOT}/${ADMIN_PATHS.USERS}`,
-        icon: Users,
-      },
     ],
   },
   {
-    title: "Cấu hình",
+    title: "Hệ thống",
     items: [
+      {
+        label: "Thống kê & Báo cáo",
+        path: `${ADMIN_PATHS.ROOT}/${ADMIN_PATHS.ANALYTICS}`,
+        icon: BarChart3,
+      },
       {
         label: "Cài đặt chung",
         path: `${ADMIN_PATHS.ROOT}/${ADMIN_PATHS.SETTINGS}`,
@@ -276,14 +281,14 @@ const Sidebar: React.FC<SidebarProps> = ({
         isSidebarOpen
           ? "w-64 translate-x-0 shadow-2xl lg:shadow-none"
           : "-translate-x-full lg:translate-x-0",
-        isCollapsed ? "lg:w-[70px]" : "lg:w-64"
+        isCollapsed ? "lg:w-[70px]" : "lg:w-64",
       )}
     >
       {/* --- HEADER: LOGO --- */}
       <div
         className={cn(
           "flex h-16 items-center shrink-0 border-b border-border/50",
-          isCollapsed ? "justify-center" : "px-6"
+          isCollapsed ? "justify-center" : "px-6",
         )}
       >
         <div
@@ -328,7 +333,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                       isActive
                         ? "bg-primary/10 text-primary font-semibold"
                         : "text-muted-foreground hover:bg-muted hover:text-foreground",
-                      isCollapsed && "justify-center px-0 w-10 h-10 mx-auto"
+                      isCollapsed && "justify-center px-0 w-10 h-10 mx-auto",
                     )}
                   >
                     <item.icon
@@ -336,7 +341,7 @@ const Sidebar: React.FC<SidebarProps> = ({
                         "size-5 shrink-0 transition-colors",
                         isActive
                           ? "text-primary"
-                          : "text-muted-foreground group-hover:text-foreground"
+                          : "text-muted-foreground group-hover:text-foreground",
                       )}
                     />
                     {!isCollapsed && (
@@ -360,7 +365,7 @@ const Sidebar: React.FC<SidebarProps> = ({
         <div
           className={cn(
             "flex items-center",
-            isCollapsed ? "justify-center" : "gap-3"
+            isCollapsed ? "justify-center" : "gap-3",
           )}
         >
           <Avatar className="size-9 border border-border">

@@ -11,7 +11,7 @@ import ProtectedRoute from "@/app/routes/ProtectedRoute";
 import { guestAuthRoutes } from "@/features/auth/routes";
 
 // 3. Config Paths
-import { MANAGER_PATHS, STAFF_PATHS } from "@/config/paths";
+import { MANAGER_PATHS, STAFF_PATHS, ADMIN_PATHS } from "@/config/paths";
 
 // 4. Page Imports (Manager)
 import MapMonitorPage from "@/pages/manager/MapMonitorPage";
@@ -19,6 +19,8 @@ import ManagerSchedulePage from "@/features/schedule/pages/ManagerSchedulePage";
 import TaskAssignmentPage from "@/features/task-assignment/pages/TaskAssignmentPage";
 import ManagerFeedbackPage from "@/features/feedback/pages/ManagerFeedbackPage";
 import ManagerReportsPage from "@/features/reports/pages/ManagerReportsPage";
+
+// 4b. Page Imports (Admin)
 
 // 5. Page Imports (Staff)
 import {
@@ -29,6 +31,11 @@ import {
 } from "@/pages/staff";
 import StaffTaskHistoryPage from "@/pages/staff/StaffTaskHistoryPage";
 import { RoleBasedHome } from "@/app/routes/RoleBasedHome";
+import AdminDashboardPage from "@/pages/admin/AdminDashboardPage";
+import UsersPage from "@/pages/admin/UsersPage";
+import AreasPage from "@/pages/admin/AreasPage";
+import BinsPage from "@/pages/admin/BinsPage";
+import CollectionPointsPage from "@/pages/admin/CollectionPointsPage";
 
 // 6. Page Imports (Citizen/Public)
 // import LandingPage from "@/pages/public/LandingPage";
@@ -79,6 +86,21 @@ export const router = createBrowserRouter([
                 element: <ManagerFeedbackPage />,
               },
               { path: MANAGER_PATHS.REPORTS, element: <ManagerReportsPage /> },
+            ],
+          },
+          // --- D. ADMIN ROUTES ---
+          {
+            path: "admin",
+            element: <ProtectedRoute roles={["ADMIN"]} />,
+            children: [
+              { index: true, element: <AdminDashboardPage /> },
+              { path: ADMIN_PATHS.USERS, element: <UsersPage /> },
+              { path: ADMIN_PATHS.AREAS, element: <AreasPage /> },
+              { path: ADMIN_PATHS.BINS, element: <BinsPage /> },
+              {
+                path: ADMIN_PATHS.COLLECTION_POINTS,
+                element: <CollectionPointsPage />,
+              },
             ],
           },
 

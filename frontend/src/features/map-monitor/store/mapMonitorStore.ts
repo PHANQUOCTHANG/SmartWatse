@@ -1,5 +1,5 @@
 import { create } from "zustand";
-import { Bin } from "../types";
+import { Bin } from "../types/types";
 
 type MapMonitorState = {
   bins: Bin[];

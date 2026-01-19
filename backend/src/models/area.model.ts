@@ -5,29 +5,29 @@ export interface IAreaDocument extends IArea, Document {}
 
 const areaSchema = new Schema<IAreaDocument>(
   {
-    name: { 
-      type: String, 
-      required: [true, "Tên khu vực là bắt buộc"], 
-      maxlength: 100 
+    name: {
+      type: String,
+      required: [true, "Tên khu vực là bắt buộc"],
+      maxlength: 100,
     },
-    type: { 
-      type: String, 
-      enum: Object.values(AreaType), 
-      required: [true, "Loại khu vực là bắt buộc"] 
+    type: {
+      type: String,
+      enum: Object.values(AreaType),
+      required: [true, "Loại khu vực là bắt buộc"],
     },
-    parentId: { 
-      type: Number, 
-      default: null 
+    parentId: {
+      type: Number,
+      default: null,
     },
-    createdAt: { 
-      type: Date, 
-      default: Date.now 
-    }
+    createdAt: {
+      type: Date,
+      default: Date.now,
+    },
   },
   {
     versionKey: false,
-    timestamps: { createdAt: "createdAt", updatedAt: false }
-  }
+    timestamps: { createdAt: "createdAt", updatedAt: false },
+  },
 );
 
 // Đánh index để tìm kiếm theo tên và lọc theo cấp cha nhanh hơn
