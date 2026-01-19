@@ -56,7 +56,6 @@ export class AuthService implements IAuthService {
     const user = await this.userRepo.create({
       ...dto,
       passwordHash,
-      role: UserRole.CITIZEN,
       status: UserStatus.ACTIVE,
     });
 
