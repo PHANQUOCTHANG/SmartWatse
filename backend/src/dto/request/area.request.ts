@@ -1,4 +1,11 @@
-import { IsNotEmpty, IsString, IsEnum, IsNumber, IsOptional, MaxLength } from "class-validator";
+import {
+  IsNotEmpty,
+  IsString,
+  IsEnum,
+  IsNumber,
+  IsOptional,
+  MaxLength,
+} from "class-validator";
 import { AreaType } from "../../interface/area.interface";
 
 // DTO tạo mới khu vực
@@ -14,7 +21,7 @@ export class CreateAreaRequest {
 
   @IsOptional()
   @IsNumber({}, { message: "Parent ID phải là một số" })
-  parentId?: number;
+  parentId?: string;
 }
 
 // DTO cập nhật khu vực
@@ -30,5 +37,5 @@ export class UpdateAreaRequest {
 
   @IsOptional()
   @IsNumber()
-  parentId?: number;
+  parentId?: string;
 }

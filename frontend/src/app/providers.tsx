@@ -8,10 +8,7 @@ import { Toaster } from "sonner";
 
 import { router } from "@/app/routes/route";
 import { queryClient } from "@/lib/queryClient";
-// import { EqualizerLoader } from "@/components/ui/MusicLoadingEffects";
-
-// // 1. Import ThemeProvider mới tạo
-// import { ThemeProvider } from "@/components/providers/theme-provider";
+import { BrandLoader } from "@/components/ui/SmartWastLoadingEffects";
 
 export const AppProviders: React.FC<{ children: React.ReactNode }> = ({
   children,
@@ -39,9 +36,7 @@ export const AppProviders: React.FC<{ children: React.ReactNode }> = ({
 
 export const AppWithRouter = () => (
   <AppProviders>
-    <Suspense
-    // fallback={<EqualizerLoader fullscreen text="Đang tải ứng dụng..." />}
-    >
+    <Suspense fallback={<BrandLoader fullscreen text="Đang tải ứng dụng..." />}>
       <RouterProvider router={router} />
     </Suspense>
   </AppProviders>

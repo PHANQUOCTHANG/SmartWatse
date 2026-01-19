@@ -19,11 +19,11 @@ export interface ApiErrorResponse {
 }
 
 export interface PagedResponse<T> {
+  status: string;
   data: T[];
-  meta: {
-    totalItems: number;
-    page: number;
-    pageSize?: number;
-    totalPages: number;
-  };
+  count: number;
+  results: number;
+  total: number;
+  page: number;
+  totalPages: number;
 }

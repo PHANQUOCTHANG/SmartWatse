@@ -13,6 +13,7 @@ export const RoleBasedHome = () => {
   // 2. Đã đăng nhập -> Check quyền để điều hướng
   switch (user.role) {
     case "ADMIN":
+      return <Navigate to="/admin" replace />;
     case "MANAGER":
       return <Navigate to="/manager/map-monitor" replace />;
 

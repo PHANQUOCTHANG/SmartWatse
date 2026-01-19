@@ -34,13 +34,13 @@ export const useLogin = () => {
     try {
       // Gọi API
       const res = await authApi.login(data);
-
+      console.log(res);
       // Lưu vào Redux Store
       dispatch(
         login({
           accessToken: res.data.accessToken,
           user: res.data.user,
-        })
+        }),
       );
 
       // Về trang chủ

@@ -51,8 +51,8 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
 // POST | /api/auth/refresh | Làm mới access token
 export const refresh = asyncHandler(async (req: Request, res: Response) => {
   // Lấy refresh token từ cookie
+  console.log(req.cookies);
   const refreshToken = req.cookies.refreshToken;
-
   const result = await authService.refresh(refreshToken);
 
   // Rotate refresh token mới vào cookie
@@ -68,6 +68,7 @@ export const refresh = asyncHandler(async (req: Request, res: Response) => {
   res.status(200).json({
     status: "success",
     data: {
+      user: result.user,
       accessToken: result.accessToken,
     },
   });
@@ -119,8 +120,7 @@ export const verifyOtp = asyncHandler(async (req: Request, res: Response) => {
 // POST | /api/auth/reset-password | Đặt lại mật khẩu
 export const resetPassword = asyncHandler(
   async (req: Request, res: Response) => {
-
-    console.log(req.body)
+    console.log(req.body);
 
     const { email, otp, newPassword } = req.body;
 
@@ -144,5 +144,5 @@ export const resetPassword = asyncHandler(
         user: result.user,
       },
     });
-  }
+  },
 );

@@ -1,4 +1,4 @@
-import { Bin } from "../types";
+import { Bin } from "../types/types";
 
 export const mockBins: Bin[] = [
   {

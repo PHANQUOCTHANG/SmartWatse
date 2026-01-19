@@ -21,7 +21,7 @@ const authApi = {
   login: async (payload: LoginRequest): Promise<ApiResponse<LoginResponse>> => {
     const res = await api.post<ApiResponse<LoginResponse>>(
       "/auth/login",
-      payload
+      payload,
     );
 
     console.log(res.data);
@@ -31,26 +31,23 @@ const authApi = {
   // 2. Đăng ký
   register: async (
     payload: RegisterRequest,
-    secret?: string
+    secret?: string,
   ): Promise<ApiResponse<RegisterResponse>> => {
     const res = await api.post<ApiResponse<RegisterResponse>>(
       // `/auth/register${secret ? `/admin/${secret}` : ""}`,
       "/auth/register",
-      payload
+      payload,
     );
     console.log(res.data);
     return res.data;
   },
 
-  // 3. Xác thực Email (OTP)  
+  // 3. Xác thực Email (OTP)
   verifyEmail: async (payload: {
     email: string;
     otp: string;
   }): Promise<ApiResponse<any>> => {
-    const res = await api.post<ApiResponse<any>>(
-      "/auth/verify-otp",
-      payload
-    );
+    const res = await api.post<ApiResponse<any>>("/auth/verify-otp", payload);
     return res.data;
   },
 
@@ -64,10 +61,8 @@ const authApi = {
 
   // 5. Làm mới Access Token
   refreshAuth: async (): Promise<ApiResponse<RefreshResponse>> => {
-    const res = await api.post<ApiResponse<RefreshResponse>>(
-      "/auth/refresh-token"
-    );
-
+    const res = await api.post<ApiResponse<RefreshResponse>>("/auth/refresh");
+    console.log(res);
     return res.data;
   },
 
@@ -83,7 +78,7 @@ const authApi = {
   resetPassword: async (
     email: string,
     newPassword: string,
-    otp: string
+    otp: string,
   ): Promise<ApiResponse<void>> => {
     const res = await api.post<ApiResponse<void>>(`/auth/reset-password`, {
       email,
@@ -109,22 +104,22 @@ const authApi = {
 
   // 9. Đổi mật khẩu (Dùng cho cả Force Change Password)
   changePassword: async (
-    payload: ChangePasswordRequest
+    payload: ChangePasswordRequest,
   ): Promise<ApiResponse<void>> => {
     const res = await api.post<ApiResponse<void>>(
       "/users/change-password", // Lưu ý: Check lại route bên backend xem là /auth hay /users
-      payload
+      payload,
     );
     return res.data;
   },
 
   // 10. Claim Profile (Dành cho tài khoản Shadow/Artist ảo)
   claimProfile: async (
-    payload: ClaimProfileRequest
+    payload: ClaimProfileRequest,
   ): Promise<ApiResponse<void>> => {
     const res = await api.post<ApiResponse<void>>(
       "/users/claim-profile",
-      payload
+      payload,
     );
     return res.data;
   },

@@ -1,16 +1,21 @@
 // src/layouts/RootLayout.tsx
-import { Outlet } from "react-router-dom";
+import { Outlet, useNavigate } from "react-router-dom";
 
 import Sidebar from "@/layouts/client/components/Sidebar";
 import Header from "@/layouts/client/components/Header";
-import { useState } from "react";
+import { use, useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
+import { useAppSelector } from "@/store/store";
 
 const ClientLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
   const [isCollapsed, setIsCollapsed] = useState(false);
   const toggleSidebar = () => setIsCollapsed(!isCollapsed);
-
+  const navigate = useNavigate();
+  const { user } = useAppSelector((state) => state.auth);
+  useEffect(() => {
+    if (!user) navigate("/login");
+  });
   return (
     // Wrapper chính: h-screen và overflow-hidden để tránh scroll body
     <div className="relative flex h-screen w-full bg-background text-foreground font-sans antialiased overflow-hidden">
@@ -36,7 +41,7 @@ const ClientLayout = () => {
         {/* SCROLLABLE AREA */}
         <main
           className={cn(
-            "flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-6 lg:p-8 scroll-smooth bg-muted/20" // Thêm bg-muted/20 để tách biệt với header/sidebar trắng
+            "flex-1 overflow-y-auto custom-scrollbar p-4 sm:p-6 lg:p-8 scroll-smooth bg-muted/20", // Thêm bg-muted/20 để tách biệt với header/sidebar trắng
           )}
         >
           {/* Max width container để nội dung không bị bè ra quá rộng trên màn hình 4k */}
