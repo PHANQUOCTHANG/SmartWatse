@@ -17,6 +17,7 @@ import {
   CitizenReportPage,
   CitizenReportDetailPage,
   CitizenReportCreatePage,
+  CitizenNotificationPage,
 } from "@/pages/citizen";
 
 export const router = createBrowserRouter([
@@ -104,7 +105,7 @@ export const router = createBrowserRouter([
               },
               {
                 path: "notifications",
-                element: <CitizenSchedulePage />,
+                element: <CitizenNotificationPage />,
               },
             ],
           },

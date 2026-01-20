@@ -13,7 +13,6 @@ const CITIZEN_MENU = [
 
 const ACCOUNT_MENU = [
   { label: "Hồ sơ cá nhân", icon: "person", path: "/citizen/profile" },
-  { label: "Cài đặt", icon: "settings", path: "/citizen/settings" },
 ];
 
 export default function CitizenLayout() {
