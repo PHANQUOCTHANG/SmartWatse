@@ -1,4 +1,5 @@
 import bcrypt from "bcrypt";
+import jwt from "jsonwebtoken";
 import AppError from "@/utils/appError";
 import { IOtpRepository } from "@/repositories/otp.repository";
 import { IUserRepository } from "@/repositories/user.repository";
@@ -6,7 +7,7 @@ import { emailService } from "@/config/container";
 
 export interface IOtpService {
   send(email: string): Promise<void>;
-  verify(email: string, otp: string): Promise<void>;
+  verify(email: string, otp: string): Promise<string>;
 }
 
 export class OtpService implements IOtpService {
@@ -32,7 +33,7 @@ export class OtpService implements IOtpService {
     await this.otpRepo.create({
       email,
       otpHash,
-      expiresAt: new Date(Date.now() + 5 * 60 * 1000),
+      expiresAt: new Date(Date.now() + 5* 60 * 1000),
       verified: false,
     });
 
@@ -45,8 +46,8 @@ export class OtpService implements IOtpService {
     }
   }
 
-  // So khớp mã OTP người dùng nhập vào
-  async verify(email: string, otp: string): Promise<void> {
+  // So khớp mã OTP người dùng nhập vào và trả về reset token
+  async verify(email: string, otp: string): Promise<string> {
     // 1. Tìm bản ghi OTP hợp lệ (chưa hết hạn)
     const record = await this.otpRepo.findValidByEmail(email);
     if (!record)
@@ -61,5 +62,27 @@ export class OtpService implements IOtpService {
 
     // 4. Đánh dấu mã đã sử dụng thành công
     await this.otpRepo.markVerified(record.id);
+
+    // 5. Kiểm tra email tồn tại
+    const user = await this.userRepo.findByEmail(email);
+    if (!user) throw new AppError("Người dùng không tồn tại", 404);
+
+    // 6. Tạo reset password token
+    const resetSecret = process.env.JWT_RESET_SECRET;
+    if (!resetSecret) {
+      throw new AppError("Lỗi cấu hình hệ thống: JWT Secret", 500);
+    }
+
+    const resetToken = jwt.sign(
+      {
+        sub: user.id,
+        email: user.email,
+        scope: "reset_password",
+      },
+      resetSecret,
+      { expiresIn: "15m" }
+    );
+
+    return resetToken;
   }
 }

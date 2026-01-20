@@ -1,7 +1,6 @@
 import { type RouteObject } from "react-router-dom";
 import {
   ForgotPasswordPage,
-  GoogleCallbackPage,
   LoginPage,
   LogoutPage,
   RegisterPage,
@@ -25,10 +24,10 @@ export const guestAuthRoutes: RouteObject[] = [
     path: AUTH_PATHS.VERIFY_OTP,
     element: <VerifyOtpPage />,
   },
-  {
-    path: AUTH_PATHS.AUTH_GOOGLE,
-    element: <GoogleCallbackPage />,
-  },
+  // {
+  //   path: AUTH_PATHS.AUTH_GOOGLE,
+  //   element: <GoogleCallbackPage />,
+  // },
   {
     path: AUTH_PATHS.FORGOT_PASSWORD,
     element: <ForgotPasswordPage />,

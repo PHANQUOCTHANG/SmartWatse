@@ -34,28 +34,14 @@ export const useLogin = () => {
     try {
       // Gọi API
       const res = await authApi.login(data);
-
+      console.log(res);
       // Lưu vào Redux Store
       dispatch(
         login({
           accessToken: res.data.accessToken,
           user: res.data.user,
-        })
+        }),
       );
-      if (res.data.user.mustChangePassword) {
-        toast.warning("Yêu cầu bảo mật", {
-          description: "Vui lòng đổi mật khẩu mới cho lần đăng nhập đầu tiên.",
-        });
-
-        // Chuyển hướng sang trang bắt buộc đổi pass
-        navigate("/force-change-password");
-        return; // Dừng lại, không navigate("/") về Home
-      }
-      toast.success("Welcome back!", {
-        description: `Logged in as ${
-          res.data.user.fullName || res.data.user.username
-        }`,
-      });
 
       // Về trang chủ
       navigate("/");

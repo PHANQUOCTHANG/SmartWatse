@@ -9,6 +9,11 @@ export interface IBinRepository {
   updateById(id: string, data: Partial<IBin>): Promise<IBinDocument | null>;
   deleteById(id: string): Promise<void>;
   findAll(query: BaseQuery): Promise<IPaginatedResult<IBinDocument>>;
+  findNearby(
+    lng: number,
+    lat: number,
+    maxDistanceInMeters: number,
+  ): Promise<IBinDocument[]>;
 }
 
 export class BinRepository implements IBinRepository {
@@ -55,5 +60,19 @@ export class BinRepository implements IBinRepository {
     ]);
 
     return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
+  }
+  // [UPDATE] Hàm tìm kiếm không gian
+  async findNearby(lng: number, lat: number, maxDistanceInMeters: number) {
+    return Bin.find({
+      location: {
+        $near: {
+          $geometry: {
+            type: "Point",
+            coordinates: [lng, lat], // Thứ tự Mongo: Lng trước, Lat sau
+          },
+          $maxDistance: maxDistanceInMeters, // Đơn vị: mét
+        },
+      },
+    }).exec();
   }
 }

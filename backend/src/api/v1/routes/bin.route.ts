@@ -5,6 +5,8 @@ import validationMiddleware from "@/middleware/validate.middleware";
 
 const router = Router();
 
+// URL: /api/bins/nearby
+router.get("/nearby", binCtrl.getNearbyBins);
 // URL: /api/bins
 router
   .route("/")

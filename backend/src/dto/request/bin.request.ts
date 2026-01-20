@@ -16,6 +16,24 @@ export class CreateBinRequest {
   @MaxLength(50, { message: "Mã thùng rác không quá 50 ký tự" })
   code!: string;
 
+  // --- [UPDATE] THÊM TỌA ĐỘ CHO MAP ---
+  @IsNotEmpty({ message: "Vĩ độ (Latitude) không được để trống" })
+  @IsNumber({}, { message: "Vĩ độ phải là một số" })
+  @Min(-90, { message: "Vĩ độ không hợp lệ (Min: -90)" })
+  @Max(90, { message: "Vĩ độ không hợp lệ (Max: 90)" })
+  latitude!: number;
+
+  @IsNotEmpty({ message: "Kinh độ (Longitude) không được để trống" })
+  @IsNumber({}, { message: "Kinh độ phải là một số" })
+  @Min(-180, { message: "Kinh độ không hợp lệ (Min: -180)" })
+  @Max(180, { message: "Kinh độ không hợp lệ (Max: 180)" })
+  longitude!: number;
+
+  @IsOptional()
+  @IsString({ message: "Địa chỉ phải là chuỗi ký tự" })
+  address?: string;
+  // ------------------------------------
+
   @IsNotEmpty({ message: "ID điểm tập kết không được để trống" })
   @IsString({ message: "ID điểm tập kết phải là chuỗi hợp lệ" })
   collectionPointId!: string;
@@ -33,6 +51,24 @@ export class CreateBinRequest {
 }
 
 export class UpdateBinRequest {
+  // --- [UPDATE] CHO PHÉP CẬP NHẬT VỊ TRÍ ---
+  @IsOptional()
+  @IsNumber({}, { message: "Vĩ độ phải là một số" })
+  @Min(-90)
+  @Max(90)
+  latitude?: number;
+
+  @IsOptional()
+  @IsNumber({}, { message: "Kinh độ phải là một số" })
+  @Min(-180)
+  @Max(180)
+  longitude?: number;
+
+  @IsOptional()
+  @IsString()
+  address?: string;
+  // ------------------------------------
+
   @IsOptional()
   @IsEnum(BinType, { message: "Loại thùng rác không hợp lệ" })
   binType?: BinType;

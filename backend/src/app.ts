@@ -3,7 +3,7 @@ import express, { Application, Request, Response, NextFunction } from "express";
 import cors from "cors";
 import swaggerUi from "swagger-ui-express";
 import swaggerSpec from "./config/swagger";
-
+import cookieParser from "cookie-parser";
 // Import Global Error Handler (Giả định file này có 4 tham số: err, req, res, next)
 import { globalErrorHandler } from "./middleware/errorHandler";
 
@@ -17,7 +17,7 @@ const corsOptions = {
   credentials: true,
 };
 app.use(cors(corsOptions));
-
+app.use(cookieParser());
 // 2. Body Parser & Limit
 app.use(express.json({ limit: "10kb" })); // Tối ưu: Giới hạn kích thước body JSON
 app.use(express.urlencoded({ extended: true, limit: "10kb" }));
@@ -30,7 +30,7 @@ app.use(
     swaggerOptions: {
       persistAuthorization: true,
     },
-  })
+  }),
 );
 
 // 5. Xử lý Lỗi (Global Error Handling - Phải là middleware cuối cùng)

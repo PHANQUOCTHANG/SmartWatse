@@ -1,404 +1,367 @@
 import React from "react";
+import { Link } from "react-router-dom";
 import {
+  User,
   Mail,
+  Phone,
   Lock,
   Eye,
   EyeOff,
-  User,
-  CheckCircle2,
-  XCircle,
-  Music4,
-  Disc,
-  ShieldCheck,
-  AlertCircle,
+  Loader2,
+  Chrome,
+  Facebook,
+  Recycle,
+  History,
+  ArrowLeft,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { Link } from "react-router-dom";
-
-// Import Hook
 import { useRegister } from "../hooks/useRegister";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+import { cn } from "@/lib/utils";
 
-const AnimatedBackground = () => (
-  <div className="fixed inset-0 z-0 overflow-hidden bg-[#08080a]">
-    <div className="absolute top-[-10%] left-[-10%] w-[50vw] h-[50vw] bg-indigo-500/10 rounded-full blur-[120px] animate-blob mix-blend-screen" />
-    <div className="absolute top-[20%] right-[-10%] w-[40vw] h-[40vw] bg-purple-500/10 rounded-full blur-[120px] animate-blob animation-delay-2000 mix-blend-screen" />
-    <div className="absolute bottom-[-20%] left-[20%] w-[50vw] h-[50vw] bg-pink-500/10 rounded-full blur-[120px] animate-blob animation-delay-4000 mix-blend-screen" />
-    <div className="absolute inset-0 bg-[url('https://grainy-gradients.vercel.app/noise.svg')] opacity-10 brightness-100 contrast-150"></div>
-  </div>
-);
-
-interface ButtonProps extends React.ButtonHTMLAttributes<HTMLButtonElement> {
-  variant?: "neon" | "ghost";
-  isLoading?: boolean;
-}
-
-const Button: React.FC<ButtonProps> = ({
-  children,
-  className,
-  variant = "neon",
-  isLoading,
-  ...props
-}) => {
-  const baseStyles =
-    "relative group w-full h-11 rounded-2xl font-semibold text-sm transition-all duration-300 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed overflow-hidden";
-
-  const variants = {
-    neon: "bg-white text-black hover:bg-gray-100 shadow-lg shadow-white/5 border border-transparent",
-    ghost: "bg-transparent text-gray-400 hover:text-white hover:bg-white/5",
-  };
-
-  return (
-    <button className={cn(baseStyles, variants[variant], className)} {...props}>
-      <span className="relative flex items-center justify-center gap-2">
-        {isLoading && <Disc className="animate-spin h-4 w-4" />}
-        {children}
-      </span>
-    </button>
-  );
-};
-
-// --- INPUT COMPONENT (Chuẩn React Hook Form) ---
-interface InputProps extends React.InputHTMLAttributes<HTMLInputElement> {
-  icon: React.ElementType;
-  error?: boolean;
-}
-
-const InputField = React.forwardRef<HTMLInputElement, InputProps>(
-  ({ icon: Icon, className, error, ...props }, ref) => (
-    <div className="relative group w-full">
-      {/* Glow Effect nền sau: Đỏ khi lỗi, Tím khi focus */}
-      <div
+// --- Sub-component: Form Input (Responsive & Touch Friendly) ---
+const FormInput = ({
+  id,
+  label,
+  type = "text",
+  placeholder,
+  icon: Icon,
+  error,
+  register,
+  togglePass,
+  showPass,
+}: any) => (
+  <div className="space-y-1.5 w-full">
+    <Label
+      htmlFor={id}
+      className="text-xs font-bold text-gray-700 uppercase tracking-wide ml-1"
+    >
+      {label}
+    </Label>
+    <div className="relative group">
+      <Input
+        id={id}
+        type={type}
+        placeholder={placeholder}
+        // h-12 cho mobile dễ bấm, text-base để không bị zoom trên iOS
         className={cn(
-          "absolute -inset-0.5 bg-gradient-to-r from-indigo-500/20 to-purple-500/20 rounded-2xl blur opacity-0 group-focus-within:opacity-100 transition-opacity duration-500",
-          error && "from-red-500/30 to-red-500/30 opacity-100"
+          "pl-11 h-12 bg-gray-50/50 border-gray-200 text-base md:text-sm focus:bg-white focus:border-[#1A73E8] focus:ring-2 focus:ring-[#1A73E8]/20 transition-all rounded-xl",
+          error &&
+            "border-red-500 bg-red-50/10 focus:border-red-500 focus:ring-red-200"
+        )}
+        {...register}
+      />
+      <Icon
+        className={cn(
+          "absolute left-3.5 top-3.5 size-5 transition-colors",
+          error
+            ? "text-red-400"
+            : "text-gray-400 group-focus-within:text-[#1A73E8]"
         )}
       />
 
-      <div className="relative w-full">
-        {/* Icon trái: Đỏ khi lỗi */}
-        <div
-          className={cn(
-            "absolute left-4 top-1/2 -translate-y-1/2 z-10 pointer-events-none transition-colors duration-300",
-            error
-              ? "text-red-400"
-              : "text-gray-400 group-focus-within:text-white"
-          )}
+      {togglePass && (
+        <button
+          type="button"
+          onClick={togglePass}
+          className="absolute right-0 top-0 h-full px-3 text-gray-400 hover:text-gray-600 focus:outline-none active:scale-95 transition-transform"
         >
-          <Icon className="w-4 h-4" />
-        </div>
-
-        <input
-          ref={ref}
-          className={cn(
-            "w-full h-12 bg-white/5 hover:bg-white/10 rounded-2xl border pl-11 pr-4 outline-none placeholder:text-gray-500 text-sm font-medium transition-all duration-300 shadow-inner shadow-black/20 backdrop-blur-sm",
-            // Logic viền:
-            error
-              ? "border-red-500/50 focus:border-red-500 text-red-100 placeholder:text-red-300/30"
-              : "border-white/5 focus:border-white/20 text-white",
-            className
+          {showPass ? (
+            <EyeOff className="size-5" />
+          ) : (
+            <Eye className="size-5" />
           )}
-          {...props}
-        />
-
-        {/* Icon cảnh báo lỗi bên phải */}
-        {error && (
-          <div className="absolute right-4 top-1/2 -translate-y-1/2 text-red-500 animate-in fade-in zoom-in duration-300">
-            <AlertCircle className="w-4 h-4" />
-          </div>
-        )}
-      </div>
+        </button>
+      )}
     </div>
-  )
+    {error && (
+      <p className="text-[11px] text-red-500 font-bold ml-1 animate-in slide-in-from-top-1 fade-in">
+        {error.message}
+      </p>
+    )}
+  </div>
 );
-InputField.displayName = "InputField";
-export default function RegisterPage() {
-  // 1. Gọi Hook để lấy logic
+
+// --- Main Component ---
+const RegisterForm = () => {
   const {
     form: {
       register,
+      setValue,
+      watch,
       formState: { errors, isSubmitting },
-    }, // Destructuring form state
+    },
     onSubmit,
     showPassword,
-    toggleShowPassword,
-    isFocused,
-    setIsFocused,
-    passwordValue,
-    confirmPasswordValue,
-    requirementsStatus,
-    strengthScore,
-    strengthInfo,
-    isMatch,
+    setShowPassword,
+    showConfirmPassword,
+    setShowConfirmPassword,
   } = useRegister();
 
+  const termsValue = watch("terms");
+
   return (
-    <>
-      <style>{`
-        /* ... (Giữ nguyên phần CSS animation của bạn) ... */
-        @keyframes blob { 0% { transform: translate(0px, 0px) scale(1); } 33% { transform: translate(30px, -50px) scale(1.1); } 66% { transform: translate(-20px, 20px) scale(0.9); } 100% { transform: translate(0px, 0px) scale(1); } }
-        .animate-blob { animation: blob 10s infinite; }
-        .animation-delay-2000 { animation-delay: 2s; }
-        .animation-delay-4000 { animation-delay: 4s; }
-        .animate-fade-in-up { animation: fadeInUp 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards; }
-        @keyframes fadeInUp { from { opacity: 0; transform: translateY(20px) scale(0.95); } to { opacity: 1; transform: translateY(0) scale(1); } }
-        input:-webkit-autofill, input:-webkit-autofill:hover, input:-webkit-autofill:focus, input:-webkit-autofill:active {
-            -webkit-text-fill-color: white !important;
-            -webkit-box-shadow: 0 0 0 0 transparent inset !important;
-            transition: background-color 9999s ease-in-out 0s;
-        }
-      `}</style>
+    // Wrapper chính: Padding nhỏ trên mobile (p-3), lớn trên desktop
+    <div className="min-h-screen w-full flex items-center justify-center bg-[#F4F6F8] p-3 md:p-6 font-sans">
+      {/* Card: Full width trên mobile, Max width trên Desktop */}
+      <div className="w-full max-w-[1200px] bg-white rounded-[2rem] shadow-xl md:shadow-2xl overflow-hidden flex flex-col lg:flex-row min-h-[600px] lg:min-h-[750px]">
+        {/* ==========================================
+            LEFT SIDE: MARKETING (HIDDEN ON MOBILE)
+            Chỉ hiện khi màn hình >= 1024px (lg)
+           ========================================== */}
+        <div className="hidden lg:flex w-[40%] bg-[#F0F7FF] p-12 flex-col justify-between relative overflow-hidden">
+          {/* Background Pattern */}
+          <div
+            className="absolute inset-0 opacity-40 pointer-events-none"
+            style={{
+              backgroundImage:
+                "radial-gradient(#1A73E8 1.5px, transparent 1.5px)",
+              backgroundSize: "30px 30px",
+            }}
+          />
 
-      <div className="min-h-screen w-full bg-[#08080a] text-white font-sans relative selection:bg-indigo-500/30">
-        <AnimatedBackground />
+          <div className="z-10 relative space-y-6">
+            <div className="flex items-center gap-2 text-[#1A73E8] font-bold tracking-tight">
+              <div className="bg-white p-1.5 rounded-lg shadow-sm">
+                <Recycle className="size-5" />
+              </div>
+              <span>SmartWaste</span>
+            </div>
+            <h2 className="text-4xl font-extrabold text-gray-900 leading-[1.2]">
+              Kiến tạo đô thị <br />{" "}
+              <span className="text-[#1A73E8]">Xanh - Sạch - Đẹp</span>
+            </h2>
+            <p className="text-gray-600 text-base leading-relaxed max-w-sm">
+              Tham gia cùng hàng triệu người dân và tổ chức để tối ưu hóa quy
+              trình thu gom rác thải.
+            </p>
+          </div>
 
-        <div className="absolute inset-0 w-full h-full overflow-y-auto overflow-x-hidden">
-          <div className="min-h-full w-full flex flex-col items-center justify-center p-4 py-8 relative z-10">
-            <div className="w-full max-w-[900px] flex flex-col lg:flex-row gap-6 lg:gap-8 items-center justify-center">
-              {/* FORM CONTAINER */}
-              <div className="w-full max-w-[420px] bg-white/5 backdrop-blur-2xl border border-white/10 rounded-[2rem] p-8 shadow-2xl relative overflow-hidden animate-fade-in-up shrink-0">
-                <div className="absolute top-0 left-1/2 -translate-x-1/2 w-3/4 h-1 bg-gradient-to-r from-transparent via-indigo-500/50 to-transparent blur-sm" />
+          <div className="z-10 relative flex-1 flex items-center justify-center">
+            <div className="relative w-64 aspect-square rounded-3xl overflow-hidden shadow-2xl border-[6px] border-white rotate-3 hover:rotate-0 transition-all duration-500">
+              <img
+                src="https://images.unsplash.com/photo-1532996122724-e3c354a0b15b?q=80&w=600&auto=format&fit=crop"
+                alt="Eco City"
+                className="w-full h-full object-cover"
+              />
+            </div>
+          </div>
 
-                <div className="mb-6 text-center lg:text-left">
-                  <div className="flex items-center justify-center lg:justify-start gap-2 mb-3">
-                    <div className="h-7 w-7 rounded-full bg-white text-black flex items-center justify-center font-bold shadow-md">
-                      M
-                    </div>
-                    <span className="font-bold tracking-widest text-xs uppercase text-gray-400">
-                      MusicHub
-                    </span>
-                  </div>
-                  <h1 className="text-3xl font-bold mb-1 tracking-tight">
-                    Join the Vibe.
-                  </h1>
-                  <p className="text-gray-400 text-sm">
-                    Unlock your exclusive music journey.
-                  </p>
-                </div>
+          <div className="z-10 relative">
+            <div className="flex -space-x-2 mb-3">
+              {[1, 2, 3, 4].map((i) => (
+                <img
+                  key={i}
+                  className="size-8 rounded-full border-2 border-white"
+                  src={`https://i.pravatar.cc/100?img=${i + 10}`}
+                  alt="User"
+                />
+              ))}
+              <div className="size-8 rounded-full border-2 border-white bg-blue-100 flex items-center justify-center text-[10px] font-bold text-blue-600">
+                +2k
+              </div>
+            </div>
+            <p className="text-xs text-gray-500 font-medium">
+              Đã có hơn 2,000 người tham gia hôm nay.
+            </p>
+          </div>
+        </div>
 
-                {/* FORM BẮT ĐẦU TỪ ĐÂY - Dùng onSubmit từ Hook */}
-                <form onSubmit={onSubmit} className="space-y-3">
-                  {/* USERNAME / FULLNAME */}
-                  {/* Lưu ý: name phải khớp với schema (username hoặc fullName) */}
-                  <div>
-                    <InputField
-                      icon={User}
-                      placeholder="Full Name"
-                      error={!!errors.fullName}
-                      {...register("fullName")}
-                    />
-                    {errors.fullName && (
-                      <p className="text-red-400 text-xs mt-1 ml-2">
-                        {errors.fullName.message}
-                      </p>
-                    )}
-                  </div>
+        {/* ==========================================
+            RIGHT SIDE: FORM (FULL WIDTH ON MOBILE)
+           ========================================== */}
+        <div className="w-full lg:w-[60%] relative flex flex-col">
+          {/* Mobile Header: Nút Back & Logo nhỏ */}
+          <div className="flex lg:hidden items-center justify-between p-4 pb-0">
+            <Link
+              to="/login"
+              className="p-2 -ml-2 rounded-full hover:bg-gray-100"
+            >
+              <ArrowLeft className="size-5 text-gray-600" />
+            </Link>
+            <span className="font-bold text-[#1A73E8] flex items-center gap-2">
+              <Recycle className="size-4" /> SmartWaste
+            </span>
+            <div className="w-9" /> {/* Spacer */}
+          </div>
 
-                  {/* EMAIL */}
-                  <div>
-                    <InputField
-                      icon={Mail}
-                      type="email"
-                      placeholder="Email Address"
-                      error={!!errors.email}
-                      {...register("email")}
-                    />
-                    {errors.email && (
-                      <p className="text-red-400 text-xs mt-1 ml-2">
-                        {errors.email.message}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* PASSWORD */}
-                  <div className="space-y-3">
-                    <div className="relative">
-                      <InputField
-                        icon={Lock}
-                        type={showPassword ? "text" : "password"}
-                        placeholder="Password"
-                        error={!!errors.password}
-                        {...register("password")}
-                        // Kết nối sự kiện focus để hiện checklist
-                        onFocus={() => setIsFocused(true)}
-                      />
-                      <button
-                        type="button"
-                        onClick={toggleShowPassword}
-                        className="absolute right-4 top-3.5 text-gray-500 hover:text-white transition-colors z-20"
-                      >
-                        {showPassword ? (
-                          <EyeOff className="w-4 h-4" />
-                        ) : (
-                          <Eye className="w-4 h-4" />
-                        )}
-                      </button>
-                    </div>
-                    {errors.password && (
-                      <p className="text-red-400 text-xs mt-1 ml-2">
-                        {errors.password.message}
-                      </p>
-                    )}
-
-                    {/* CHECKLIST UI (Logic hiển thị lấy từ Hook) */}
-                    <div
-                      className={cn(
-                        "overflow-hidden transition-all duration-500 ease-in-out bg-black/20 rounded-2xl",
-                        isFocused || passwordValue
-                          ? "max-h-[300px] opacity-100 p-3"
-                          : "max-h-0 opacity-0 p-0"
-                      )}
-                    >
-                      <div className="flex justify-between items-center mb-2 px-1">
-                        <span className="text-[10px] font-bold text-gray-500 uppercase tracking-wider">
-                          Strength
-                        </span>
-                        <span
-                          className={cn(
-                            "text-[10px] font-bold uppercase transition-colors duration-300",
-                            strengthInfo.textColor
-                          )}
-                        >
-                          {passwordValue ? strengthInfo.label : ""}
-                        </span>
-                      </div>
-
-                      <div className="flex gap-1 h-1 mb-3 w-full bg-gray-800/50 rounded-full overflow-hidden">
-                        {[1, 2, 3, 4].map((step) => (
-                          <div
-                            key={step}
-                            className={cn(
-                              "flex-1 transition-all duration-500 ease-out",
-                              strengthScore >= step
-                                ? strengthInfo.color
-                                : "bg-transparent"
-                            )}
-                          />
-                        ))}
-                      </div>
-
-                      <div className="grid grid-cols-2 gap-2">
-                        {requirementsStatus.map((req) => (
-                          <div
-                            key={req.id}
-                            className="flex items-center gap-2 text-xs transition-colors duration-300"
-                          >
-                            {req.met ? (
-                              <CheckCircle2 className="w-3 h-3 text-emerald-400 shrink-0" />
-                            ) : (
-                              <div className="w-3 h-3 rounded-full border border-gray-600/50 shrink-0" />
-                            )}
-                            <span
-                              className={
-                                req.met ? "text-gray-200" : "text-gray-500"
-                              }
-                            >
-                              {req.label}
-                            </span>
-                          </div>
-                        ))}
-                      </div>
-                    </div>
-
-                    {/* CONFIRM PASSWORD */}
-                    <div className="relative">
-                      <InputField
-                        icon={Lock}
-                        type="password"
-                        placeholder="Confirm Password"
-                        error={!!errors.confirmPassword}
-                        {...register("confirmPassword")}
-                      />
-                      {confirmPasswordValue.length > 0 &&
-                        !errors.confirmPassword && (
-                          <div className="absolute right-4 top-3.5">
-                            {isMatch ? (
-                              <CheckCircle2 className="w-4 h-4 text-emerald-400" />
-                            ) : (
-                              <XCircle className="w-4 h-4 text-red-500" />
-                            )}
-                          </div>
-                        )}
-                    </div>
-                    {errors.confirmPassword && (
-                      <p className="text-red-400 text-xs mt-1 ml-2">
-                        {errors.confirmPassword.message}
-                      </p>
-                    )}
-                  </div>
-
-                  {/* SUBMIT */}
-                  <div className="pt-2">
-                    <Button
-                      type="submit"
-                      isLoading={isSubmitting}
-                      disabled={isSubmitting}
-                    >
-                      {isSubmitting ? "Creating Account..." : "Create Account"}
-                    </Button>
-                  </div>
-                </form>
-
-                <div className="mt-6 text-center">
-                  <p className="text-gray-500 text-xs">
-                    Already have an account?{" "}
-                    <Link
-                      to="/login"
-                      className="text-white font-medium hover:underline decoration-indigo-500 underline-offset-2 transition-all"
-                    >
-                      Log in
-                    </Link>
-                  </p>
-                </div>
+          {/* Form Scroll Area */}
+          <div className="flex-1 overflow-y-auto p-6 md:p-12 lg:p-16">
+            <div className="max-w-[520px] mx-auto w-full space-y-8">
+              <div className="space-y-2 text-center lg:text-left">
+                <h1 className="text-2xl md:text-3xl font-extrabold text-gray-900 tracking-tight">
+                  Đăng Ký Tài Khoản
+                </h1>
+                <p className="text-sm text-gray-500 font-medium">
+                  Điền thông tin chi tiết để bắt đầu hành trình xanh.
+                </p>
               </div>
 
-              {/* RIGHT SIDE: VISUALS (Giữ nguyên) */}
-              <div className="hidden lg:flex flex-col justify-center items-center animate-fade-in-up animation-delay-2000">
-                {/* ... (Giữ nguyên code UI phần hình ảnh bên phải) ... */}
-                <div className="relative w-80 h-80">
-                  <div className="absolute inset-0 bg-gradient-to-tr from-indigo-500 to-purple-500 rounded-full blur-[60px] opacity-20 animate-pulse"></div>
-                  <div className="absolute top-4 left-4 right-4 z-10 p-6 border border-white/10 bg-white/5 backdrop-blur-xl rounded-[2rem] shadow-2xl transform transition-transform hover:-translate-y-1 duration-500">
-                    <div className="flex items-center gap-4 mb-4">
-                      <div className="w-10 h-10 rounded-full bg-gradient-to-br from-indigo-500 to-purple-600 flex items-center justify-center shadow-lg shadow-indigo-500/20">
-                        <Music4 className="text-white w-5 h-5" />
-                      </div>
-                      <div>
-                        <h3 className="font-bold text-lg text-white">
-                          Hi-Fi Audio
-                        </h3>
-                        <p className="text-gray-400 text-xs">
-                          Lossless streaming quality
-                        </p>
-                      </div>
-                    </div>
-                    <div className="space-y-2">
-                      <div className="h-1.5 bg-white/5 rounded-full w-full overflow-hidden">
-                        <div className="h-full bg-indigo-400 w-2/3 rounded-full"></div>
-                      </div>
-                      <div className="flex justify-between text-[10px] text-gray-500 font-mono">
-                        <span>FLAC</span>
-                        <span>24-bit / 192kHz</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="absolute -bottom-2 -right-2 left-8 z-20 p-5 border border-white/10 bg-[#121214]/90 backdrop-blur-xl rounded-[2rem] shadow-2xl transform rotate-2 hover:rotate-0 transition-transform duration-500">
-                    <div className="flex items-center gap-3">
-                      <ShieldCheck className="text-emerald-400 w-6 h-6" />
-                      <div>
-                        <div className="font-bold text-white text-sm">
-                          Ad-free Experience
-                        </div>
-                        <div className="text-[10px] text-gray-400">
-                          Uninterrupted listening
-                        </div>
-                      </div>
-                    </div>
+              <form onSubmit={onSubmit} className="space-y-5">
+                <FormInput
+                  id="fullName"
+                  label="Họ và tên"
+                  placeholder="Ví dụ: Nguyễn Văn A"
+                  icon={User}
+                  error={errors.fullName}
+                  register={register("fullName")}
+                />
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <FormInput
+                    id="email"
+                    label="Email"
+                    type="email"
+                    placeholder="name@email.com"
+                    icon={Mail}
+                    error={errors.email}
+                    register={register("email")}
+                  />
+                  <FormInput
+                    id="phone"
+                    label="Số điện thoại"
+                    type="tel"
+                    placeholder="0901234567"
+                    icon={Phone}
+                    error={errors.phone}
+                    register={register("phone")}
+                  />
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                  <FormInput
+                    id="password"
+                    label="Mật khẩu"
+                    type={showPassword ? "text" : "password"}
+                    placeholder="8+ ký tự"
+                    icon={Lock}
+                    error={errors.password}
+                    register={register("password")}
+                    togglePass={() => setShowPassword(!showPassword)}
+                    showPass={showPassword}
+                  />
+                  <FormInput
+                    id="confirmPassword"
+                    label="Xác nhận"
+                    type={showConfirmPassword ? "text" : "password"}
+                    placeholder="Nhập lại mật khẩu"
+                    icon={History}
+                    error={errors.confirmPassword}
+                    register={register("confirmPassword")}
+                    togglePass={() =>
+                      setShowConfirmPassword(!showConfirmPassword)
+                    }
+                    showPass={showConfirmPassword}
+                  />
+                </div>
+
+                {/* Checkbox */}
+                <div className="flex items-start space-x-3 bg-gray-50 p-3 rounded-xl">
+                  <Checkbox
+                    id="terms"
+                    onCheckedChange={(c) => setValue("terms", c as boolean)}
+                    className={cn(
+                      "mt-0.5 border-gray-400 data-[state=checked]:bg-[#1A73E8] data-[state=checked]:border-[#1A73E8]",
+                      errors.terms && "border-red-500"
+                    )}
+                  />
+                  <div className="grid gap-0.5">
+                    <label
+                      htmlFor="terms"
+                      className="text-xs text-gray-600 font-medium cursor-pointer leading-relaxed"
+                    >
+                      Tôi đồng ý với{" "}
+                      <Link
+                        to="#"
+                        className="text-[#1A73E8] font-bold hover:underline"
+                      >
+                        Điều khoản sử dụng
+                      </Link>{" "}
+                      và{" "}
+                      <Link
+                        to="#"
+                        className="text-[#1A73E8] font-bold hover:underline"
+                      >
+                        Chính sách bảo mật
+                      </Link>{" "}
+                      của SmartWaste.
+                    </label>
+                    {errors.terms && (
+                      <p className="text-[10px] text-red-500 font-bold">
+                        {errors.terms.message}
+                      </p>
+                    )}
                   </div>
                 </div>
+
+                {/* Submit Button */}
+                <Button
+                  type="submit"
+                  disabled={isSubmitting || !termsValue}
+                  className="w-full h-12 md:h-14 bg-[#1A73E8] hover:bg-blue-700 text-white font-bold text-base shadow-lg shadow-blue-500/30 rounded-xl active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isSubmitting ? (
+                    <Loader2 className="animate-spin" />
+                  ) : (
+                    "Tạo Tài Khoản Mới"
+                  )}
+                </Button>
+
+                {/* Social Login Mobile Friendly */}
+                <div className="space-y-4 pt-2">
+                  <div className="relative">
+                    <div className="absolute inset-0 flex items-center">
+                      <span className="w-full border-t border-gray-100" />
+                    </div>
+                    <div className="relative flex justify-center">
+                      <span className="bg-white px-3 text-[10px] uppercase text-gray-400 font-bold">
+                        Hoặc tiếp tục với
+                      </span>
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-2 gap-3">
+                    <Button
+                      variant="outline"
+                      type="button"
+                      className="h-11 md:h-12 border-gray-200 hover:bg-gray-50 rounded-xl"
+                    >
+                      <Chrome className="mr-2 size-5 text-red-500" />{" "}
+                      <span className="text-gray-700 font-semibold text-xs md:text-sm">
+                        Google
+                      </span>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      type="button"
+                      className="h-11 md:h-12 border-gray-200 hover:bg-gray-50 rounded-xl"
+                    >
+                      <Facebook className="mr-2 size-5 text-blue-600" />{" "}
+                      <span className="text-gray-700 font-semibold text-xs md:text-sm">
+                        Facebook
+                      </span>
+                    </Button>
+                  </div>
+                </div>
+              </form>
+
+              <div className="text-center text-sm font-medium pb-4">
+                Đã là thành viên?{" "}
+                <Link
+                  to="/login"
+                  className="text-[#1A73E8] font-bold hover:underline"
+                >
+                  Đăng nhập tại đây
+                </Link>
               </div>
             </div>
           </div>
         </div>
       </div>
-    </>
+    </div>
   );
-}
+};
+
+export default RegisterForm;

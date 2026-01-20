@@ -1,61 +1,54 @@
-import type {
-  ArtistRequest,
-  ChangePasswordDTO,
-  RequestArtistDTO,
-  UpdateProfileDTO,
-  User,
-} from "@/features/user/types";
 import api from "@/lib/axios";
-import type { ApiResponse } from "@/types";
+import {
+  IUser,
+  UserFilterParams,
+  CreateUserDTO,
+  UpdateUserDTO,
+} from "../types";
+import { PagedResponse } from "@/types";
 import { buildFormData } from "@/utils/form-data";
 
-const userApi = {
-  // 1. Lấy Public Profile (Xem tường nhà người khác)
-  getPublicProfile: async (userId: string) => {
-    const res = await api.get<ApiResponse<User>>(`/users/${userId}/profile`);
-    return res.data;
+export const userApi = {
+  // 1. GET LIST (Phân trang & Search)
+  getAll: async (params: UserFilterParams): Promise<PagedResponse<IUser>> => {
+    // Backend trả về: { status: "success", data: [], total: ... }
+    // Axios trả về: { data: { status, data, total... } }
+    const { data } = await api.get("/users", { params });
+
+    // Map response backend về format frontend cần
+    return data;
   },
 
-  // 2. Cập nhật Profile (Có upload ảnh)
-  updateProfile: async (data: UpdateProfileDTO) => {
-    const res = await api.patch<ApiResponse<User>>(
-      "/users/profile",
-      buildFormData(data),
-      {
-        headers: { "Content-Type": "multipart/form-data" },
-      }
-    );
-    return res.data;
+  // 2. GET DETAIL
+  getById: async (id: string): Promise<IUser> => {
+    const { data } = await api.get(`/users/${id}`);
+    return data.data;
   },
 
-  // 3. Đổi mật khẩu
-  changePassword: async (data: ChangePasswordDTO) => {
-    const res = await api.post<ApiResponse<void>>(
-      "/users/change-password",
-      data
-    );
-    return res.data;
+  // 3. CREATE (Multipart/Form-data)
+  create: async (payload: CreateUserDTO): Promise<IUser> => {
+    const formData = buildFormData(payload);
+
+    const { data } = await api.post("/users", formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return data.data;
   },
 
-  // 4. Follow / Unfollow
-  followUser: async (userId: string) => {
-    const res = await api.post<ApiResponse<{ isFollowing: boolean }>>(
-      `/users/${userId}/follow`
-    );
-    return res.data;
+  // 4. UPDATE (Multipart/Form-data)
+  update: async (id: string, payload: UpdateUserDTO): Promise<IUser> => {
+    // Nếu payload có avatar (File) thì dùng FormData
+    // Nếu chỉ update text, dùng JSON cũng được, nhưng để đồng bộ ta dùng FormData luôn
+    const formData = buildFormData(payload);
+
+    const { data } = await api.patch(`/users/${id}`, formData, {
+      headers: { "Content-Type": "multipart/form-data" },
+    });
+    return data.data;
   },
 
-  // 5. Gửi yêu cầu lên Artist
-  requestBecomeArtist: async (data: RequestArtistDTO) => {
-    const res = await api.post<ApiResponse<ArtistRequest>>(
-      "/users/request-artist",
-      buildFormData(data),
-      {
-        headers: { "Content-Type": "multipart/form-data" },
-      }
-    );
-    return res.data;
+  // 5. DELETE
+  delete: async (id: string): Promise<void> => {
+    await api.delete(`/users/${id}`);
   },
 };
-
-export default userApi;

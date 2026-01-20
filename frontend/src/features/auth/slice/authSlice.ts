@@ -34,7 +34,7 @@ export const initAuth = createAsyncThunk(
     } catch (error: unknown) {
       return rejectWithValue(error || "Session expired");
     }
-  }
+  },
 );
 
 // B. Fetch Current User (Chạy khi update profile xong) - MỚI THÊM
@@ -48,7 +48,7 @@ export const fetchCurrentUser = createAsyncThunk(
     } catch (error: unknown) {
       return rejectWithValue(error);
     }
-  }
+  },
 );
 
 // =================================================================
@@ -60,7 +60,7 @@ const authSlice = createSlice({
   reducers: {
     login: (
       state,
-      action: PayloadAction<{ accessToken: string; user: UserProfile }>
+      action: PayloadAction<{ accessToken: string; user: UserProfile }>,
     ) => {
       state.token = action.payload.accessToken;
       state.user = action.payload.user;

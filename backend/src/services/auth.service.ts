@@ -27,7 +27,12 @@ export interface IAuthService {
   login(dto: LoginRequestDto): Promise<AuthResult>;
   refresh(refreshToken: string): Promise<AuthResult>;
   logout(refreshToken: string): Promise<void>;
-  resetPassword(email: string, otp: string, newPassword: string): Promise<void>;
+  resetPassword(
+    email: string,
+    otp: string,
+    newPassword: string
+  ): Promise<AuthResult>;
+  
 }
 
 export class AuthService implements IAuthService {
@@ -109,13 +114,18 @@ export class AuthService implements IAuthService {
     await this.refreshRepo.revoke(refreshToken);
   }
 
+ 
+
   // Đặt lại mật khẩu sau khi đã xác thực OTP thành công
   async resetPassword(
     email: string,
     otp: string,
     newPassword: string
-  ): Promise<void> {
+  ): Promise<AuthResult> {
+    // Kiểm tra OTP hợp lệ
     const record = await this.otpRepo.findValidByEmail(email);
+
+    console.log(record);
     if (!record || !record.verified) {
       throw new AppError("Mã OTP không hợp lệ hoặc chưa được xác thực", 400);
     }
@@ -133,6 +143,9 @@ export class AuthService implements IAuthService {
 
     // Dọn dẹp OTP sau khi sử dụng thành công
     await this.otpRepo.deleteByEmail(email);
+
+    // Cấp token mới cho user
+    return this.generateAuthResult(user);
   }
 
   // Hàm nội bộ để tạo bộ đôi Token và lưu trữ phiên làm việc

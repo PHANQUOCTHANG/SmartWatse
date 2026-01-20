@@ -5,7 +5,7 @@ import { useAppDispatch } from "@/store/store";
 import { toast } from "sonner"; // Hoặc notification của bạn
 import authApi from "@/features/auth/api/authApi";
 import { logout } from "@/features";
-import { VinylLoader } from "@/components/ui/MusicLoadingEffects";
+import { AuthLoader } from "@/components/ui/SmartWastLoadingEffects";
 
 const LogoutPage = () => {
   const navigate = useNavigate();
@@ -39,7 +39,7 @@ const LogoutPage = () => {
     handleLogout();
   }, [dispatch, navigate]);
 
-  return <VinylLoader fullscreen text="Đang đăng xuất..." />;
+  return <AuthLoader fullscreen text="Đang đăng xuất..." />;
 };
 
 export default LogoutPage;

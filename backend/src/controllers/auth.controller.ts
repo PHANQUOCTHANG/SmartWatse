@@ -51,8 +51,8 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
 // POST | /api/auth/refresh | Làm mới access token
 export const refresh = asyncHandler(async (req: Request, res: Response) => {
   // Lấy refresh token từ cookie
+  console.log(req.cookies);
   const refreshToken = req.cookies.refreshToken;
-
   const result = await authService.refresh(refreshToken);
 
   // Rotate refresh token mới vào cookie
@@ -68,6 +68,7 @@ export const refresh = asyncHandler(async (req: Request, res: Response) => {
   res.status(200).json({
     status: "success",
     data: {
+      user: result.user,
       accessToken: result.accessToken,
     },
   });
@@ -103,20 +104,45 @@ export const sendOtp = asyncHandler(async (req: Request, res: Response) => {
 export const verifyOtp = asyncHandler(async (req: Request, res: Response) => {
   const { email, otp } = req.body;
 
-  // Xác thực OTP người dùng nhập
-  await otpService.verify(email, otp);
+  // Xác thực OTP và nhận resetToken
+  const resetToken = await otpService.verify(email, otp);
 
-  res.status(204).json({ status: "success", data: null });
+  res.status(200).json({
+    status: "success",
+    message: "OTP xác thực thành công",
+    data: {
+      resetToken,
+      expiresIn: 900, // 15 phút
+    },
+  });
 });
 
 // POST | /api/auth/reset-password | Đặt lại mật khẩu
 export const resetPassword = asyncHandler(
   async (req: Request, res: Response) => {
+    console.log(req.body);
+
     const { email, otp, newPassword } = req.body;
 
     // Đặt lại mật khẩu sau khi OTP hợp lệ
-    await authService.resetPassword(email, otp, newPassword);
+    const result = await authService.resetPassword(email, otp, newPassword);
 
-    res.status(204).json({ status: "success", data: null });
-  }
+    // Lưu refresh token vào cookie (HttpOnly)
+    res.cookie("refreshToken", result.refreshToken, {
+      httpOnly: true,
+      secure: true,
+      sameSite: "strict",
+      path: "/api/auth/refresh",
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+
+    // Trả access token và thông tin user
+    res.status(200).json({
+      status: "success",
+      data: {
+        accessToken: result.accessToken,
+        user: result.user,
+      },
+    });
+  },
 );

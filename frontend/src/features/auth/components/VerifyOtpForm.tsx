@@ -1,340 +1,400 @@
 import React, { useState, useRef, useEffect } from "react";
-import { Disc, ArrowLeft, RotateCw, Smartphone } from "lucide-react";
-import { cn } from "@/lib/utils";
-import { useNavigate } from "react-router-dom";
+import { ArrowLeft, Loader2, RotateCw } from "lucide-react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { useDispatch } from "react-redux";
 import { toast } from "sonner";
-
-// Logic Imports
-import { useAppDispatch } from "@/store/store";
 import authApi from "@/features/auth/api/authApi";
 import { login } from "@/features/auth/slice/authSlice";
-import type { ApiErrorResponse } from "@/types";
 
-// ============================================================================
-// 1. COMPONENT BUTTON (UI)
-// ============================================================================
-const Button: React.FC<
-  React.ButtonHTMLAttributes<HTMLButtonElement> & {
-    variant?: "neon" | "outline" | "ghost";
-    isLoading?: boolean;
-  }
-> = ({ children, className, variant = "neon", isLoading, ...props }) => {
-  const baseStyles =
-    "relative group w-full h-12 rounded-2xl font-semibold text-sm transition-all duration-300 active:scale-[0.98] disabled:opacity-70 disabled:cursor-not-allowed overflow-hidden flex items-center justify-center";
-  const variants = {
-    neon: "bg-white text-black hover:bg-gray-100 shadow-lg shadow-white/5 border border-transparent",
-    outline:
-      "bg-transparent border border-white/10 text-gray-300 hover:text-white hover:bg-white/5 hover:border-white/20",
-    ghost: "bg-transparent text-gray-400 hover:text-white",
-  };
-  return (
-    <button className={cn(baseStyles, variants[variant], className)} {...props}>
-      <span className="relative flex items-center justify-center gap-2">
-        {isLoading && <Disc className="animate-spin h-4 w-4" />}
-        {children}
-      </span>
-    </button>
-  );
-};
-
-// ============================================================================
-// 2. COMPONENT OTP INPUT (CONTROLLED)
-// ============================================================================
-const OtpInput: React.FC<{
+// Component nhập OTP - 6 ô số
+const OtpInput = ({
+  length = 6,
+  value,
+  onChange,
+  disabled,
+}: {
   length?: number;
-  value: string; // Nhận value từ cha
-  onChange: (val: string) => void; // Báo cho cha khi đổi
+  value: string;
+  onChange: (otp: string) => void;
   disabled?: boolean;
-}> = ({ length = 6, value, onChange, disabled }) => {
-  const inputRef = useRef<HTMLInputElement>(null);
+}) => {
+  const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
 
-  // Auto focus khi vào trang
+  // Focus vào ô đầu tiên khi mount
   useEffect(() => {
-    const timer = setTimeout(() => inputRef.current?.focus(), 100);
-    return () => clearTimeout(timer);
+    inputRefs.current[0]?.focus();
   }, []);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  // Xử lý khi nhập số
+  const handleChange = (
+    index: number,
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
     const val = e.target.value;
-    if (!/^\d*$/.test(val)) return; // Chỉ cho nhập số
-    if (val.length <= length) {
-      onChange(val);
+
+    // ❗ Chỉ cho phép 1 ký tự số
+    if (val.length > 1) return;
+    if (!/^\d*$/.test(val)) return;
+
+    // Cập nhật giá trị OTP
+    const newOtp = value.split("");
+    newOtp[index] = val;
+    onChange(newOtp.join(""));
+
+    // Tự động focus sang ô tiếp theo nếu nhập số
+    if (val && index < length - 1) {
+      inputRefs.current[index + 1]?.focus();
+    }
+  };
+
+  // Xử lý phím Backspace
+  const handleKeyDown = (
+    index: number,
+    e: React.KeyboardEvent<HTMLInputElement>
+  ) => {
+    if (e.key === "Backspace") {
+      e.preventDefault();
+
+      // Nếu ô hiện tại rỗng, quay lại ô trước
+      if (!value[index] && index > 0) {
+        inputRefs.current[index - 1]?.focus();
+      } else {
+        // Xóa ký tự hiện tại
+        const newOtp = value.split("");
+        newOtp[index] = "";
+        onChange(newOtp.join(""));
+
+        // Focus lại ô hiện tại sau khi xóa
+        inputRefs.current[index]?.focus();
+      }
+    }
+  };
+
+  // Xử lý paste toàn bộ OTP
+  const handlePaste = (e: React.ClipboardEvent<HTMLInputElement>) => {
+    e.preventDefault();
+    const pastedData = e.clipboardData.getData("text").trim();
+
+    // Chỉ lấy số, loại ký tự khác
+    if (/^\d+$/.test(pastedData)) {
+      const otpValue = pastedData.slice(0, length);
+      onChange(otpValue);
+
+      // Focus vào ô cuối cùng được điền
+      setTimeout(() => {
+        const nextIndex = Math.min(otpValue.length, length - 1);
+        inputRefs.current[nextIndex]?.focus();
+      }, 0);
     }
   };
 
   return (
-    <div
-      className="relative w-full max-w-[400px] mx-auto"
-      onClick={() => !disabled && inputRef.current?.focus()}
-    >
-      <input
-        ref={inputRef}
-        type="text"
-        inputMode="numeric"
-        autoComplete="one-time-code"
-        pattern="\d*"
-        disabled={disabled}
-        className="absolute inset-0 w-full h-full opacity-0 z-20 cursor-default caret-transparent disabled:cursor-not-allowed"
-        value={value}
-        onChange={handleChange}
-      />
-      <div className="flex gap-2 justify-between w-full pointer-events-none">
-        {Array.from({ length }).map((_, index) => {
-          const digit = value[index] || "";
-          // Active là ô đang nhập HOẶC ô cuối cùng nếu đã full
-          const isActive =
-            value.length < length
-              ? index === value.length
-              : index === length - 1 &&
-                document.activeElement === inputRef.current;
+    <div className="flex gap-3 justify-center w-full max-w-[360px] mx-auto">
+      {Array.from({ length }).map((_, index) => {
+        const digit = value[index] || "";
+        const isFilled = Boolean(digit);
 
-          const isFilled = index < value.length;
-
-          return (
-            <div
-              key={index}
-              className="relative group flex-1 min-w-0 aspect-[3/4]"
-            >
-              <div
-                className={cn(
-                  "absolute -inset-0.5 bg-gradient-to-r from-indigo-500/40 to-purple-500/40 rounded-xl blur transition-opacity duration-300",
-                  isActive ? "opacity-100" : "opacity-0"
-                )}
-              />
-              <div
-                className={cn(
-                  "relative w-full h-full rounded-xl border flex items-center justify-center transition-all duration-200 shadow-inner backdrop-blur-sm",
-                  "text-lg sm:text-2xl font-bold",
-                  isFilled
-                    ? "bg-white/10 border-indigo-500/50 text-white shadow-indigo-500/10"
-                    : "bg-white/5 border-white/10 text-gray-400",
-                  isActive && "border-white/30 bg-white/10 ring-1 ring-white/20"
-                )}
-              >
-                {digit}
-                {isActive && !isFilled && (
-                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <div className="w-0.5 h-1/2 bg-indigo-400 animate-pulse rounded-full" />
-                  </div>
-                )}
-              </div>
-            </div>
-          );
-        })}
-      </div>
+        return (
+          <input
+            key={index}
+            ref={(el) => {
+              inputRefs.current[index] = el;
+            }}
+            type="text"
+            inputMode="numeric"
+            maxLength={1}
+            value={digit}
+            onChange={(e) => handleChange(index, e)}
+            onKeyDown={(e) => handleKeyDown(index, e)}
+            onPaste={handlePaste}
+            disabled={disabled}
+            className={`
+              w-full aspect-square rounded-xl text-center text-2xl font-bold
+              transition-all duration-200 border-2 outline-none
+              ${
+                isFilled
+                  ? "border-gray-300 bg-gray-50 text-gray-900"
+                  : "border-gray-200 bg-white text-gray-400"
+              }
+              focus:border-blue-600 focus:bg-blue-50 focus:ring-2 focus:ring-blue-100 focus:text-blue-600
+              disabled:opacity-50 disabled:cursor-not-allowed
+            `}
+          />
+        );
+      })}
     </div>
   );
 };
 
-// ============================================================================
-// 3. COMPONENT RESEND TIMER
-// ============================================================================
+// Component đếm ngược thời gian
 const ResendTimer = ({
   onResend,
   isLoading,
 }: {
-  onResend: (callback: () => void) => void;
+  onResend: (resetCallback: () => void) => Promise<void>;
   isLoading: boolean;
 }) => {
-  const [timeLeft, setTimeLeft] = useState(30);
+  const [timeLeft, setTimeLeft] = useState(59);
   const [canResend, setCanResend] = useState(false);
 
+  // Đếm ngược mỗi giây
   useEffect(() => {
     if (timeLeft > 0) {
-      const timerId = setTimeout(() => setTimeLeft(timeLeft - 1), 1000);
-      return () => clearTimeout(timerId);
+      const timer = setTimeout(() => setTimeLeft((prev) => prev - 1), 1000);
+      return () => clearTimeout(timer);
     } else {
       setCanResend(true);
     }
   }, [timeLeft]);
 
-  const handleClick = () => {
-    // Gọi hàm resend từ cha, truyền callback reset vào
-    onResend(() => {
-      setTimeLeft(30); // Reset về 30s
-      setCanResend(false); // Disable nút
+  // Format thời gian: (00:59)
+  const formatTime = () => {
+    const mins = Math.floor(timeLeft / 60);
+    const secs = timeLeft % 60;
+    return `(${mins.toString().padStart(2, "0")}:${secs
+      .toString()
+      .padStart(2, "0")})`;
+  };
+
+  // Xử lý khi click gửi lại
+  const handleResend = async () => {
+    await onResend(() => {
+      setTimeLeft(59);
+      setCanResend(false);
     });
   };
 
   return (
-    <div className="mt-6 flex flex-col items-center gap-3">
+    <div className="text-center text-sm">
       {canResend ? (
         <button
-          onClick={handleClick}
+          onClick={handleResend}
           disabled={isLoading}
-          className="group flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 transition-all active:scale-95 disabled:opacity-50"
+          className="text-blue-600 hover:underline font-medium flex items-center justify-center gap-1.5 mx-auto disabled:opacity-50"
         >
-          <div className="p-1 rounded-full bg-indigo-500/20 text-indigo-400 group-hover:text-indigo-300 group-hover:bg-indigo-500/30 transition-colors">
-            {isLoading ? (
-              <Disc className="w-4 h-4 animate-spin" />
-            ) : (
-              <RotateCw className="w-4 h-4" />
-            )}
-          </div>
-          <span className="text-sm font-medium text-gray-300 group-hover:text-white">
-            Click to Resend Code
-          </span>
+          {isLoading ? (
+            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+          ) : (
+            <RotateCw className="w-3.5 h-3.5" />
+          )}
+          Gửi lại mã
         </button>
       ) : (
-        <div className="flex items-center gap-2 text-sm text-gray-500">
-          <span>Resend code in</span>
-          <span className="font-mono font-medium text-indigo-400 w-[4ch]">
-            00:{timeLeft.toString().padStart(2, "0")}
+        <span className="text-gray-600">
+          Bạn chưa nhận được mã?{" "}
+          <span className="text-blue-600 font-medium">
+            Gửi lại mã {formatTime()}
           </span>
-        </div>
+        </span>
       )}
     </div>
   );
 };
 
-// ============================================================================
-// 4. MAIN FORM COMPONENT
-// ============================================================================
-
-interface VerifyOtpFormProps {
-  email?: string;
-}
-
-const VerifyOtpForm: React.FC<VerifyOtpFormProps> = ({ email }) => {
+// Component chính - Form xác thực OTP
+const VerifyOtpForm = () => {
+  const location = useLocation();
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
+  const emailFromState = location.state?.email || "ad***@urbanwaste.gov.vn";
+  const [email] = useState(emailFromState);
   const [otp, setOtp] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [resendLoading, setResendLoading] = useState(false);
 
-  const navigate = useNavigate();
-  const dispatch = useAppDispatch();
-
-  // --- LOGIC 1: HÀM VERIFY CHÍNH ---
-  const executeVerify = async (codeToVerify: string) => {
-    if (!email) return;
-    if (codeToVerify.length !== 6) return; // Chặn nếu chưa đủ số
+  // ✅ Xử lý xác thực OTP - Chỉ gọi khi user bấm nút, không auto submit
+  const handleVerify = async () => {
+    // Kiểm tra OTP hợp lệ
+    if (otp.length !== 6 || isLoading) return;
 
     setIsLoading(true);
-
     try {
-      const res = await authApi.verifyEmail({ email, otp: codeToVerify });
+      console.log("🚀 Verifying OTP for email:", email);
+      const response = await authApi.verifyEmail({ email, otp });
 
-      // Nếu có token -> Login luôn
-      if (res.data.accessToken) {
-        dispatch(
-          login({
-            accessToken: res.data.accessToken,
-            user: res.data.user,
-          })
-        );
-        toast.success("Xác thực thành công!");
-        navigate("/");
-      } else {
-        toast.success("Đã xác thực! Vui lòng đăng nhập.");
-        navigate("/login");
-      }
-    } catch (error: unknown) {
-      const err = error as ApiErrorResponse;
-      const msg = err.response?.data?.message || "Lỗi xác thực";
+      console.log("✅ Response received:", response);
 
-      // Xử lý các trường hợp lỗi cụ thể
-      if (
-        msg.toLowerCase().includes("hết hạn") ||
-        msg.toLowerCase().includes("expired")
-      ) {
-        toast.error("Mã đã hết hạn. Vui lòng gửi lại mã mới.");
-        setOtp(""); // Xóa trắng để nhập lại
-      } else {
-        toast.error("Mã OTP không đúng. Vui lòng thử lại.");
-        setOtp(""); // Xóa trắng để nhập lại
+      // ✅ Lấy resetToken từ response
+      const resetToken = response.data?.resetToken;
+
+      if (!resetToken) {
+        throw new Error("Reset token không được trả về từ server");
       }
+
+      console.log("✅ Reset token received");
+
+      toast.success("✅ Xác thực thành công!", {
+        description: "Tài khoản của bạn đã được xác minh.",
+      });
+
+      console.log("✅ OTP verified successfully");
+
+      // Chuyển sang trang reset password với resetToken
+      navigate(`/reset-password/${resetToken}`, { state: { email , otp } });
+    } catch (error: any) {
+      console.error("❌ OTP verification error:", error);
+      const msg =
+        error.response?.data?.message || "Mã OTP không đúng hoặc đã hết hạn.";
+
+      toast.error(msg);
+      setOtp(""); // Reset OTP để thử lại
     } finally {
       setIsLoading(false);
     }
   };
 
-  // --- LOGIC 2: AUTO SUBMIT KHI ĐỦ 6 SỐ ---
-  useEffect(() => {
-    if (otp.length === 6) {
-      executeVerify(otp);
-    }
-  }, [otp]);
-
-  // --- LOGIC 3: GỬI LẠI MÃ ---
+  // ✅ Xử lý gửi lại OTP
   const handleResend = async (resetTimer: () => void) => {
-    if (!email) return;
     setResendLoading(true);
-    setOtp(""); // Xóa ô nhập liệu cũ tránh nhầm lẫn
-
     try {
+      console.log("📤 Resending OTP to:", email);
       await authApi.resendOtp(email);
-      toast.success("Đã gửi mã mới vào email!");
-      resetTimer(); // Chỉ reset đồng hồ khi gửi thành công
-    } catch (error: unknown) {
-      const err = error as ApiErrorResponse;
-      toast.error(
-        err.response?.data?.message || "Gửi lại thất bại. Thử lại sau."
-      );
+
+      toast.success("✅ Đã gửi lại mã OTP.", {
+        description: "Vui lòng kiểm tra email của bạn.",
+      });
+
+      console.log("✅ OTP resent successfully");
+      resetTimer(); // Reset đồng hồ đếm ngược
+    } catch (error: any) {
+      console.error("❌ Resend OTP error:", error);
+      const msg = error.response?.data?.message || "Gửi lại mã OTP thất bại.";
+
+      toast.error(msg);
     } finally {
       setResendLoading(false);
     }
   };
 
-  // ... (Các phần logic giữ nguyên)
-
   return (
-    // ✨ THAY ĐỔI 1: Thêm flex flex-col và h-full cho mobile
-    // sm:h-auto để trên PC nó vẫn gọn gàng như cũ
-    <div className="animate-fade-in-up w-full flex flex-col h-full sm:h-auto min-h-[60vh] sm:min-h-0">
-      {/* Nút Back */}
-      <button
-        onClick={() => navigate("/login")}
-        className="flex items-center text-gray-400 hover:text-white mb-6 sm:mb-8 transition-colors group shrink-0"
-      >
-        <ArrowLeft className="w-4 h-4 mr-2 group-hover:-translate-x-1 transition-transform" />
-        Back to Login
-      </button>
+    <div className="min-h-screen w-full flex bg-white font-sans">
+      {/* ===== BÊN TRÁI: MARKETING ===== */}
+      <div className="hidden lg:flex w-[45%] flex-col justify-between bg-gradient-to-br from-[#1e5a96] to-[#0d3a5f] p-12 text-white relative overflow-hidden">
+        {/* Ảnh nền */}
+        <div
+          className="absolute inset-0 z-0 opacity-30"
+          style={{
+            backgroundImage:
+              "url('https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?w=1200&q=80')",
+            backgroundSize: "cover",
+            backgroundPosition: "center",
+          }}
+        />
+        <div className="absolute inset-0 bg-gradient-to-t from-black/50 via-transparent to-transparent z-0" />
 
-      {/* Header Text */}
-      <div className="mb-8 text-center lg:text-left shrink-0">
-        <div className="inline-flex items-center justify-center w-12 h-12 rounded-full bg-white/10 mb-4 border border-white/10 lg:hidden">
-          <Smartphone className="w-6 h-6 text-white" />
-        </div>
-        <h1 className="text-3xl font-bold mb-3 tracking-tight">
-          Verify Your Identity
-        </h1>
-        <p className="text-gray-400 text-sm">
-          We've sent a 6-digit code to{" "}
-          <span className="text-white font-medium">
-            {email || "your email"}
+        {/* Logo */}
+        <div className="relative z-10 flex items-center gap-3">
+          <div className="bg-white/20 p-2.5 rounded-lg backdrop-blur-sm">
+            <svg
+              className="w-6 h-6 text-white"
+              fill="currentColor"
+              viewBox="0 0 20 20"
+            >
+              <path d="M4 3a2 2 0 100 4h12a2 2 0 100-4H4z" />
+              <path
+                fillRule="evenodd"
+                d="M3 8h14v7a2 2 0 01-2 2H5a2 2 0 01-2-2V8zm5 3a1 1 0 011-1h2a1 1 0 110 2H9a1 1 0 01-1-1z"
+                clipRule="evenodd"
+              />
+            </svg>
+          </div>
+          <span className="font-bold tracking-wide text-sm">
+            URBAN WASTE MANAGER
           </span>
-          .
-          <br className="hidden sm:block" /> Enter it below to confirm your
-          account.
-        </p>
+        </div>
+
+        {/* Nội dung marketing */}
+        <div className="relative z-10 mb-12 space-y-4">
+          <h1 className="text-4xl font-bold leading-tight">
+            Quản lý thông minh cho môi
+            <br />
+            trường xanh sạch
+          </h1>
+          <p className="text-blue-100 text-base max-w-md leading-relaxed">
+            Hệ thống theo dõi, giám sát và tối ưu hóa quy trình thu gom rác thải
+            đô thị theo thời gian thực.
+          </p>
+        </div>
       </div>
 
-      {/* ✨ THAY ĐỔI 2: Phần Input + Button căn giữa dọc màn hình trên mobile */}
-      {/* flex-1 flex flex-col justify-center: Đẩy phần này ra giữa không gian còn trống */}
-      <div className="space-y-8 flex-1 flex flex-col justify-center sm:block sm:flex-none">
-        <div className="flex justify-center w-full">
-          <OtpInput
-            length={6}
-            value={otp}
-            onChange={setOtp}
-            disabled={isLoading}
-          />
+      {/* ===== BÊN PHẢI: FORM OTP ===== */}
+      <div className="w-full lg:w-[55%] flex flex-col justify-center items-center p-6 lg:p-12 relative bg-gray-50">
+        {/* Nút quay lại */}
+        <button
+          onClick={() => window.history.back()}
+          className="absolute top-6 left-6 lg:top-8 lg:left-12 flex items-center text-gray-600 hover:text-blue-600 transition-colors text-sm font-medium"
+        >
+          <ArrowLeft className="w-4 h-4 mr-2" /> Quay lại trang Đăng nhập
+        </button>
+
+        {/* Nội dung form */}
+        <div className="w-full max-w-[440px] space-y-8">
+          {/* Tiêu đề */}
+          <div className="space-y-3">
+            <div className="w-14 h-14 bg-blue-100 rounded-2xl flex items-center justify-center text-blue-600">
+              <RotateCw className="w-7 h-7" />
+            </div>
+            <h2 className="text-3xl font-bold text-gray-900">
+              Xác minh danh tính
+            </h2>
+            <p className="text-gray-600 text-sm leading-relaxed">
+              Vui lòng nhập mã 6 số chúng tôi vừa gửi tới email{" "}
+              <span className="font-bold text-gray-900">{email}</span> để xác
+              minh.
+            </p>
+          </div>
+
+          {/* Các trường nhập */}
+          <div className="space-y-6">
+            {/* Input OTP */}
+            <OtpInput
+              length={6}
+              value={otp}
+              onChange={setOtp}
+              disabled={isLoading}
+            />
+
+            {/* Nút xác nhận */}
+            <button
+              onClick={handleVerify}
+              disabled={isLoading || otp.length < 6}
+              className="w-full h-12 bg-blue-600 hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-semibold rounded-lg transition-all shadow-sm text-base flex items-center justify-center gap-2"
+            >
+              {isLoading ? (
+                <>
+                  <Loader2 className="w-4 h-4 animate-spin" />
+                  Đang xác nhận...
+                </>
+              ) : (
+                "Xác nhận"
+              )}
+            </button>
+
+            {/* Timer gửi lại */}
+            <ResendTimer onResend={handleResend} isLoading={resendLoading} />
+          </div>
+
+          {/* Box hỗ trợ */}
+          <div className="bg-blue-50 border border-blue-100 rounded-xl p-4 flex gap-3">
+            <div className="shrink-0 mt-0.5">
+              <div className="w-6 h-6 bg-blue-600 rounded-full flex items-center justify-center text-white text-xs font-bold">
+                i
+              </div>
+            </div>
+            <div className="space-y-1">
+              <h4 className="text-sm font-bold text-gray-900">Cần hỗ trợ?</h4>
+              <p className="text-xs text-gray-600 leading-relaxed">
+                Nếu bạn không còn quyền truy cập vào email, vui lòng liên hệ
+                Quản trị viên hệ thống hoặc gọi hotline{" "}
+                <span className="text-blue-600 font-bold">1900 1234</span>.
+              </p>
+            </div>
+          </div>
         </div>
 
-        <div className="pt-2">
-          <Button
-            type="button"
-            isLoading={isLoading}
-            disabled={isLoading || otp.length < 6}
-            onClick={() => executeVerify(otp)}
-            className="shadow-xl shadow-indigo-500/20"
-          >
-            {isLoading ? "Verifying..." : "Verify & Continue"}
-          </Button>
-        </div>
-
-        {/* Timer đẩy xuống dưới cùng chút cho thoáng */}
-        <div className="pb-4 sm:pb-0">
-          <ResendTimer onResend={handleResend} isLoading={resendLoading} />
+        {/* Footer */}
+        <div className="absolute bottom-6 text-xs text-gray-400 text-center">
+          © 2023 Smart Urban Waste Management System. All rights reserved.
         </div>
       </div>
     </div>

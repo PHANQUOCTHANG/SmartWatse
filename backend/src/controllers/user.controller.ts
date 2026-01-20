@@ -19,7 +19,7 @@ export const getUsers = asyncHandler(async (req: Request, res: Response) => {
   // Chuẩn hóa query từ URL (page, limit, search, sort)
   const query = normalizeQuery(req.query);
 
-  // Gọi userService.findAll theo quy tắc Service rút gọn
+  // Gọi userService.findAll theo quy tắc Service rút gon
   const result = await userService.findAll(query);
 
   res.status(200).json({
