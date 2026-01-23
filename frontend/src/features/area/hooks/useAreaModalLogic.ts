@@ -2,7 +2,7 @@ import { useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { toast } from "sonner";
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQuery } from "@tanstack/react-query";
 import { areaApi } from "../api/areaApi";
 import { queryClient } from "@/lib/queryClient";
 import { areaKeys } from "../utils/areaKeys";
@@ -23,7 +23,31 @@ export const useAreaModalLogic = ({
 }: UseAreaModalLogicProps) => {
   const isEditing = !!areaToEdit;
 
-  // --- MUTATIONS ---
+  // --- 1. GET EXISTING AREAS (Để hiển thị tham chiếu trên bản đồ) ---
+  const { data: areasData } = useQuery({
+    queryKey: areaKeys.lists(),
+    queryFn: () => areaApi.getAll({ limit: 1000 }), // Lấy hết để vẽ map
+    enabled: isOpen, // Chỉ fetch khi mở modal
+    staleTime: 5 * 60 * 1000,
+  });
+
+  // Lọc bỏ chính khu vực đang sửa (để tránh vẽ đè lên bóng ma của chính nó)
+  const existingAreas = (areasData?.data || []).filter(
+    (a) => a.id !== areaToEdit?.id,
+  );
+
+  // --- 2. FORM SETUP ---
+  const form = useForm<AreaFormValues>({
+    resolver: zodResolver(areaSchema),
+    defaultValues: {
+      name: "",
+      type: AreaType.DISTRICT,
+      parentId: null,
+      boundary: undefined, // 🔥 Init boundary
+    },
+  });
+
+  // --- 3. MUTATIONS ---
   const createMutation = useMutation({
     mutationFn: areaApi.create,
     onSuccess: () => {
@@ -47,68 +71,40 @@ export const useAreaModalLogic = ({
 
   const isPending = createMutation.isPending || updateMutation.isPending;
 
-  // --- FORM SETUP ---
-  const form = useForm<AreaFormValues>({
-    resolver: zodResolver(areaSchema),
-    defaultValues: {
-      name: "",
-      type: AreaType.DISTRICT, // Mặc định là Quận
-      parentId: null,
-    },
-  });
-
-  // --- RESET & MAP DATA ---
+  // --- 4. RESET & MAP DATA ---
   useEffect(() => {
     if (isOpen) {
-      // Prevent scroll background
-      document.body.style.overflow = "hidden";
-
       if (areaToEdit) {
-        // --- MODE: EDIT ---
-
-        // Xử lý parentId: Backend có thể trả về null, string ID, hoặc Object {id, name}
+        // Edit Mode
         let mappedParentId = null;
         if (areaToEdit.parentId) {
-          if (
+          mappedParentId =
             typeof areaToEdit.parentId === "object" &&
             "id" in areaToEdit.parentId
-          ) {
-            // Nếu là object (đã populate) -> lấy id
-            mappedParentId = areaToEdit.parentId.id;
-          } else {
-            // Nếu là string
-            mappedParentId = areaToEdit.parentId as string;
-          }
+              ? areaToEdit.parentId.id
+              : (areaToEdit.parentId as string);
         }
 
         form.reset({
           name: areaToEdit.name,
           type: areaToEdit.type,
           parentId: mappedParentId,
+          boundary: areaToEdit.boundary || [],
         });
       } else {
-        // --- MODE: CREATE ---
+        // Create Mode
         form.reset({
           name: "",
           type: AreaType.DISTRICT,
           parentId: null,
+          boundary: [],
         });
       }
-    } else {
-      document.body.style.overflow = "unset";
     }
-
-    return () => {
-      document.body.style.overflow = "unset";
-    };
   }, [isOpen, areaToEdit, form]);
 
-  // --- SUBMIT HANDLER ---
   const onSubmit = (data: AreaFormValues) => {
-    // Logic clean data trước khi gửi
     const payload = { ...data };
-
-    // Nếu type là DISTRICT -> bắt buộc parentId phải là null (dù form có gửi rác)
     if (payload.type === AreaType.DISTRICT) {
       payload.parentId = null;
     }
@@ -124,6 +120,7 @@ export const useAreaModalLogic = ({
     form,
     isEditing,
     isPending,
+    existingAreas, // 🔥 Trả về list area để component vẽ
     onSubmit: form.handleSubmit(onSubmit),
   };
 };

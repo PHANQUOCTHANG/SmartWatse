@@ -14,7 +14,6 @@ import { guestAuthRoutes, protectedAuthRoutes } from "@/features/auth/routes";
 import { MANAGER_PATHS, STAFF_PATHS, ADMIN_PATHS } from "@/config/paths";
 
 // 4. Page Imports (Manager)
-import MapMonitorPage from "@/pages/manager/MapMonitorPage";
 import ManagerSchedulePage from "@/features/schedule/pages/ManagerSchedulePage";
 import TaskAssignmentPage from "@/features/task-assignment/pages/TaskAssignmentPage";
 import ManagerFeedbackPage from "@/features/feedback/pages/ManagerFeedbackPage";
@@ -34,9 +33,10 @@ import { RoleBasedHome } from "@/app/routes/RoleBasedHome";
 import AdminDashboardPage from "@/pages/admin/AdminDashboardPage";
 import UsersPage from "@/pages/admin/UserManagementPage";
 import BinsPage from "@/pages/admin/BinsPage";
-import CollectionPointsPage from "@/pages/admin/CollectionPointsPage";
 import AreaManagementPage from "@/pages/admin/AreaManagementPage";
 import VehicleManagementPage from "@/pages/admin/VehicleManagementPage";
+import MapMonitorPage from "@/pages/admin/MapMonitor";
+import CollectionPointManagementPage from "@/pages/admin/CollectionPointManagementPage";
 
 // 6. Page Imports (Citizen/Public)
 // import LandingPage from "@/pages/public/LandingPage";
@@ -107,6 +107,7 @@ export const router = createBrowserRouter([
               { index: true, element: <AdminDashboardPage /> },
               { path: ADMIN_PATHS.USERS, element: <UsersPage /> },
               { path: ADMIN_PATHS.AREAS, element: <AreaManagementPage /> },
+              { path: ADMIN_PATHS.MAP_MONITOR, element: <MapMonitorPage /> },
               { path: ADMIN_PATHS.BINS, element: <BinsPage /> },
               {
                 path: ADMIN_PATHS.VEHICLES,
@@ -114,7 +115,7 @@ export const router = createBrowserRouter([
               },
               {
                 path: ADMIN_PATHS.COLLECTION_POINTS,
-                element: <CollectionPointsPage />,
+                element: <CollectionPointManagementPage />,
               },
             ],
           },

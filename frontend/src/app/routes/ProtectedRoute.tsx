@@ -1,6 +1,6 @@
 import SmartWasteResult from "@/components/ui/Result";
 import { AuthLoader } from "@/components/ui/SmartWastLoadingEffects";
-import { useAppSelector } from "@/store/store";
+import { useAppSelector } from "@/store/hooks";
 import React from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 

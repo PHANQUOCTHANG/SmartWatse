@@ -6,12 +6,23 @@ export enum AreaType {
 
 // Interface hiển thị (Response từ API)
 export interface IArea {
-  id: string; // Backend trả về 'id' (đã map từ _id)
+  id: string;
   name: string;
   type: AreaType;
-  // parentId có thể là null (cấp cao nhất) hoặc object (nếu populate) hoặc string ID
   parentId?: string | { id: string; name: string } | null;
+
+  // 🔥 FIX: GeoJSON Polygon bắt buộc phải là mảng 3 chiều
+  boundary?: number[][][];
+
   createdAt: string;
+}
+
+export interface CreateAreaDTO {
+  name: string;
+  type: AreaType;
+  parentId?: string | null;
+  // 🔥 FIX: DTO cũng phải nhận mảng 3 chiều
+  boundary?: number[][][];
 }
 
 // Params lọc danh sách
@@ -22,13 +33,6 @@ export interface AreaFilterParams {
   parentId?: string; // Lọc theo cha (Ví dụ: Lấy tất cả phường của Quận 1)
   type?: AreaType;
   sort?: string;
-}
-
-// Payload tạo mới
-export interface CreateAreaDTO {
-  name: string;
-  type: AreaType;
-  parentId?: string | null;
 }
 
 // Payload cập nhật

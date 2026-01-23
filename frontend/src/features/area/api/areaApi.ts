@@ -19,12 +19,14 @@ export const areaApi = {
 
   // 3. CREATE
   create: async (payload: AreaFormValues): Promise<IArea> => {
+    console.log(payload, "edit");
     const { data } = await api.post("/areas", payload);
     return data.data;
   },
 
   // 4. UPDATE
   update: async (id: string, payload: AreaFormValues): Promise<IArea> => {
+    console.log(payload);
     const { data } = await api.patch(`/areas/${id}`, payload);
     return data.data;
   },

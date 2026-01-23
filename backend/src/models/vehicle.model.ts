@@ -15,7 +15,15 @@ const vehicleSchema = new Schema<IVehicleDocument>(
       unique: true,
       maxlength: 20,
       trim: true,
+      uppercase: true,
     },
+
+    areaId: {
+      type: Schema.Types.ObjectId,
+      ref: "Area",
+      required: true,
+    },
+
     type: {
       type: String,
       enum: Object.values(VehicleType),
@@ -30,7 +38,12 @@ const vehicleSchema = new Schema<IVehicleDocument>(
       enum: Object.values(VehicleStatus),
       default: VehicleStatus.AVAILABLE,
     },
-
+    heading: {
+      type: Number,
+      default: 0,
+      min: 0,
+      max: 360,
+    },
     location: {
       type: { type: String, enum: ["Point"], default: "Point" },
       coordinates: { type: [Number], default: [106.660172, 10.762622] }, // Default HCM
@@ -43,9 +56,10 @@ const vehicleSchema = new Schema<IVehicleDocument>(
   },
 );
 
-// Index
+// Indexes
 vehicleSchema.index({ plateNumber: 1 }, { unique: true });
 vehicleSchema.index({ status: 1 });
-vehicleSchema.index({ location: "2dsphere" });
+vehicleSchema.index({ areaId: 1 }); // Index để tìm xe theo khu vực nhanh
+vehicleSchema.index({ location: "2dsphere" }); // Index địa lý
 
 export const Vehicle = model<IVehicleDocument>("Vehicle", vehicleSchema);

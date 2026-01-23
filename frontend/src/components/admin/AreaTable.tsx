@@ -69,34 +69,11 @@ const AreaTable: React.FC = () => {
   const filtered = areas.filter(
     (a) =>
       a.name.toLowerCase().includes(query.toLowerCase()) ||
-      a.code.toLowerCase().includes(query.toLowerCase())
+      a.code.toLowerCase().includes(query.toLowerCase()),
   );
 
   return (
     <div>
-      <div className="flex items-center gap-3 mb-4">
-        <div className="flex items-center bg-slate-50 rounded-md px-3 py-2 w-full md:w-1/2">
-          <Search className="w-4 h-4 text-gray-400" />
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Tìm kiếm theo tên, mã khu vực..."
-            className="bg-transparent flex-1 ml-2 outline-none text-sm"
-          />
-        </div>
-        <div className="ml-auto flex items-center gap-2">
-          <select className="px-3 py-2 border rounded bg-white text-sm">
-            <option>Tất cả Quận/Huyện</option>
-            <option>Quận 1</option>
-            <option>Quận 3</option>
-            <option>Quận Bình Thạnh</option>
-          </select>
-          <button className="px-3 py-2 border rounded bg-white text-sm">
-            Lọc
-          </button>
-        </div>
-      </div>
-
       <table className="min-w-full text-sm">
         <thead>
           <tr className="text-left text-gray-500 border-b">
@@ -132,7 +109,7 @@ const AreaTable: React.FC = () => {
               <td className="py-4">
                 <span
                   className={`px-2 py-1 rounded-full text-xs font-medium ${statusClass(
-                    a.status
+                    a.status,
                   )}`}
                 >
                   {a.status}
@@ -157,20 +134,6 @@ const AreaTable: React.FC = () => {
           ))}
         </tbody>
       </table>
-
-      <div className="flex items-center justify-between mt-4">
-        <div className="text-sm text-gray-500">
-          Hiển thị 1 đến {filtered.length} trong tổng số {areas.length} kết quả
-        </div>
-        <div className="inline-flex items-center gap-2">
-          <button className="px-2 py-1 border rounded">&lt;</button>
-          <button className="px-3 py-1 bg-primary text-primary-foreground rounded">
-            1
-          </button>
-          <button className="px-2 py-1 border rounded">2</button>
-          <button className="px-2 py-1 border rounded">&gt;</button>
-        </div>
-      </div>
     </div>
   );
 };

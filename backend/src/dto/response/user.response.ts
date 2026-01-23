@@ -5,8 +5,13 @@ export interface UserResponse {
   fullName: string;
   email: string;
   role: UserRole;
-  phone?: string;
-  areaId?: number;
+
+  phoneNumber?: string;
+  address?: string;
+  avatar?: string;
+  areaName?: string;
+  areaId?: string;
+
   status: UserStatus;
   createdAt: Date;
 }

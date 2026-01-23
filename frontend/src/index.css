@@ -256,34 +256,99 @@
   .no-scrollbar::-webkit-scrollbar {
     display: none;
   }
+  button {
+    cursor: pointer;
+  }
   .no-scrollbar {
     -ms-overflow-style: none;
     scrollbar-width: none;
   }
-
+  /* Tạo hiệu ứng trượt cho Marker */
+  .leaflet-marker-icon.truck-marker-transition {
+    transition: all 3s linear; /* Thời gian 3s khớp với interval của script */
+  }
   /* Kính mờ (Glassmorphism) - Dùng cho Map Controls */
   .glass {
     @apply bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-white/20 dark:border-slate-700/50 shadow-lg;
   }
-  /* Custom Popup Styles */
+  /* src/index.css */
+  /* globals.css */
+  @keyframes dash-animation {
+    to {
+      stroke-dashoffset: -20;
+    }
+  }
+  /* globals.css */
+  @keyframes flow-animation {
+    0% {
+      stroke-dashoffset: 20;
+    }
+    100% {
+      stroke-dashoffset: 0;
+    }
+  }
+
+  .route-flow {
+    animation: flow-animation 1s linear infinite;
+  }
+  /* globals.css */
+
+  /* Xóa style mặc định của Leaflet Popup để dùng Custom Card */
+  .leaflet-popup-content-wrapper {
+    background: transparent !important; /* Xóa nền trắng */
+    box-shadow: none !important; /* Xóa bóng mặc định */
+    padding: 0 !important; /* Xóa padding */
+    border-radius: 0 !important;
+  }
+
+  .leaflet-popup-content {
+    margin: 0 !important; /* Xóa margin */
+    width: auto !important; /* Để Card tự quyết định chiều rộng */
+  }
+
+  /* Tùy chỉnh mũi tên (tip) của popup cho tiệp màu (nếu muốn) hoặc ẩn đi */
+  .leaflet-popup-tip {
+    background: white; /* Màu trùng với background của Card */
+    box-shadow: 0 3px 14px rgba(0, 0, 0, 0.2);
+  }
+
+  /* Ẩn nút đóng mặc định của Leaflet vì Card có thể tự thiết kế hoặc click ra ngoài để đóng */
+  .leaflet-popup-close-button {
+    display: none;
+  }
+  .route-pulse {
+    filter: drop-shadow(0 0 4px rgba(59, 130, 246, 0.6));
+  }
+  .route-line-anim {
+    animation: dash-animation 1s linear infinite;
+  }
+  /* Xóa style mặc định của Leaflet để dùng style của React Component */
   .leaflet-popup-content-wrapper {
     padding: 0 !important;
+    overflow: hidden;
     border-radius: 12px !important;
-    overflow: hidden !important;
     box-shadow:
-      0 20px 25px -5px rgb(0 0 0 / 0.1),
-      0 8px 10px -6px rgb(0 0 0 / 0.1) !important;
+      0 10px 25px -5px rgba(0, 0, 0, 0.1),
+      0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
   }
 
   .leaflet-popup-content {
     margin: 0 !important;
-    width: 320px !important;
+    width: 320px !important; /* Fix cứng chiều rộng cho đẹp */
   }
 
   .leaflet-popup-tip {
-    background: white !important;
+    background: white;
   }
 
+  /* Nút tắt popup */
+  .leaflet-container a.leaflet-popup-close-button {
+    top: 8px;
+    right: 8px;
+    color: white; /* Đổi màu nút X thành trắng nếu header tối */
+    font-size: 18px;
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  }
   /* Ẩn nút close mặc định nếu muốn dùng custom header */
   /* .leaflet-popup-close-button { display: none; } */
 

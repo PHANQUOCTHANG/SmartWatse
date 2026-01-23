@@ -1,79 +1,88 @@
 import { z } from "zod";
 
-// Regex số điện thoại Việt Nam
-const PHONE_REGEX = /((09|03|07|08|05)+([0-9]{8})\b)/g;
+// 1. Regex validate số điện thoại Việt Nam
+const phoneRegex = /^(84|0)(3|5|7|8|9)[0-9]{8}$/;
 
-// Các vai trò trong hệ thống Smart Waste
-export const UserRoleEnum = z.enum([
-  "ADMIN",
-  "MANAGER",
-  "STAFF",
-  "CITIZEN",
-  "ORGANIZATION",
-]);
+export const UserRoleEnum = z.enum(["ADMIN", "MANAGER", "STAFF", "CITIZEN"]);
 
-// --- 1. ADMIN CREATE USER SCHEMA ---
-export const createUserSchema = z.object({
+// 2. Schema Cơ bản
+const baseUserSchema = z.object({
   fullName: z
     .string()
-    .min(2, "Họ tên quá ngắn")
-    .max(50, "Họ tên quá dài")
+    .min(1, "Họ và tên là bắt buộc")
+    .max(100, "Tên quá dài")
     .trim(),
-  email: z.string().email("Email không hợp lệ").trim(),
 
-  // Role chuẩn nghiệp vụ
+  email: z
+    .string()
+    .min(1, "Email là bắt buộc")
+    .email("Email không đúng định dạng"),
+
   role: UserRoleEnum,
 
-  // Thông tin bổ sung cho nhân viên/người dân
   phoneNumber: z
     .string()
-    .regex(PHONE_REGEX, "Số điện thoại không hợp lệ")
     .optional()
-    .or(z.literal("")),
-  address: z.string().max(200).optional(),
+    .refine((val) => {
+      if (!val) return true;
+      return phoneRegex.test(val);
+    }, "Số điện thoại không hợp lệ"),
 
-  avatar: z.any().optional(), // File object
-});
+  // Address là optional, nhưng nếu nhập thì max 500 ký tự
+  address: z.string().max(500, "Địa chỉ quá dài").optional(),
 
-export type CreateUserFormValues = z.infer<typeof createUserSchema>;
+  areaId: z.string().optional(),
 
-// --- 2. ADMIN UPDATE USER SCHEMA ---
-export const adminUpdateUserFormSchema = z.object({
-  fullName: z.string().min(2).max(50),
-  email: z.string().email(),
-  role: UserRoleEnum,
-
-  phoneNumber: z.string().regex(PHONE_REGEX).optional().or(z.literal("")),
-  address: z.string().optional(),
-
-  isActive: z.boolean(),
-  isVerified: z.boolean(),
-
-  // Mật khẩu (Optional - chỉ gửi khi muốn reset pass cho user)
-  password: z
-    .string()
-    .min(6, "Mật khẩu tối thiểu 6 ký tự")
-    .optional()
-    .or(z.literal("")),
+  isActive: z.boolean().default(true),
 
   avatar: z.any().optional(),
 });
 
-export type AdminUpdateUserFormValues = z.infer<
-  typeof adminUpdateUserFormSchema
->;
-
-// --- 3. ACCOUNT CLAIM / ACTIVATION SCHEMA ---
-// Dùng khi nhân viên nhận tài khoản và đổi mật khẩu lần đầu
-export const claimSchema = z
-  .object({
-    email: z.string().email().readonly(), // Email thường không cho đổi lúc claim
-    newPassword: z.string().min(6, "Mật khẩu tối thiểu 6 ký tự"),
-    confirmPassword: z.string(),
+// 3. Create Schema
+export const createUserSchema = baseUserSchema
+  .extend({
+    password: z
+      .string()
+      .min(1, "Mật khẩu là bắt buộc")
+      .min(6, "Mật khẩu phải có ít nhất 6 ký tự"),
   })
-  .refine((data) => data.newPassword === data.confirmPassword, {
-    message: "Mật khẩu xác nhận không khớp",
-    path: ["confirmPassword"],
-  });
+  .refine(
+    (data) => {
+      if (["MANAGER", "STAFF"].includes(data.role) && !data.areaId) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "Vui lòng chọn khu vực quản lý",
+      path: ["areaId"],
+    },
+  );
 
-export type ClaimInput = z.infer<typeof claimSchema>;
+// 4. Update Schema
+export const updateUserSchema = baseUserSchema
+  .extend({
+    password: z
+      .string()
+      .optional()
+      .refine((val) => {
+        if (!val) return true;
+        return val.length >= 6;
+      }, "Mật khẩu mới phải có ít nhất 6 ký tự"),
+  })
+  .refine(
+    (data) => {
+      if (["MANAGER", "STAFF"].includes(data.role) && !data.areaId) {
+        return false;
+      }
+      return true;
+    },
+    {
+      message: "Vui lòng chọn khu vực quản lý",
+      path: ["areaId"],
+    },
+  );
+
+export type UserFormValues = z.infer<typeof createUserSchema> & {
+  password?: string;
+};

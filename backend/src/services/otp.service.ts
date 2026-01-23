@@ -13,7 +13,7 @@ export interface IOtpService {
 export class OtpService implements IOtpService {
   constructor(
     private readonly otpRepo: IOtpRepository,
-    private readonly userRepo: IUserRepository
+    private readonly userRepo: IUserRepository,
   ) {}
 
   // Tạo, lưu trữ mã OTP và gửi qua email
@@ -33,7 +33,7 @@ export class OtpService implements IOtpService {
     await this.otpRepo.create({
       email,
       otpHash,
-      expiresAt: new Date(Date.now() + 5* 60 * 1000),
+      expiresAt: new Date(Date.now() + 5 * 60 * 1000),
       verified: false,
     });
 
@@ -75,12 +75,12 @@ export class OtpService implements IOtpService {
 
     const resetToken = jwt.sign(
       {
-        sub: user.id,
+        sub: user._id,
         email: user.email,
         scope: "reset_password",
       },
       resetSecret,
-      { expiresIn: "15m" }
+      { expiresIn: "15m" },
     );
 
     return resetToken;

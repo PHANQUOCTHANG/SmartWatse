@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { Plus, AlertTriangle, Building2 } from "lucide-react";
+import { Plus, AlertTriangle } from "lucide-react";
 
 // 1. UI Components (Shared)
 import { Button } from "@/components/ui/button";
@@ -22,9 +22,9 @@ import { APP_CONFIG } from "@/config/constants";
 import { useAreas, useParentAreas } from "@/features/area/hooks/useAreas";
 import { IArea } from "@/features/area/types";
 import { AreaFilters } from "@/features/area/components/AreaFilters";
-import AreaTable from "@/components/admin/AreaTable";
 import Pagination from "@/utils/pagination";
 import AreaModal from "@/features/area/components/AreaModal";
+import { AreaTable } from "@/features/area/components/AreaTable";
 
 const AreaManagementPage = () => {
   // --- A. USE HOOK (Central Logic) ---

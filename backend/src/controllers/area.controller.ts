@@ -1,5 +1,6 @@
 import { areaService } from "@/config/container";
-import { normalizeQuery } from "@/interface/query.interface";
+import { AreaFilterBuilder } from "@/interface/area.interface";
+import { buildQuery, normalizeQuery } from "@/interface/query.interface";
 import asyncHandler from "@/utils/asyncHandler";
 import { Request, Response } from "express";
 
@@ -11,7 +12,7 @@ export const createArea = asyncHandler(async (req: Request, res: Response) => {
 
 // GET | /api/v1/areas | Lấy danh sách khu vực
 export const getAreas = asyncHandler(async (req: Request, res: Response) => {
-  const query = normalizeQuery(req.query);
+  const query = buildQuery(req.query, new AreaFilterBuilder());
   const data = await areaService.findAll(query);
   res.status(200).json({ status: "success", ...data });
 });

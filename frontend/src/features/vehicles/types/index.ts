@@ -17,21 +17,37 @@ export enum VehicleType {
 export interface IVehicle {
   id: string;
   plateNumber: string;
+
+  // 🔥 THÊM: Để Map biết xe thuộc khu vực nào (để lọc xe theo quận)
+  areaId: string;
+
   type: VehicleType;
-  capacity: number; // Tải trọng tối đa
-  currentLoad: number; // Tải trọng hiện tại
-  fuelLevel: number; // % Nhiên liệu
+  capacity: number;
+  currentLoad: number;
+  fuelLevel: number;
   status: VehicleStatus;
 
-  // Tọa độ đã được flatten từ Backend
+  // 🔥 FIX: Cập nhật cấu trúc tọa độ đầy đủ
   coordinates: {
     lat: number;
     lng: number;
+    heading: number; // 🔥 QUAN TRỌNG: Góc quay (0-360) để xoay icon xe
     lastUpdated?: string;
   };
 
   createdAt: string;
   updatedAt?: string;
+}
+
+export interface CreateVehicleDTO {
+  plateNumber: string;
+
+  areaId: string;
+
+  type: VehicleType;
+  capacity: number;
+  status?: VehicleStatus;
+  fuelLevel?: number;
 }
 
 // Params lọc danh sách
@@ -41,16 +57,8 @@ export interface VehicleFilterParams {
   search?: string; // Tìm theo biển số
   status?: VehicleStatus;
   type?: VehicleType;
+  areaId?: string; // Nên thêm cái này để API có thể lọc theo khu vực
   sort?: string;
-}
-
-// Payload tạo mới
-export interface CreateVehicleDTO {
-  plateNumber: string;
-  type: VehicleType;
-  capacity: number;
-  status?: VehicleStatus;
-  fuelLevel?: number;
 }
 
 // Payload cập nhật

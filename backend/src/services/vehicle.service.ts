@@ -7,6 +7,8 @@ import { VehicleResponse } from "@/dto/response/vehicle.response";
 import { BaseQuery, IPaginatedResult } from "@/interface/query.interface";
 import AppError from "../utils/appError";
 import { VehicleStatus } from "@/interface/vehicle.interface";
+import { ISocketService } from "@/interface/socket.interface";
+import { Types } from "mongoose";
 
 export interface IVehicleService {
   create(dto: CreateVehicleRequest): Promise<VehicleResponse>;
@@ -14,19 +16,42 @@ export interface IVehicleService {
   findById(id: string): Promise<VehicleResponse>;
   update(id: string, dto: UpdateVehicleRequest): Promise<VehicleResponse>;
   delete(id: string): Promise<void>;
+  updateLocation(
+    id: string,
+    lat: number,
+    lng: number,
+    heading: number,
+  ): Promise<void>;
 }
 
 export class VehicleService implements IVehicleService {
-  constructor(private readonly repo: IVehicleRepository) {}
+  constructor(
+    private readonly repo: IVehicleRepository,
+    private readonly socket: ISocketService,
+  ) {}
 
   // Đăng ký xe mới và xác thực biển số không được trùng lặp
   async create(dto: CreateVehicleRequest): Promise<VehicleResponse> {
     const existed = await this.repo.findByPlateNumber(dto.plateNumber);
     if (existed)
       throw new AppError(`Biển số xe '${dto.plateNumber}' đã tồn tại`, 400);
+    const { latitude, longitude, areaId, ...rest } = dto;
 
-    const vehicle = await this.repo.create(dto);
-    return this.mapToResponse(vehicle);
+    const payload = {
+      ...rest,
+      areaId: new Types.ObjectId(areaId),
+      // Tạo GeoJSON Point chuẩn
+      location: {
+        type: "Point",
+        coordinates: [longitude || 106.66, latitude || 10.76], // [Lng, Lat]
+        lastUpdated: new Date(),
+      },
+    };
+
+    const vehicle = await this.repo.create(payload as any);
+    const response = this.mapToResponse(vehicle);
+    this.socket.emit("vehicle:created", response);
+    return response;
   }
 
   // Truy xuất danh sách đội xe phục vụ công tác thu gom
@@ -58,11 +83,48 @@ export class VehicleService implements IVehicleService {
           400,
         );
     }
+    const { areaId, latitude, longitude, ...rest } = dto;
+    const payload: any = { ...rest };
 
-    const updatedVehicle = await this.repo.updateById(id, dto);
-    return this.mapToResponse(updatedVehicle!);
+    if (areaId) {
+      payload.areaId = new Types.ObjectId(areaId);
+    }
+
+    // 🔥 CẬP NHẬT VỊ TRÍ NẾU CÓ
+    if (latitude !== undefined && longitude !== undefined) {
+      payload.location = {
+        type: "Point",
+        coordinates: [longitude, latitude], // [Lng, Lat]
+        lastUpdated: new Date(),
+      };
+    }
+
+    const updatedVehicle = await this.repo.updateById(id, payload);
+    const response = this.mapToResponse(updatedVehicle!);
+    this.socket.emit("vehicle:updated", response);
+    return response;
   }
+  // Cập nhật vị trí GPS (High Performance)
+  async updateLocation(
+    id: string,
+    lat: number,
+    lng: number,
+    heading: number,
+  ): Promise<void> {
+    const vehicle = await this.repo.updateLocation(id, lat, lng, heading);
 
+    if (!vehicle) return; // b. 📡 Socket: Gửi gói tin
+
+    const roomName = `AREA_${vehicle.areaId}`;
+
+    this.socket.emitVolatile(roomName, "vehicle:moved", {
+      id: id,
+      lat: lat,
+      lng: lng,
+      heading: heading,
+      status: vehicle.status,
+    });
+  }
   // Loại bỏ phương tiện khỏi mạng lưới vận tải
   async delete(id: string): Promise<void> {
     const vehicle = await this.repo.findById(id);
@@ -74,12 +136,14 @@ export class VehicleService implements IVehicleService {
       );
     }
     await this.repo.deleteById(id);
+    this.socket.emit("vehicle:deleted", { id });
   }
 
   private mapToResponse(v: any): VehicleResponse {
     return {
       id: v._id.toString(),
       plateNumber: v.plateNumber,
+      areaId: v.areaId.toString(),
       type: v.type,
       capacity: v.capacity,
       currentLoad: v.currentLoad,

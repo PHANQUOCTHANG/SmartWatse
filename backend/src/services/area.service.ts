@@ -7,6 +7,7 @@ import { AreaResponse } from "@/dto/response/area.response";
 import { BaseQuery, IPaginatedResult } from "@/interface/query.interface";
 import { IAreaDocument } from "@/models/area.model";
 import AppError from "../utils/appError";
+import { Types } from "mongoose";
 
 export interface IAreaService {
   create(dto: CreateAreaRequest): Promise<AreaResponse>;
@@ -19,94 +20,126 @@ export interface IAreaService {
 export class AreaService implements IAreaService {
   constructor(private readonly areaRepo: IAreaRepository) {}
 
-  // Xử lý tạo mới khu vực hành chính, bao gồm kiểm tra tính hợp lệ của cấp cha và trùng lặp tên
+  // Xử lý tạo mới khu vực
   async create(dto: CreateAreaRequest): Promise<AreaResponse> {
-    // 1. Ngăn chặn trùng tên khu vực trong cùng một cấp (cùng cha)
+    // 1. Validate Parent (Nếu có)
+    if (dto.parentId) {
+      const parent = await this.areaRepo.findById(dto.parentId);
+      if (!parent) throw new AppError("Khu vực cha không tồn tại", 400);
+    }
+
+    // 2. Ngăn chặn trùng tên trong cùng cấp
     const exists = await this.areaRepo.findByNameAndParent(
       dto.name,
       dto.parentId || null,
     );
     if (exists) throw new AppError("Tên khu vực đã tồn tại trong cấp này", 400);
 
-    // 2. Xác thực sự tồn tại của khu vực cha nếu có parentId (Tránh tạo con mồ côi)
-    if (dto.parentId) {
-      const parent = await this.areaRepo.findById(dto.parentId);
-      if (!parent) throw new AppError("Khu vực cha không tồn tại", 400);
+    // 3. Chuẩn bị Payload (Convert DTO -> Model)
+    // Tách boundary ra để xử lý GeoJSON
+    const { boundary, ...rest } = dto;
+    const payload: any = { ...rest };
+
+    // 🔥 Convert Array -> GeoJSON Polygon
+    if (boundary && boundary.length > 0) {
+      payload.boundary = {
+        type: "Polygon",
+        coordinates: boundary, // DTO phải gửi dạng [[[lng, lat], ...]]
+      };
     }
 
-    const area = await this.areaRepo.create(dto);
+    const area = await this.areaRepo.create(payload);
     return this.mapToResponse(area);
   }
 
-  // Truy vấn danh sách khu vực có phân trang, hỗ trợ tìm kiếm và lọc theo cấp cha
+  // Truy vấn danh sách
   async findAll(query: BaseQuery): Promise<IPaginatedResult<AreaResponse>> {
     const result = await this.areaRepo.findAll(query);
-
-    // Chuyển đổi danh sách Document sang định dạng Response DTO chuẩn
     return {
       ...result,
       data: result.data.map((area) => this.mapToResponse(area)),
     };
   }
 
-  // Lấy thông tin chi tiết một khu vực theo ID và kiểm tra sự tồn tại
+  // Lấy chi tiết
   async findById(id: string): Promise<AreaResponse> {
     const area = await this.areaRepo.findById(id);
-
-    // Đảm bảo trả về lỗi 404 nếu ID không khớp với bất kỳ bản ghi nào
     if (!area) throw new AppError("Không tìm thấy khu vực", 404);
-
     return this.mapToResponse(area);
   }
 
-  // Cập nhật thông tin khu vực, bao gồm các rule validation phức tạp về phân cấp
+  // Cập nhật thông tin
   async update(id: string, dto: UpdateAreaRequest): Promise<AreaResponse> {
     const currentArea = await this.areaRepo.findById(id);
-
-    // Kiểm tra sự tồn tại trước khi thực hiện logic nghiệp vụ
     if (!currentArea) throw new AppError("Khu vực không tồn tại", 404);
 
-    // Validation 1: Ngăn chặn vòng lặp vô hạn (Khu vực không thể là cha của chính nó)
-    if (dto.parentId && dto.parentId === id) {
-      throw new AppError("Khu vực không thể là cha của chính nó", 400);
+    // 1. Logic Validate Parent (Nếu có thay đổi)
+    if (dto.parentId) {
+      // a. Không thể là cha của chính mình
+      if (dto.parentId === id) {
+        throw new AppError("Khu vực không thể là cha của chính nó", 400);
+      }
+      // b. Check Parent mới có tồn tại không?
+      const parentExists = await this.areaRepo.findById(dto.parentId);
+      if (!parentExists) {
+        throw new AppError("Khu vực cha mới không tồn tại", 404);
+      }
     }
 
-    // Validation 2: Kiểm tra trùng tên (nếu có thay đổi tên hoặc cha)
-    // Logic: Nếu tên mới trùng với một khu vực khác trong cùng cấp cha mới -> Báo lỗi
+    // 2. Validate Trùng tên
     if (dto.name || dto.parentId !== undefined) {
       const targetName = dto.name || currentArea.name;
-      // Xác định parentId đích: Dùng cái mới gửi lên, hoặc giữ nguyên cái cũ nếu không gửi
-      const targetParentId =
-        dto.parentId === undefined
-          ? currentArea.parentId
-            ? (currentArea.parentId as any)._id?.toString() ||
-              currentArea.parentId.toString()
-            : null
-          : dto.parentId;
+
+      // Xác định ParentID đích để check trùng
+      let targetParentId: string | null = null;
+
+      if (dto.parentId !== undefined) {
+        targetParentId = dto.parentId; // Nếu user gửi parentId (kể cả null)
+      } else {
+        // Nếu không gửi, lấy parentId cũ
+        const oldParent = currentArea.parentId;
+        if (oldParent) {
+          // Xử lý trường hợp oldParent là Object (do populate) hoặc String
+          targetParentId = (oldParent as any)._id
+            ? (oldParent as any)._id.toString()
+            : oldParent.toString();
+        }
+      }
 
       const duplicate = await this.areaRepo.findByNameAndParent(
         targetName,
         targetParentId,
       );
 
-      // Chỉ báo lỗi nếu tìm thấy bản ghi trùng tên NHƯNG khác ID với bản ghi đang sửa
+      // Nếu trùng tên nhưng khác ID -> Lỗi
       if (duplicate && duplicate._id.toString() !== id) {
         throw new AppError("Tên khu vực đã tồn tại trong cấp này", 400);
       }
     }
 
-    const updatedArea = await this.areaRepo.updateById(id, dto);
+    // 3. Chuẩn bị Payload Update
+    const { boundary, ...rest } = dto;
+    const payload: any = { ...rest };
+
+    // 🔥 Convert GeoJSON khi update
+    if (boundary) {
+      payload.boundary = {
+        type: "Polygon",
+        coordinates: boundary,
+      };
+    }
+
+    const updatedArea = await this.areaRepo.updateById(id, payload);
     if (!updatedArea) throw new AppError("Cập nhật thất bại", 500);
 
     return this.mapToResponse(updatedArea);
   }
 
-  // Xử lý xóa khu vực với ràng buộc toàn vẹn dữ liệu (Không xóa nếu còn con)
+  // Xóa khu vực
   async delete(id: string): Promise<void> {
     const area = await this.areaRepo.findById(id);
     if (!area) throw new AppError("Khu vực không tồn tại để xóa", 404);
 
-    // Rule quan trọng: Chặn xóa nếu khu vực này đang chứa các khu vực con (Ví dụ: Không được xóa Quận nếu còn Phường)
     const hasChildren = await this.areaRepo.hasChildren(id);
     if (hasChildren) {
       throw new AppError(
@@ -118,21 +151,18 @@ export class AreaService implements IAreaService {
     await this.areaRepo.deleteById(id);
   }
 
-  // Helper: Chuẩn hóa dữ liệu trả về cho Client, xử lý an toàn trường hợp populate
+  // Helper Map Response
   private mapToResponse(area: IAreaDocument): AreaResponse {
     let parentData: any = null;
 
-    // Kiểm tra xem parentId là ObjectId string hay là Object đã được populate
     if (area.parentId) {
       if (typeof area.parentId === "object" && "name" in area.parentId) {
-        // Trường hợp đã populate: Trả về object { id, name }
         const parentObj = area.parentId as unknown as IAreaDocument;
         parentData = {
           id: parentObj._id.toString(),
           name: parentObj.name,
         };
       } else {
-        // Trường hợp chưa populate: Chỉ trả về ID string
         parentData = area.parentId.toString();
       }
     }
@@ -142,6 +172,9 @@ export class AreaService implements IAreaService {
       name: area.name,
       type: area.type,
       parentId: parentData,
+      // 🔥 Trả về mảng coordinates để Frontend dễ vẽ (Leaflet cần cái này)
+      // area.boundary là object { type: "Polygon", coordinates: [...] }
+      boundary: area.boundary?.coordinates || [],
       createdAt: area.createdAt,
     };
   }

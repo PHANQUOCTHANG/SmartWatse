@@ -2,13 +2,14 @@ import {
   IsNotEmpty,
   IsString,
   IsEnum,
-  IsNumber,
   IsOptional,
   MaxLength,
+  IsArray,
+  IsMongoId, // Import thêm cái này
 } from "class-validator";
 import { AreaType } from "../../interface/area.interface";
 
-// DTO tạo mới khu vực
+// --- CREATE REQUEST ---
 export class CreateAreaRequest {
   @IsNotEmpty({ message: "Tên khu vực không được để trống" })
   @IsString({ message: "Tên khu vực phải là chuỗi" })
@@ -20,11 +21,15 @@ export class CreateAreaRequest {
   type!: AreaType;
 
   @IsOptional()
-  @IsNumber({}, { message: "Parent ID phải là một số" })
+  @IsMongoId({ message: "Parent ID không hợp lệ (Phải là MongoID)" })
   parentId?: string;
+
+  @IsOptional()
+  @IsArray({ message: "Boundary phải là một mảng tọa độ" })
+  boundary?: number[][][];
 }
 
-// DTO cập nhật khu vực
+// --- UPDATE REQUEST ---
 export class UpdateAreaRequest {
   @IsOptional()
   @IsString()
@@ -36,6 +41,10 @@ export class UpdateAreaRequest {
   type?: AreaType;
 
   @IsOptional()
-  @IsNumber()
+  @IsMongoId({ message: "Parent ID không hợp lệ" })
   parentId?: string;
+
+  @IsOptional()
+  @IsArray()
+  boundary?: number[][][];
 }

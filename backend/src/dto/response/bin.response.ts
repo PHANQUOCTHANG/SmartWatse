@@ -12,8 +12,12 @@ export interface BinResponse {
   collectionPointId: string;
   binType: BinType;
   capacity: number;
+  temperature: number;
+  battery: number;
   currentLevel: number;
   status: BinStatus;
+  coverImage: string;
+  notes: String;
   lastCollected?: Date;
   createdAt: Date;
 }

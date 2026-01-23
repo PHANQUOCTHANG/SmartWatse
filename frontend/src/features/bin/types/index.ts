@@ -9,48 +9,43 @@ export enum BinType {
 export enum BinStatus {
   ACTIVE = "ACTIVE",
   FULL = "FULL",
-  OVERLOAD = "OVERLOAD",
+  OVERFLOW = "OVERFLOW",
   BROKEN = "BROKEN",
   MAINTENANCE = "MAINTENANCE",
 }
 
 // --- MAIN TYPE ---
 export interface IBin {
-  // 1. IDENTITY
-  _id: string; // 🔥 QUAN TRỌNG: ID gốc của MongoDB
-  id: string; // (Optional) ID ảo nếu backend có map sang
+  // 🔥 FIX: Đổi _id thành id cho đồng bộ với IVehicle, IArea
+  id: string;
 
-  code: string; // Mã hiển thị (VD: BIN-A01)
-  collectionPointId: string; // ID của điểm tập kết
+  code: string;
+  collectionPointId: string;
 
-  // 2. LOCATION (GeoJSON format từ Backend trả về)
-  location: {
-    type: "Point";
-    coordinates: [number, number]; // [Longitude, Latitude]
-  };
+  latitude: number;
+  longitude: number;
   address?: string;
 
-  // 3. PROPERTIES
   binType: BinType;
   capacity: number;
-  brand?: string; // Hãng sản xuất
-  installationDate?: string; // ISO Date String
+  brand?: string;
+  installationDate?: string;
 
-  // 4. IOT STATUS
-  currentLevel: number; // 0-100
+  currentLevel: number;
   status: BinStatus;
-  battery?: number; // 0-100
-  temperature?: number; // Độ C
+  battery?: number;
+  temperature?: number;
 
-  // 5. MEDIA
-  coverImage?: string; // URL ảnh
+  // 🔥 FIX: Response từ Server về chỉ là string URL, không bao giờ là File
+  coverImage?: string;
+
   notes?: string;
-
-  // 6. TIMESTAMPS
   lastCollected?: string;
   createdAt: string;
   updatedAt: string;
 }
+
+// DTO thì giữ nguyên coverImage?: File | string | null là đúng (để upload)
 
 // --- DTO (Data Transfer Object) ---
 // Dùng khi tạo mới (Frontend gửi lên Backend)
@@ -75,9 +70,10 @@ export interface CreateBinDTO {
 export interface BinFilterParams {
   page?: number;
   limit?: number;
-  keyword?: string;
+  search?: string;
+  sort?: string;
   status?: BinStatus;
-  type?: BinType;
+  binType?: BinType;
   collectionPointId?: string;
 }
 

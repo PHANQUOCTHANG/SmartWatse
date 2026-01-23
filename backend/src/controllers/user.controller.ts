@@ -1,10 +1,14 @@
 import { userService } from "@/config/container";
-import { normalizeQuery } from "@/interface/query.interface";
+import { buildQuery, normalizeQuery } from "@/interface/query.interface";
+import { UserFilterBuilder } from "@/interface/user.interface";
 import asyncHandler from "@/utils/asyncHandler";
 import { Request, Response } from "express";
 
 // POST | /api/v1/users | Tạo người dùng mới
 export const createUser = asyncHandler(async (req: Request, res: Response) => {
+  if (req.file) {
+    req.body.avatar = req.file.path; // Hoặc URL từ S3/Cloudinary
+  }
   // Gọi userService.create theo quy tắc Service rút gọn
   const data = await userService.create(req.body);
 
@@ -17,7 +21,7 @@ export const createUser = asyncHandler(async (req: Request, res: Response) => {
 // GET | /api/v1/users | Lấy danh sách người dùng (Có phân trang & search)
 export const getUsers = asyncHandler(async (req: Request, res: Response) => {
   // Chuẩn hóa query từ URL (page, limit, search, sort)
-  const query = normalizeQuery(req.query);
+  const query = buildQuery(req.query, new UserFilterBuilder());
 
   // Gọi userService.findAll theo quy tắc Service rút gon
   const result = await userService.findAll(query);
@@ -45,6 +49,9 @@ export const getUser = asyncHandler(async (req: Request, res: Response) => {
 
 // PATCH | /api/v1/users/:id | Cập nhật thông tin người dùng
 export const updateUser = asyncHandler(async (req: Request, res: Response) => {
+  if (req.file) {
+    req.body.avatar = req.file.path; // Hoặc URL từ S3/Cloudinary
+  }
   // Gọi userService.update theo quy tắc Service rút gọn
   const data = await userService.update(req.params.id, req.body);
 

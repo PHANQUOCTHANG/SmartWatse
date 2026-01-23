@@ -1,10 +1,10 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import { Bell, Menu, Search } from "lucide-react";
-import { useAppSelector } from "@/store/store";
 import { Button } from "@/components/ui/button";
 import UserDropdown from "@/features/user/components/UserDropdown";
 import { Input } from "@/components/ui/input";
+import { useAppSelector } from "@/store/hooks";
 
 interface HeaderProps {
   setIsSidebarOpen: React.Dispatch<React.SetStateAction<boolean>>;

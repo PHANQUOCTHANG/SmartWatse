@@ -1,5 +1,5 @@
 import { BaseQuery, IPaginatedResult } from "@/interface/query.interface";
-import { IArea } from "@/interface/area.interface";
+import { AreaFilter, IArea } from "@/interface/area.interface";
 import { Area, IAreaDocument } from "@/models/area.model";
 import mongoose, { Types } from "mongoose";
 
@@ -70,21 +70,19 @@ export class AreaRepository implements IAreaRepository {
 
   // Lấy danh sách có phân trang và lọc theo parentId
   async findAll(
-    query: BaseQuery & { parentId?: string; type?: string },
+    query: BaseQuery<AreaFilter>,
   ): Promise<IPaginatedResult<IAreaDocument>> {
     const {
       page = 1,
       limit = 10,
       search,
       sort = "-createdAt",
-      parentId,
-      type,
+      filter: AreaFilter = {},
     } = query;
-
-    const filter: any = {};
-    if (search) filter.name = { $regex: search, $options: "i" };
-    if (parentId) filter.parentId = parentId;
-    if (type) filter.type = type;
+    const filter: any = { ...AreaFilter };
+    if (search) {
+      filter.$or = [{ name: { $regex: search, $options: "i" } }];
+    }
 
     const [data, total] = await Promise.all([
       Area.find(filter)

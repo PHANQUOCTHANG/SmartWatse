@@ -19,6 +19,7 @@ export const useVehicles = (initialLimit = APP_CONFIG.PAGINATION_LIMIT) => {
     search: "",
     status: undefined,
     type: undefined,
+    sort: "-createdAt",
   });
 
   // --- A. QUERY: Lấy danh sách ---
