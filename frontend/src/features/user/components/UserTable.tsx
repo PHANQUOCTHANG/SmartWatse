@@ -37,7 +37,7 @@ import SmartWasteResult from "@/components/ui/Result";
 // Utilities & Types
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
-import { IUser, UserRole } from "../types";
+import { IUser, UserRole, UserStatus } from "../types";
 
 // ============================================================================
 // 1. HELPER CONFIGS
@@ -105,7 +105,7 @@ const UserTableRow = memo(({ user, onEdit, onDelete }: UserTableRowProps) => {
   };
 
   const roleConfig = getRoleConfig(user.role);
-  const statusConfig = getStatusConfig(user.isActive);
+  const statusConfig = getStatusConfig(user.status === UserStatus.ACTIVE);
 
   // Helper tạo avatar fallback (Lấy chữ cái đầu của tên)
   const getInitials = (name: string) => {
@@ -218,12 +218,12 @@ const UserTableRow = memo(({ user, onEdit, onDelete }: UserTableRowProps) => {
 
             {/* Logic: Nếu user active thì hiện khóa, nếu inactive thì hiện mở khóa (Optional) */}
             <DropdownMenuItem onClick={() => {}} className="text-slate-600">
-              {user.isActive ? (
+              {user.status === UserStatus.ACTIVE ? (
                 <UserX className="size-4 mr-2" />
               ) : (
                 <UserCheck className="size-4 mr-2" />
               )}
-              {user.isActive ? "Khóa tài khoản" : "Mở khóa"}
+              {user.status === UserStatus.ACTIVE ? "Khóa tài khoản" : "Mở khóa"}
             </DropdownMenuItem>
 
             <DropdownMenuSeparator />
@@ -289,7 +289,7 @@ export const UserTable: React.FC<UserTableProps> = ({
           ) : data.length > 0 ? (
             data.map((user) => (
               <UserTableRow
-                key={user._id}
+                key={user.id}
                 user={user}
                 onEdit={onEdit}
                 onDelete={onDelete}

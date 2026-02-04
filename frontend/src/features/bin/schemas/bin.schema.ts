@@ -14,7 +14,7 @@ export const BinTypeEnum = z.enum(["ORGANIC", "INORGANIC", "RECYCLE"]);
 export const BinStatusEnum = z.enum([
   "ACTIVE",
   "FULL",
-  "OVERLOAD",
+  "OVERFLOW",
   "BROKEN",
   "MAINTENANCE",
 ]);

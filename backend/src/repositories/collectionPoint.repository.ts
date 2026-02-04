@@ -1,43 +1,80 @@
 import { BaseQuery, IPaginatedResult } from "@/interface/query.interface";
-import { CollectionPoint, ICollectionPointDocument } from "@/models/collectionPoint.model";
-import { ICollectionPoint } from "@/interface/collectionPoint.interface";
+import {
+  CollectionPoint,
+  ICollectionPointDocument,
+} from "@/models/collectionPoint.model";
+import {
+  CollectionPointFilter,
+  ICollectionPoint,
+} from "@/interface/collectionPoint.interface";
 
 export interface ICollectionPointRepository {
   create(data: Partial<ICollectionPoint>): Promise<ICollectionPointDocument>;
   findById(id: string): Promise<ICollectionPointDocument | null>;
-  updateById(id: string, data: Partial<ICollectionPoint>): Promise<ICollectionPointDocument | null>;
+  updateById(
+    id: string,
+    data: Partial<ICollectionPoint>,
+  ): Promise<ICollectionPointDocument | null>;
   deleteById(id: string): Promise<void>;
-  findAll(query: BaseQuery): Promise<IPaginatedResult<ICollectionPointDocument>>;
+  findAll(
+    query: BaseQuery,
+  ): Promise<IPaginatedResult<ICollectionPointDocument>>;
+  findByCode(code: string): Promise<ICollectionPointDocument | null>;
 }
 
 export class CollectionPointRepository implements ICollectionPointRepository {
   // Lưu mới bản ghi điểm tập kết vào cơ sở dữ liệu
-  async create(data: Partial<ICollectionPoint>): Promise<ICollectionPointDocument> {
+  async create(
+    data: Partial<ICollectionPoint>,
+  ): Promise<ICollectionPointDocument> {
     return CollectionPoint.create(data);
   }
 
   // Truy vấn chi tiết bản ghi theo ID
   async findById(id: string): Promise<ICollectionPointDocument | null> {
-    return CollectionPoint.findById(id).exec();
+    return CollectionPoint.findById(id).populate("areaId", "name");
   }
 
   // Cập nhật thông tin bản ghi và thực hiện kiểm tra ràng buộc dữ liệu
-  async updateById(id: string, data: Partial<ICollectionPoint>): Promise<ICollectionPointDocument | null> {
-    return CollectionPoint.findByIdAndUpdate(id, data, { new: true, runValidators: true }).exec();
+  async updateById(
+    id: string,
+    data: Partial<ICollectionPoint>,
+  ): Promise<ICollectionPointDocument | null> {
+    return CollectionPoint.findByIdAndUpdate(id, data, {
+      new: true,
+      runValidators: true,
+    }).exec();
   }
-
+  async findByCode(code: string) {
+    return CollectionPoint.findOne({ code }).exec();
+  }
   // Loại bỏ vĩnh viễn bản ghi khỏi hệ thống
   async deleteById(id: string): Promise<void> {
     await CollectionPoint.findByIdAndDelete(id).exec();
   }
 
   // Thực hiện truy vấn danh sách, hỗ trợ phân trang và tìm kiếm theo tên
-  async findAll(query: BaseQuery): Promise<IPaginatedResult<ICollectionPointDocument>> {
-    const { page = 1, limit = 10, search, sort = { createdAt: -1 } } = query;
-    const filter = search ? { name: { $regex: search, $options: "i" } } : {};
-
+  async findAll(
+    query: BaseQuery<CollectionPointFilter>,
+  ): Promise<IPaginatedResult<ICollectionPointDocument>> {
+    const {
+      page = 1,
+      limit = 10,
+      search,
+      sort = "-createdAt",
+      filter: AreaFilter = {},
+    } = query;
+    const filter: any = { ...AreaFilter };
+    if (search) {
+      filter.$or = [{ name: { $regex: search, $options: "i" } }];
+    }
     const [data, total] = await Promise.all([
-      CollectionPoint.find(filter).sort(sort as any).skip((page - 1) * limit).limit(limit).exec(),
+      CollectionPoint.find(filter)
+        .populate("areaId", "name")
+        .sort(sort as any)
+        .skip((page - 1) * limit)
+        .limit(limit)
+        .exec(),
       CollectionPoint.countDocuments(filter).exec(),
     ]);
 

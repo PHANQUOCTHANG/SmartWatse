@@ -10,7 +10,7 @@ import { RoleBasedHome } from "@/app/routes/RoleBasedHome";
 
 // Manager Pages
 import {
-  MapMonitorPage,
+  MapMonitorPage as ManagerMapMonitorPage,
   ManagerSchedulePage,
   TaskAssignmentPage,
   ManagerFeedbackPage,
@@ -21,7 +21,6 @@ import {
 import AdminDashboardPage from "@/pages/admin/AdminDashboardPage";
 import UsersPage from "@/pages/admin/UserManagementPage";
 import BinsPage from "@/pages/admin/BinsPage";
-import CollectionPointsPage from "@/pages/admin/CollectionPointsPage";
 import AreaManagementPage from "@/pages/admin/AreaManagementPage";
 import VehicleManagementPage from "@/pages/admin/VehicleManagementPage";
 
@@ -33,6 +32,8 @@ import {
   StaffProfilePage,
 } from "@/pages/staff";
 import StaffTaskHistoryPage from "@/pages/staff/StaffTaskHistoryPage";
+import CollectionPointManagementPage from "@/pages/admin/CollectionPointManagementPage";
+import MapMonitorPage from "@/pages/admin/MapMonitor";
 
 export const router = createBrowserRouter([
   {
@@ -72,7 +73,10 @@ export const router = createBrowserRouter([
                 index: true,
                 element: <Navigate to={MANAGER_PATHS.MAP_MONITOR} replace />,
               },
-              { path: MANAGER_PATHS.MAP_MONITOR, element: <MapMonitorPage /> },
+              {
+                path: MANAGER_PATHS.MAP_MONITOR,
+                element: <ManagerMapMonitorPage />,
+              },
               {
                 path: MANAGER_PATHS.SCHEDULE,
                 element: <ManagerSchedulePage />,
@@ -94,6 +98,7 @@ export const router = createBrowserRouter([
               { index: true, element: <AdminDashboardPage /> },
               { path: ADMIN_PATHS.USERS, element: <UsersPage /> },
               { path: ADMIN_PATHS.AREAS, element: <AreaManagementPage /> },
+              { path: ADMIN_PATHS.MAP_MONITOR, element: <MapMonitorPage /> },
               { path: ADMIN_PATHS.BINS, element: <BinsPage /> },
               {
                 path: ADMIN_PATHS.VEHICLES,
@@ -101,7 +106,7 @@ export const router = createBrowserRouter([
               },
               {
                 path: ADMIN_PATHS.COLLECTION_POINTS,
-                element: <CollectionPointsPage />,
+                element: <CollectionPointManagementPage />,
               },
             ],
           },

@@ -24,3 +24,23 @@ export interface IBinLocation {
 }
 
 export type MapFilterMode = "ALL" | "CRITICAL" | "FULL";
+
+export interface LatLng {
+  lat: number;
+  lng: number;
+}
+
+export interface RouteInfo {
+  distance: number; // km
+  duration: number; // minutes
+}
+
+export interface VehiclePosition {
+  id: string;
+  plateNumber: string;
+  lat: number;
+  lng: number;
+  status: string; // 'AVAILABLE' | 'IN_USE' | ...
+  type?: string;
+  lastUpdated?: string;
+}

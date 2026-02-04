@@ -5,6 +5,9 @@ import { Request, Response } from "express";
 
 // POST | /api/v1/users | Tạo người dùng mới
 export const createUser = asyncHandler(async (req: Request, res: Response) => {
+  if (req.file) {
+    req.body.avatar = req.file.path; // Hoặc URL từ S3/Cloudinary
+  }
   // Gọi userService.create theo quy tắc Service rút gọn
   const data = await userService.create(req.body);
 
@@ -45,6 +48,9 @@ export const getUser = asyncHandler(async (req: Request, res: Response) => {
 
 // PATCH | /api/v1/users/:id | Cập nhật thông tin người dùng
 export const updateUser = asyncHandler(async (req: Request, res: Response) => {
+  if (req.file) {
+    req.body.avatar = req.file.path; // Hoặc URL từ S3/Cloudinary
+  }
   // Gọi userService.update theo quy tắc Service rút gọn
   const data = await userService.update(req.params.id, req.body);
 

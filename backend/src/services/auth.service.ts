@@ -11,15 +11,21 @@ import {
 } from "@/dto/request/auth.request";
 
 // Kết quả xác thực trả về cho tầng Controller
+// Định nghĩa lại User trong AuthResult cho đầy đủ
+interface AuthUser {
+  id: string;
+  fullName: string;
+  email: string;
+  role: string;
+  phoneNumber?: string;
+  address?: string;
+  avatar?: string;
+}
+
 interface AuthResult {
   accessToken: string;
   refreshToken: string;
-  user: {
-    id: string;
-    fullName: string;
-    email: string;
-    role: string;
-  };
+  user: AuthUser;
 }
 
 export interface IAuthService {
@@ -30,16 +36,15 @@ export interface IAuthService {
   resetPassword(
     email: string,
     otp: string,
-    newPassword: string
+    newPassword: string,
   ): Promise<AuthResult>;
-  
 }
 
 export class AuthService implements IAuthService {
   constructor(
     private readonly userRepo: IUserRepository,
     private readonly refreshRepo: IRefreshTokenRepository,
-    private readonly otpRepo: IOtpRepository
+    private readonly otpRepo: IOtpRepository,
   ) {}
 
   // Đăng ký tài khoản mới và tự động đăng nhập
@@ -94,7 +99,7 @@ export class AuthService implements IAuthService {
     if (!stored) {
       throw new AppError(
         "Phiên làm việc đã hết hạn, vui lòng đăng nhập lại",
-        401
+        401,
       );
     }
 
@@ -113,13 +118,11 @@ export class AuthService implements IAuthService {
     await this.refreshRepo.revoke(refreshToken);
   }
 
- 
-
   // Đặt lại mật khẩu sau khi đã xác thực OTP thành công
   async resetPassword(
     email: string,
     otp: string,
-    newPassword: string
+    newPassword: string,
   ): Promise<AuthResult> {
     // Kiểm tra OTP hợp lệ
     const record = await this.otpRepo.findValidByEmail(email);
@@ -137,7 +140,7 @@ export class AuthService implements IAuthService {
     if (!user) throw new AppError("Không tìm thấy người dùng", 404);
 
     // Bảo mật: Đăng xuất tất cả các thiết bị sau khi đổi mật khẩu
-    await this.refreshRepo.revokeAllByUser(user.id);
+    await this.refreshRepo.revokeAllByUser(user._id.toString());
 
     // Dọn dẹp OTP sau khi sử dụng thành công
     await this.otpRepo.deleteByEmail(email);
@@ -159,7 +162,7 @@ export class AuthService implements IAuthService {
     const accessToken = jwt.sign(
       { sub: user.id, role: user.role },
       accessSecret,
-      { expiresIn: "15m" }
+      { expiresIn: "15m" },
     );
 
     // Tạo Refresh Token (Dài hạn - 7 ngày)
@@ -182,6 +185,9 @@ export class AuthService implements IAuthService {
         fullName: user.fullName,
         email: user.email,
         role: user.role,
+        phoneNumber: user.phoneNumber,
+        address: user.address,
+        avatar: user.avatar,
       },
     };
   }

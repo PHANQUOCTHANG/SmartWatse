@@ -3,9 +3,9 @@ import { Outlet, useNavigate } from "react-router-dom";
 
 import Sidebar from "@/layouts/client/components/Sidebar";
 import Header from "@/layouts/client/components/Header";
-import { use, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
 import { cn } from "@/lib/utils";
-import { useAppSelector } from "@/store/store";
+import { useAppSelector } from "@/store/hooks";
 
 const ClientLayout = () => {
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);

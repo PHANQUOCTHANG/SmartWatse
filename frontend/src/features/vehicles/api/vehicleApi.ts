@@ -9,6 +9,7 @@ export const vehicleApi = {
     params: VehicleFilterParams,
   ): Promise<PagedResponse<IVehicle>> => {
     const { data } = await api.get("/vehicles", { params });
+    console.log(data);
     return data;
   },
 

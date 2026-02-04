@@ -1,8 +1,10 @@
-export interface BaseQuery {
+// src/interface/query/base.query.ts
+export interface BaseQuery<TFilter = any> {
   page: number;
   limit: number;
-  search: string;
-  sort: string;
+  search?: string;
+  sort?: string;
+  filter?: TFilter;
 }
 
 // Chuẩn hóa query, tránh undefined & giới hạn dữ liệu xấu
@@ -12,7 +14,9 @@ export const normalizeQuery = (query: any): BaseQuery => ({
   search: query.search?.trim() || "",
   sort: query.sort || "-createdAt",
 });
-
+export interface FilterBuilder<T> {
+  build(query: any): T;
+}
 // Kết quả phân trang chuẩn
 export interface IPaginatedResult<T> {
   data: T[];
@@ -21,3 +25,11 @@ export interface IPaginatedResult<T> {
   limit: number;
   totalPages: number;
 }
+
+export const buildQuery = <TFilter>(
+  query: any,
+  filterBuilder: FilterBuilder<TFilter>,
+) => ({
+  ...normalizeQuery(query),
+  filter: filterBuilder.build(query),
+});

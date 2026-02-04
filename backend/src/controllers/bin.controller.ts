@@ -1,13 +1,19 @@
 import { binService } from "@/config/container";
-import { normalizeQuery } from "@/interface/query.interface";
+import { BinFilterBuilder } from "@/interface/bin.interface";
+import { buildQuery, normalizeQuery } from "@/interface/query.interface";
 import AppError from "@/utils/appError";
 import asyncHandler from "@/utils/asyncHandler";
 import { Request, Response } from "express";
 
-// POST | /api/v1/bins | Tạo thùng rác mới
+// POST | /api/v1/bins
 export const createBin = asyncHandler(async (req: Request, res: Response) => {
-  // Gọi binService.create (đã rút gọn tên hàm)
-  const data = await binService.create(req.body);
+  const dto = req.body;
+
+  if (req.file) {
+    dto.coverImage = req.file.path; // URL từ Cloudinary
+  }
+
+  const data = await binService.create(dto);
 
   res.status(201).json({
     status: "success",
@@ -15,12 +21,10 @@ export const createBin = asyncHandler(async (req: Request, res: Response) => {
   });
 });
 
-// GET | /api/v1/bins | Lấy danh sách thùng rác (Có phân trang, search, filter)
+// GET | /api/v1/bins
 export const getBins = asyncHandler(async (req: Request, res: Response) => {
-  // Chuẩn hóa query từ URL (?page=1&limit=10&search=BIN01...)
-  const query = normalizeQuery(req.query);
-
-  // Gọi binService.findAll (đã rút gọn tên hàm)
+  const query = buildQuery(req.query, new BinFilterBuilder());
+  console.log(query);
   const result = await binService.findAll(query);
 
   res.status(200).json({
@@ -33,9 +37,8 @@ export const getBins = asyncHandler(async (req: Request, res: Response) => {
   });
 });
 
-// GET | /api/v1/bins/:id | Chi tiết một thùng rác theo ID
+// GET | /api/v1/bins/:id
 export const getBin = asyncHandler(async (req: Request, res: Response) => {
-  // Gọi binService.findById (đã rút gọn tên hàm)
   const data = await binService.findById(req.params.id);
 
   res.status(200).json({
@@ -44,10 +47,15 @@ export const getBin = asyncHandler(async (req: Request, res: Response) => {
   });
 });
 
-// PATCH | /api/v1/bins/:id | Cập nhật thông tin/trạng thái (mức rác, cảm biến)
+// PATCH | /api/v1/bins/:id
 export const updateBin = asyncHandler(async (req: Request, res: Response) => {
-  // Gọi binService.update (đã rút gọn tên hàm)
-  const data = await binService.update(req.params.id, req.body);
+  const dto = req.body;
+
+  if (req.file) {
+    dto.coverImage = req.file.path;
+  }
+
+  const data = await binService.update(req.params.id, dto);
 
   res.status(200).json({
     status: "success",
@@ -55,19 +63,16 @@ export const updateBin = asyncHandler(async (req: Request, res: Response) => {
   });
 });
 
-// DELETE | /api/v1/bins/:id | Xóa thùng rác khỏi hệ thống
+// DELETE | /api/v1/bins/:id
 export const deleteBin = asyncHandler(async (req: Request, res: Response) => {
-  // Gọi binService.delete (đã rút gọn tên hàm)
   await binService.delete(req.params.id);
-
-  // Trả về 204 No Content cho hành động xóa thành công
   res.status(204).json({
     status: "success",
     data: null,
   });
 });
 
-// [UPDATE] GET | /api/v1/bins/nearby?lat=10.1&lng=106.2&dist=5000
+// GET | /api/v1/bins/nearby
 export const getNearbyBins = asyncHandler(
   async (req: Request, res: Response) => {
     const { lat, lng, dist } = req.query;

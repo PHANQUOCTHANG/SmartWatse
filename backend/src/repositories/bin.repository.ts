@@ -1,6 +1,6 @@
 import { BaseQuery, IPaginatedResult } from "@/interface/query.interface";
 import { Bin, IBinDocument } from "@/models/bin.model";
-import { IBin } from "@/interface/bin.interface";
+import { BinFilter, IBin } from "@/interface/bin.interface";
 
 export interface IBinRepository {
   create(data: Partial<IBin>): Promise<IBinDocument>;
@@ -46,9 +46,20 @@ export class BinRepository implements IBinRepository {
   }
 
   // Thực hiện tìm kiếm danh sách kèm phân trang và sắp xếp mặc định theo ngày tạo
-  async findAll(query: BaseQuery): Promise<IPaginatedResult<IBinDocument>> {
-    const { page = 1, limit = 10, search, sort = { createdAt: -1 } } = query;
-    const filter = search ? { code: { $regex: search, $options: "i" } } : {};
+  async findAll(
+    query: BaseQuery<BinFilter>,
+  ): Promise<IPaginatedResult<IBinDocument>> {
+    const {
+      page = 1,
+      limit = 10,
+      search,
+      sort = "-createdAt",
+      filter: BinFilter = {},
+    } = query;
+    const filter: any = { ...BinFilter };
+    if (search) {
+      filter.$or = [{ code: { $regex: search, $options: "i" } }];
+    }
 
     const [data, total] = await Promise.all([
       Bin.find(filter)

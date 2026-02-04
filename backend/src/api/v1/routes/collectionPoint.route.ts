@@ -5,6 +5,7 @@ import {
   UpdateCollectionPointRequest,
 } from "@/dto/request/collectionPoint.request";
 import validationMiddleware from "@/middleware/validate.middleware";
+import upload from "@/middleware/upload.middleware";
 
 const router = Router();
 
@@ -13,8 +14,9 @@ router
   .route("/")
   .get(pointCtrl.getCollectionPoints)
   .post(
+    upload.single("image"),
     validationMiddleware(CreateCollectionPointRequest),
-    pointCtrl.createCollectionPoint
+    pointCtrl.createCollectionPoint,
   );
 
 // URL: /api/collection-points/:id
@@ -22,8 +24,9 @@ router
   .route("/:id")
   .get(pointCtrl.getCollectionPoint)
   .patch(
+    upload.single("image"),
     validationMiddleware(UpdateCollectionPointRequest),
-    pointCtrl.updateCollectionPoint
+    pointCtrl.updateCollectionPoint,
   )
   .delete(pointCtrl.deleteCollectionPoint);
 

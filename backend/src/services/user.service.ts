@@ -71,15 +71,23 @@ export class UserService implements IUserService {
 
   // Cập nhật các thông tin định danh hoặc trạng thái hoạt động của người dùng
   async update(id: string, dto: UpdateUserRequest): Promise<UserResponse> {
-    const updateData: Partial<IUser> = { ...dto };
+    const updateData: any = { ...dto };
+
+    if (dto.password) {
+      const salt = await bcrypt.genSalt(10);
+      updateData.passwordHash = await bcrypt.hash(dto.password, salt);
+
+      delete updateData.password;
+    }
+
     const user = await this.userRepository.updateById(id, updateData);
 
-    // Kiểm tra tính hợp lệ của thực thể trước khi thực hiện thao tác sửa đổi dữ liệu
-    if (!user)
+    if (!user) {
       throw new AppError(
         "Người dùng không tồn tại hoặc cập nhật thất bại",
         404,
       );
+    }
 
     return this.mapToResponse(user);
   }
@@ -95,13 +103,20 @@ export class UserService implements IUserService {
   }
 
   // Chuẩn hóa dữ liệu trả về cho Client, đảm bảo không rò rỉ các thông tin nhạy cảm như passwordHash
-  private mapToResponse(user: IUserDocument): UserResponse {
+  private mapToResponse(user: any): UserResponse {
     return {
       id: user._id.toString(),
       fullName: user.fullName,
       email: user.email,
       role: user.role,
       status: user.status,
+      phoneNumber: user.phoneNumber,
+      address: user.address,
+      avatar: user.avatar,
+      areaId: user.areaId?._id
+        ? user.areaId._id.toString()
+        : user.areaId?.toString() || "",
+      areaName: user.areaId?.name || "N/A",
       createdAt: user.createdAt,
     };
   }

@@ -1,79 +1,61 @@
-// 1. User Entity (Khớp với Model Mongo & Response API)
-export type UserRole = "ADMIN" | "MANAGER" | "STAFF" | "CITIZEN";
+// 1. Enums (Định nghĩa các giá trị cố định)
+export enum UserRole {
+  ADMIN = "ADMIN", // Quản trị viên hệ thống
+  MANAGER = "MANAGER", // Quản lý khu vực
+  STAFF = "STAFF", // Nhân viên thu gom
+  CITIZEN = "CITIZEN", // Người dân
+}
 
+export enum UserStatus {
+  ACTIVE = "ACTIVE", // Đang hoạt động
+  INACTIVE = "INACTIVE", // Đã bị khóa
+}
+
+// 2. Main Interface (Dữ liệu hiển thị trên UI)
 export interface IUser {
-  id: string;
-  fullName: string;
-  username?: string; // Có thể optional nếu dùng email làm chính
-  email: string;
-  role: UserRole;
-  status?: string;
-
-  // Thông tin cá nhân & liên lạc
-  avatar?: string;
-  phoneNumber?: string;
-  address?: string;
-
-  // Trạng thái tài khoản
-  isActive: boolean;
-  isVerified: boolean;
-  mustChangePassword: boolean; // True nếu là acc nhân viên mới tạo
-
-  // Metadata
-  authProvider?: "local" | "google";
-  lastLogin?: string;
-  createdAt: string;
-  updatedAt: string;
-}
-
-// User Profile (Thường dùng cho trang "Thông tin cá nhân")
-export interface UserProfile extends IUser {
-  // Các trường thống kê cá nhân (nếu có)
-  totalReportsSubmitted?: number; // Số báo cáo sự cố đã gửi
-  assignedTasksCount?: number; // Số nhiệm vụ được giao (cho STAFF)
-}
-
-// 2. DTOs (Data Transfer Objects - Gửi lên Server)
-
-// Create User Request Payload
-export interface CreateUserDTO {
+  id: string; // ID từ MongoDB (_id đã được convert sang string)
   fullName: string;
   email: string;
   role: UserRole;
+
+  // Các trường Optional (Có thể null hoặc undefined từ BE)
   phoneNumber?: string;
   address?: string;
-  avatar?: File | null;
+  avatar?: string; // URL ảnh (Cloudinary/S3 hoặc local path)
+
+  // Area có thể là ID (string) hoặc Object (nếu populate)
+  // Trong bảng User list thường chỉ cần string hoặc tên khu vực
+  areaId?: string;
+  areaName?: string;
+
+  status: UserStatus;
+
+  createdAt: string; // Date string (ISO 8601)
+  updatedAt?: string;
 }
 
-// Update User Request Payload
-export interface UpdateUserDTO {
-  fullName?: string;
-  email?: string;
-  role?: UserRole;
-  phoneNumber?: string;
-  address?: string;
-  isActive?: boolean;
-  isVerified?: boolean;
-  password?: string;
-  avatar?: File | null | string; // File mới hoặc URL cũ
-}
+// 3. Helper Types (Dùng cho Props hoặc xử lý logic)
 
-// 3. Client Filter Params (Cho trang danh sách User)
+// Dùng cho Table Column hoặc Badge color mapping
+export const UserRoleLabels: Record<UserRole, string> = {
+  [UserRole.ADMIN]: "Quản trị viên",
+  [UserRole.MANAGER]: "Quản lý",
+  [UserRole.STAFF]: "Nhân viên",
+  [UserRole.CITIZEN]: "Cư dân",
+};
+
+export const UserStatusLabels: Record<UserStatus, string> = {
+  [UserStatus.ACTIVE]: "Hoạt động",
+  [UserStatus.INACTIVE]: "Vô hiệu hóa",
+};
+
+// Type cho Filter/Search Params trên URL
 export interface UserFilterParams {
   page?: number;
   limit?: number;
-  keyword?: string; // Tìm theo tên, email, sđt
+  search?: string;
   role?: UserRole;
-  status?: "ACTIVE" | "INACTIVE";
-}
-
-// 4. Staff Specific (Nếu cần quản lý kỹ hơn về nhân viên)
-// Thay thế cho ArtistRequest cũ
-export interface StaffProfile {
-  userId: string;
-  employeeCode: string; // Mã nhân viên (VD: EMP-001)
-  department: "COLLECTION" | "MAINTENANCE" | "IT"; // Bộ phận
-  assignedAreaId?: string; // ID khu vực phụ trách (Quận/Phường)
-  licensePlate?: string; // Biển số xe (nếu là tài xế)
-  status: "ON_DUTY" | "OFF_DUTY" | "LEAVE";
+  status?: UserStatus;
+  areaId?: string;
+  sort?: string; // vd: "-createdAt"
 }

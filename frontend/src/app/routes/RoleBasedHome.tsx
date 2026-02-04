@@ -1,5 +1,5 @@
+import { useAppSelector } from "@/store/hooks";
 import { Navigate } from "react-router-dom";
-import { useAppSelector } from "@/store/store";
 
 export const RoleBasedHome = () => {
   const { user, isAuthChecking } = useAppSelector((state) => state.auth);

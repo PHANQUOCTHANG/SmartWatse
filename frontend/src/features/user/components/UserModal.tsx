@@ -13,14 +13,16 @@ import {
   Shield,
   MapPin,
   Lock,
+  LayoutGrid,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { IUser } from "../types";
+import { IUser, UserRole } from "../types";
 
 // UI Components
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea"; // Import Textarea
 import {
   Select,
   SelectContent,
@@ -31,6 +33,10 @@ import {
 import { Switch } from "@/components/ui/switch";
 import { useUserModalLogic } from "@/features/user/hooks/useUserModalLogic";
 
+// Map Components
+import { MapAreaSelect } from "@/features/area/components/MapAreaSelect";
+import { MapCoordinatePicker } from "@/features/map-monitor/components/MapCoordinatePicker";
+
 interface UserModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -40,11 +46,12 @@ interface UserModalProps {
 const UserModal: React.FC<UserModalProps> = (props) => {
   const { isOpen, onClose, userToEdit } = props;
 
-  // Sử dụng Hook Logic (Tương tự useBinModalLogic)
   const {
     form: {
       register,
       control,
+      setValue,
+      watch,
       formState: { errors },
     },
     isEditing,
@@ -54,18 +61,21 @@ const UserModal: React.FC<UserModalProps> = (props) => {
     onSubmit,
   } = useUserModalLogic(props);
 
+  const selectedRole = watch("role");
+  const isManagerOrStaff = [UserRole.MANAGER, UserRole.STAFF].includes(
+    selectedRole as UserRole,
+  );
+
   if (!isOpen) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
-      {/* Overlay */}
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 font-sans">
       <div
         className="fixed inset-0 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300"
         onClick={onClose}
       />
 
-      {/* Modal Content */}
-      <div className="relative z-[101] w-full max-w-2xl bg-background border border-border rounded-2xl shadow-2xl flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200 ring-1 ring-white/10 overflow-hidden">
+      <div className="relative z-[101] w-full max-w-4xl bg-background border border-border rounded-2xl shadow-2xl flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200 ring-1 ring-white/10 overflow-hidden">
         {/* HEADER */}
         <div className="flex items-center justify-between px-6 py-5 border-b border-border bg-background shrink-0">
           <div className="flex items-center gap-3">
@@ -78,7 +88,7 @@ const UserModal: React.FC<UserModalProps> = (props) => {
             </div>
             <div>
               <h3 className="text-lg font-bold leading-none text-foreground">
-                {isEditing ? "Cập nhật Người dùng" : "Thêm Người dùng Mới"}
+                {isEditing ? "Cập nhật Hồ sơ" : "Thêm Người dùng Mới"}
               </h3>
               <p className="text-xs font-medium text-muted-foreground mt-1">
                 {isEditing
@@ -99,32 +109,32 @@ const UserModal: React.FC<UserModalProps> = (props) => {
 
         {/* BODY */}
         <div className="p-6 overflow-y-auto custom-scrollbar bg-muted/10">
-          <form id="user-form" onSubmit={onSubmit} className="space-y-6">
-            {/* 1. Avatar & Basic Info */}
-            <div className="flex flex-col sm:flex-row gap-6">
-              {/* Avatar Upload */}
-              <div className="space-y-2 shrink-0">
-                <Label className="text-xs font-bold uppercase tracking-wider text-foreground/80">
+          <form id="user-form" onSubmit={onSubmit} className="space-y-8">
+            {/* ---------------- SECTION 1: THÔNG TIN CÁ NHÂN ---------------- */}
+            <div className="flex flex-col md:flex-row gap-8">
+              {/* Avatar Column */}
+              <div className="md:w-1/4 flex flex-col items-center space-y-3">
+                <Label className="text-xs font-bold uppercase tracking-wider text-muted-foreground">
                   Ảnh đại diện
                 </Label>
-                <div className="group relative w-32 h-32 rounded-full overflow-hidden border-2 border-dashed border-input hover:border-primary hover:bg-accent transition-all bg-background shadow-sm cursor-pointer mx-auto sm:mx-0">
+                <div className="group relative w-40 h-40 rounded-full overflow-hidden border-4 border-background shadow-xl ring-2 ring-border/50 bg-background cursor-pointer">
                   {imagePreview ? (
                     <img
                       src={imagePreview}
-                      alt="Avatar Preview"
+                      alt="Avatar"
                       className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-105"
                     />
                   ) : (
-                    <div className="flex flex-col items-center justify-center h-full text-muted-foreground group-hover:text-primary transition-colors">
-                      <User className="size-8 mb-1 opacity-50" />
+                    <div className="flex flex-col items-center justify-center h-full text-muted-foreground bg-muted/30 group-hover:bg-muted/50 transition-colors">
+                      <User className="size-10 mb-2 opacity-50" />
                       <span className="text-[10px] font-bold uppercase">
-                        Upload
+                        Tải ảnh lên
                       </span>
                     </div>
                   )}
-                  <label className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 transition-all flex flex-col items-center justify-center text-white cursor-pointer backdrop-blur-[1px]">
-                    <ImageIcon className="size-5 mb-1" />
-                    <span className="text-[9px] font-bold uppercase">
+                  <label className="absolute inset-0 bg-black/60 opacity-0 group-hover:opacity-100 flex flex-col items-center justify-center text-white cursor-pointer transition-all duration-300 backdrop-blur-sm">
+                    <ImageIcon className="size-6 mb-1" />
+                    <span className="text-[10px] font-bold uppercase tracking-widest">
                       Thay đổi
                     </span>
                     <input
@@ -135,78 +145,66 @@ const UserModal: React.FC<UserModalProps> = (props) => {
                     />
                   </label>
                 </div>
+                <p className="text-[10px] text-muted-foreground text-center px-4">
+                  Hỗ trợ: JPG, PNG. Tối đa 5MB.
+                </p>
               </div>
 
-              {/* Main Fields */}
-              <div className="flex-1 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Full Name */}
+              {/* Basic Info Inputs */}
+              <div className="md:w-3/4 grid grid-cols-1 sm:grid-cols-2 gap-5">
                 <div className="space-y-2 sm:col-span-2">
-                  <Label
-                    htmlFor="fullName"
-                    className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5"
-                  >
+                  <Label className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
                     <User className="size-3.5" /> Họ và Tên{" "}
                     <span className="text-destructive">*</span>
                   </Label>
                   <Input
-                    id="fullName"
                     {...register("fullName")}
-                    placeholder="Nguyễn Văn A"
+                    placeholder="Ví dụ: Nguyễn Văn A"
                     className={cn(
-                      errors.fullName &&
-                        "border-destructive focus-visible:ring-destructive/20",
+                      "h-10",
+                      errors.fullName && "border-destructive",
                     )}
                   />
                   {errors.fullName && (
-                    <p className="text-[10px] text-destructive font-bold">
+                    <p className="text-[10px] text-destructive font-medium">
                       {errors.fullName.message}
                     </p>
                   )}
                 </div>
 
-                {/* Email */}
                 <div className="space-y-2">
-                  <Label
-                    htmlFor="email"
-                    className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5"
-                  >
+                  <Label className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
                     <Mail className="size-3.5" /> Email{" "}
                     <span className="text-destructive">*</span>
                   </Label>
                   <Input
-                    id="email"
                     type="email"
                     {...register("email")}
                     placeholder="example@mail.com"
-                    disabled={isEditing} // Thường không cho sửa email
-                    className={cn(
-                      errors.email && "border-destructive",
-                      isEditing && "opacity-70 bg-muted",
-                    )}
+                    disabled={isEditing}
+                    className={cn("h-10", errors.email && "border-destructive")}
                   />
                   {errors.email && (
-                    <p className="text-[10px] text-destructive font-bold">
+                    <p className="text-[10px] text-destructive font-medium">
                       {errors.email.message}
                     </p>
                   )}
                 </div>
 
-                {/* Phone Number */}
                 <div className="space-y-2">
-                  <Label
-                    htmlFor="phoneNumber"
-                    className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5"
-                  >
+                  <Label className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
                     <Phone className="size-3.5" /> Số điện thoại
                   </Label>
                   <Input
-                    id="phoneNumber"
                     {...register("phoneNumber")}
                     placeholder="0901234567"
-                    className={cn(errors.phoneNumber && "border-destructive")}
+                    className={cn(
+                      "h-10",
+                      errors.phoneNumber && "border-destructive",
+                    )}
                   />
                   {errors.phoneNumber && (
-                    <p className="text-[10px] text-destructive font-bold">
+                    <p className="text-[10px] text-destructive font-medium">
                       {errors.phoneNumber.message}
                     </p>
                   )}
@@ -214,36 +212,46 @@ const UserModal: React.FC<UserModalProps> = (props) => {
               </div>
             </div>
 
-            {/* 2. Role & Security Section */}
-            <div className="space-y-4 pt-4 border-t border-dashed border-border">
-              <Label className="text-xs font-bold uppercase tracking-wider flex items-center gap-2 text-primary">
-                <Shield className="size-4" /> Phân quyền & Bảo mật
-              </Label>
+            <div className="h-px bg-border/60 w-full" />
 
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                {/* Role Select */}
+            {/* ---------------- SECTION 2: BẢO MẬT & PHÂN QUYỀN ---------------- */}
+            <div className="space-y-5">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 bg-blue-100 text-blue-600 rounded-md">
+                  <Shield className="size-4" />
+                </div>
+                <h4 className="text-sm font-bold uppercase tracking-wider text-foreground">
+                  Phân quyền & Bảo mật
+                </h4>
+              </div>
+
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-5 p-5 bg-slate-50/50 rounded-xl border border-slate-100">
                 <div className="space-y-2">
-                  <Label className="text-xs">Vai trò hệ thống</Label>
+                  <Label className="text-xs font-semibold">
+                    Vai trò hệ thống
+                  </Label>
                   <Controller
                     control={control}
                     name="role"
                     render={({ field }) => (
                       <Select
                         onValueChange={field.onChange}
-                        defaultValue={field.value}
+                        value={field.value}
                       >
-                        <SelectTrigger>
+                        <SelectTrigger className="bg-white h-10">
                           <SelectValue placeholder="Chọn vai trò" />
                         </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="CITIZEN">Người dân</SelectItem>
-                          <SelectItem value="STAFF">
-                            Nhân viên thu gom
+                        <SelectContent className="z-[200]">
+                          <SelectItem value={UserRole.CITIZEN}>
+                            Cư dân (Citizen)
                           </SelectItem>
-                          <SelectItem value="MANAGER">
-                            Quản lý khu vực
+                          <SelectItem value={UserRole.STAFF}>
+                            Nhân viên thu gom (Staff)
                           </SelectItem>
-                          <SelectItem value="ADMIN">
+                          <SelectItem value={UserRole.MANAGER}>
+                            Quản lý khu vực (Manager)
+                          </SelectItem>
+                          <SelectItem value={UserRole.ADMIN}>
                             Quản trị viên (Admin)
                           </SelectItem>
                         </SelectContent>
@@ -251,79 +259,164 @@ const UserModal: React.FC<UserModalProps> = (props) => {
                     )}
                   />
                   {errors.role && (
-                    <p className="text-[10px] text-destructive font-bold">
+                    <p className="text-[10px] text-destructive font-medium">
                       {errors.role.message}
                     </p>
                   )}
                 </div>
 
-                {/* Password (Optional on Edit) */}
                 <div className="space-y-2">
-                  <Label
-                    htmlFor="password"
-                    className="text-xs flex items-center gap-1.5"
-                  >
-                    <Lock className="size-3.5" />
+                  <Label className="text-xs font-semibold flex items-center gap-1.5">
+                    <Lock className="size-3.5 text-muted-foreground" />{" "}
                     {isEditing
-                      ? "Mật khẩu mới (Để trống nếu không đổi)"
+                      ? "Mật khẩu mới (Không bắt buộc)"
                       : "Mật khẩu khởi tạo"}
                   </Label>
                   <Input
-                    id="password"
                     type="password"
                     {...register("password")}
                     placeholder="••••••••"
-                    className={cn(errors.password && "border-destructive")}
+                    className={cn(
+                      "bg-white h-10",
+                      errors.password && "border-destructive",
+                    )}
                   />
                   {errors.password && (
-                    <p className="text-[10px] text-destructive font-bold">
+                    <p className="text-[10px] text-destructive font-medium">
                       {errors.password.message}
                     </p>
                   )}
                 </div>
+
+                {isManagerOrStaff && (
+                  <div className="space-y-2 sm:col-span-2 animate-in fade-in slide-in-from-top-2 pt-2">
+                    <Label className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 text-orange-600">
+                      <LayoutGrid className="size-3.5" /> Khu vực phụ trách{" "}
+                      <span className="text-destructive">*</span>
+                    </Label>
+                    <Controller
+                      control={control}
+                      name="areaId"
+                      render={({ field, fieldState }) => (
+                        <MapAreaSelect
+                          value={field.value || ""}
+                          onChange={field.onChange}
+                          error={fieldState.error?.message}
+                          placeholder="Chọn khu vực hoạt động..."
+                        />
+                      )}
+                    />
+                  </div>
+                )}
               </div>
             </div>
 
-            {/* 3. Address & Status */}
-            <div className="space-y-4 pt-4 border-t border-dashed border-border bg-slate-50/50 p-4 rounded-lg">
-              <div className="space-y-2">
-                <Label
-                  htmlFor="address"
-                  className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5"
-                >
-                  <MapPin className="size-3.5" /> Địa chỉ liên hệ
-                </Label>
-                <Input
-                  id="address"
-                  {...register("address")}
-                  placeholder="Số nhà, Tên đường, Phường/Xã..."
+            <div className="h-px bg-border/60 w-full" />
+
+            {/* ---------------- SECTION 3: ĐỊA CHỈ & BẢN ĐỒ ---------------- */}
+            <div className="space-y-5">
+              <div className="flex items-center gap-2">
+                <div className="p-1.5 bg-emerald-100 text-emerald-600 rounded-md">
+                  <MapPin className="size-4" />
+                </div>
+                <h4 className="text-sm font-bold uppercase tracking-wider text-foreground">
+                  Địa chỉ liên hệ
+                </h4>
+              </div>
+
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                {/* Cột trái: Ô nhập liệu địa chỉ */}
+                <div className="space-y-3">
+                  <Label className="text-xs font-semibold">
+                    Địa chỉ chi tiết
+                  </Label>
+                  <div className="relative">
+                    <Textarea
+                      {...register("address")}
+                      placeholder="Số nhà, tên đường, phường/xã, quận/huyện..."
+                      className={cn(
+                        "min-h-[120px] resize-none pr-10 text-sm leading-relaxed bg-white",
+                        errors.address && "border-destructive",
+                      )}
+                    />
+                    <MapPin className="absolute top-3 right-3 size-4 text-muted-foreground opacity-50" />
+                  </div>
+                  {errors.address && (
+                    <p className="text-[10px] text-destructive font-medium">
+                      {errors.address.message}
+                    </p>
+                  )}
+                  <p className="text-[11px] text-muted-foreground italic">
+                    * Bạn có thể nhập tay hoặc chọn vị trí trên bản đồ bên cạnh
+                    để tự động điền.
+                  </p>
+                </div>
+
+                {/* Cột phải: Map Picker */}
+                <div className="space-y-2">
+                  <Label className="text-xs font-semibold text-blue-600">
+                    Chọn vị trí trên bản đồ
+                  </Label>
+                  <div className="h-[120px] w-full rounded-lg overflow-hidden border border-input shadow-sm relative group">
+                    <Controller
+                      control={control}
+                      name="address"
+                      render={({ field }) => (
+                        <MapCoordinatePicker
+                          // Nếu có địa chỉ string, ta mock tọa độ HCM để map không bị lỗi
+                          // Người dùng sẽ kéo marker để chọn lại vị trí chính xác
+                          value={
+                            field.value
+                              ? {
+                                  lat: 10.762622,
+                                  lng: 106.660172,
+                                  address: field.value,
+                                }
+                              : undefined
+                          }
+                          onChange={(val) => {
+                            // Khi chọn trên map, lấy address string điền vào form
+                            if (val.address) {
+                              setValue("address", val.address, {
+                                shouldValidate: true,
+                                shouldDirty: true,
+                              });
+                            }
+                          }}
+                          placeholder="Nhấn để mở bản đồ"
+                        />
+                      )}
+                    />
+                    {/* Overlay hint */}
+                    <div className="absolute inset-0 bg-black/5 pointer-events-none group-hover:bg-transparent transition-colors" />
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* ---------------- SECTION 4: TRẠNG THÁI ---------------- */}
+            {isEditing && (
+              <div className="flex items-center justify-between p-4 bg-slate-50 rounded-xl border border-slate-200/60 shadow-sm">
+                <div className="space-y-0.5">
+                  <Label className="text-sm font-bold text-foreground">
+                    Trạng thái hoạt động
+                  </Label>
+                  <p className="text-[11px] text-muted-foreground">
+                    Kích hoạt để cho phép người dùng đăng nhập.
+                  </p>
+                </div>
+                <Controller
+                  control={control}
+                  name="isActive"
+                  render={({ field }) => (
+                    <Switch
+                      checked={field.value}
+                      onCheckedChange={field.onChange}
+                    />
+                  )}
                 />
               </div>
-
-              {/* Status Switch (Chỉ hiện khi Edit) */}
-              {isEditing && (
-                <div className="flex items-center justify-between pt-2">
-                  <div className="space-y-0.5">
-                    <Label className="text-sm font-semibold">
-                      Trạng thái hoạt động
-                    </Label>
-                    <p className="text-[11px] text-muted-foreground">
-                      Kích hoạt hoặc vô hiệu hóa tài khoản này.
-                    </p>
-                  </div>
-                  <Controller
-                    control={control}
-                    name="isActive"
-                    render={({ field }) => (
-                      <Switch
-                        checked={field.value}
-                        onCheckedChange={field.onChange}
-                      />
-                    )}
-                  />
-                </div>
-              )}
-            </div>
+            )}
           </form>
         </div>
 
@@ -333,7 +426,7 @@ const UserModal: React.FC<UserModalProps> = (props) => {
             variant="outline"
             type="button"
             onClick={onClose}
-            className="font-bold border-input bg-background hover:bg-accent hover:text-foreground"
+            className="font-semibold"
           >
             Hủy bỏ
           </Button>
@@ -341,7 +434,7 @@ const UserModal: React.FC<UserModalProps> = (props) => {
             type="submit"
             form="user-form"
             disabled={isPending}
-            className="font-bold shadow-md px-6 bg-primary text-primary-foreground hover:bg-primary/90 transition-all active:scale-95 min-w-[120px]"
+            className="min-w-[140px] font-bold shadow-md"
           >
             {isPending ? (
               <Loader2 className="mr-2 size-4 animate-spin" />

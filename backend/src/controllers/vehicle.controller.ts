@@ -1,5 +1,6 @@
 import { vehicleService } from "@/config/container";
-import { normalizeQuery } from "@/interface/query.interface";
+import { buildQuery, normalizeQuery } from "@/interface/query.interface";
+import { VehicleFilterBuilder } from "@/interface/vehicle.interface";
 import asyncHandler from "@/utils/asyncHandler";
 import { Request, Response } from "express";
 
@@ -12,13 +13,13 @@ export const createVehicle = asyncHandler(
       status: "success",
       data,
     });
-  }
+  },
 );
 
 // GET | /api/v1/vehicles | Truy vấn danh sách đội xe (Phân trang, tìm kiếm theo biển số)
 export const getVehicles = asyncHandler(async (req: Request, res: Response) => {
   // Chuẩn hóa tham số query từ URL
-  const query = normalizeQuery(req.query);
+  const query = buildQuery(req.query, new VehicleFilterBuilder());
 
   const data = await vehicleService.findAll(query);
 
@@ -47,7 +48,7 @@ export const updateVehicle = asyncHandler(
       status: "success",
       data,
     });
-  }
+  },
 );
 
 // DELETE | /api/v1/vehicles/:id | Loại bỏ phương tiện khỏi hệ thống quản lý
@@ -60,5 +61,32 @@ export const deleteVehicle = asyncHandler(
       status: "success",
       data: null,
     });
-  }
+  },
+);
+// PATCH /api/v1/vehicles/:id/location
+export const updateLocation = asyncHandler(
+  async (req: Request, res: Response) => {
+    const { id } = req.params;
+    const { lat, lng, fuelLevel, status } = req.body;
+
+    // 1. Update DB (Mock hoặc Real)
+    // Nếu đang dùng USE_MOCK trong vehicleApi, hàm này có thể chỉ cần bắn Socket là đủ
+
+    // 2. Bắn Socket cho Frontend
+    // (Giả sử bạn đã export biến io từ server.ts)
+    const io = req.app.get("socketio"); // Hoặc import { io } từ server file
+
+    if (io) {
+      io.emit("vehicle-moved", {
+        vehicleId: id,
+        lat,
+        lng,
+        status: status || "IN_USE",
+        plateNumber: "59A-123.45", // Lấy từ DB nếu làm thật
+        fuelLevel,
+      });
+    }
+
+    res.status(200).json({ status: "success", message: "Location updated" });
+  },
 );

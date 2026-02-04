@@ -1,7 +1,6 @@
 import React from "react";
 import StatCard from "@/components/admin/StatCard";
 import ChartCard from "@/components/admin/ChartCard";
-import MapCard from "@/components/admin/MapCard";
 import ActiveStaffList from "@/components/admin/ActiveStaffList";
 import {
   Database,
@@ -89,7 +88,6 @@ const AdminDashboardPage: React.FC = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           <ChartCard data={chartData} title="Lượng rác thu gom (7 ngày)" />
-          <MapCard />
         </div>
 
         <div className="space-y-6">

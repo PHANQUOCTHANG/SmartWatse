@@ -1,8 +1,8 @@
 // src/layouts/root/RootLayout.tsx
 import { Outlet } from "react-router-dom";
-import { useAppSelector } from "@/store/store";
 import { useInitAuth } from "@/features/auth";
 import { AuthLoader } from "@/components/ui/SmartWastLoadingEffects";
+import { useAppSelector } from "@/store/hooks";
 
 const RootLayout = () => {
   const { isAuthChecking } = useAppSelector((state) => state.auth);

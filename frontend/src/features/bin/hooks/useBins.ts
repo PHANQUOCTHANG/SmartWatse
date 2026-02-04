@@ -13,10 +13,11 @@ export const useBins = (initialLimit = APP_CONFIG.PAGINATION_LIMIT) => {
   const [filterParams, setFilterParams] = useState<BinFilterParams>({
     page: 1,
     limit: initialLimit,
-    keyword: "",
-    type: undefined,
+    search: "",
+    binType: undefined,
     status: undefined,
   });
+  console.log(filterParams);
   // HOOKS QUERY DATA
   const { data, isLoading, isFetching } = useQuery({
     // 🔥 FIX KEY: ['tracks', 'list', { filter: ... }]

@@ -12,18 +12,22 @@ import {
   ICollectionPointRepository,
 } from "@/repositories/collectionPoint.repository";
 import {
-  CollectionScheduleRepository,
-  ICollectionScheduleRepository,
-} from "@/repositories/collectionSchedule.repository";
-import {
   CollectionTaskRepository,
   ICollectionTaskRepository,
 } from "@/repositories/collectionTask.repository";
+import {
+  CollectionScheduleRepository,
+  ICollectionScheduleRepository,
+} from "@/repositories/collectionSchedule.repository";
 import { IOtpRepository, OtpRepository } from "@/repositories/otp.repository";
 import {
   IRefreshTokenRepository,
   RefreshTokenRepository,
 } from "@/repositories/refreshToken.repository";
+import {
+  IShiftRepository,
+  ShiftRepository,
+} from "@/repositories/shift.repository";
 import {
   IUserRepository,
   UserRepository,
@@ -44,12 +48,17 @@ import {
   ICollectionPointService,
 } from "@/services/collectionPoint.service";
 import {
+  CollectionTaskService,
+  ICollectionTaskService,
+} from "@/services/collectionTask.service";
+import {
   CollectionScheduleService,
   ICollectionScheduleService,
 } from "@/services/collectionSchedule.service";
-import { CollectionTaskService, ICollectionTaskService } from "@/services/collectionTask.service";
 import { EmailService, IEmailService } from "@/services/email.service";
 import { IOtpService, OtpService } from "@/services/otp.service";
+import { IShiftService, ShiftService } from "@/services/shift.service";
+import { SocketService } from "@/services/socket.service";
 import { IUserService, UserService } from "@/services/user.service";
 import { IVehicleService, VehicleService } from "@/services/vehicle.service";
 
@@ -68,10 +77,13 @@ const citizenReportRepository: ICitizenReportRepository =
   new CitizenReportRepository();
 const collectionScheduleRepository: ICollectionScheduleRepository =
   new CollectionScheduleRepository();
+const shiftRepository: IShiftRepository = new ShiftRepository();
 const collectionTaskRepository: ICollectionTaskRepository =
   new CollectionTaskRepository();
 
 // ==================== INITIALIZE SERVICES ====================
+
+export const socketService = new SocketService();
 
 export const authService: IAuthService = new AuthService(
   userRepository,
@@ -88,7 +100,10 @@ export const otpService: IOtpService = new OtpService(
 
 export const emailService: IEmailService = new EmailService();
 
-export const binService: IBinService = new BinService(binRepository);
+export const binService: IBinService = new BinService(
+  binRepository,
+  socketService,
+);
 
 export const areaService: IAreaService = new AreaService(areaRepository);
 
@@ -97,6 +112,7 @@ export const collectionPointService: ICollectionPointService =
 
 export const vehicleService: IVehicleService = new VehicleService(
   vehicleRepository,
+  socketService,
 );
 
 export const citizenReportService: ICitizenReportService =
@@ -104,6 +120,11 @@ export const citizenReportService: ICitizenReportService =
 
 export const collectionScheduleService: ICollectionScheduleService =
   new CollectionScheduleService(collectionScheduleRepository);
+export const shiftService: IShiftService = new ShiftService(
+  shiftRepository,
+  vehicleRepository,
+  socketService,
+);
 
 export const collectionTaskService: ICollectionTaskService =
   new CollectionTaskService(collectionTaskRepository);

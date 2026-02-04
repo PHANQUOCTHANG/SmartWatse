@@ -1,3 +1,4 @@
+import { FilterBuilder } from "@/interface/query.interface";
 import { Types } from "mongoose";
 
 // Định dạng GeoJSON cho vị trí địa lý [Kinh độ, Vĩ độ]
@@ -51,4 +52,22 @@ export interface IBin {
   lastCollected?: Date;
   createdAt?: Date;
   updatedAt?: Date;
+}
+export interface BinFilter {
+  status?: BinStatus;
+  binType?: BinType;
+  collectionPointId?: string;
+}
+
+export class BinFilterBuilder implements FilterBuilder<BinFilter> {
+  build(query: any): BinFilter {
+    const filter: BinFilter = {};
+
+    if (query.binType) filter.binType = query.binType;
+    if (query.status) filter.status = query.status;
+    if (query.collectionPointId)
+      filter.collectionPointId = query.collectionPointId;
+
+    return filter;
+  }
 }

@@ -1,13 +1,8 @@
 import { configureStore } from "@reduxjs/toolkit";
-// 1. THÊM IMPORT NÀY
-import {
-  useDispatch,
-  useSelector,
-  type TypedUseSelectorHook,
-} from "react-redux";
 
 // Import Reducer
 import authReducer from "@/features/auth/slice/authSlice";
+import mapReducer from "@/features/map-monitor/slice/mapSlice";
 import { injectStore, setGlobalAccessToken } from "@/lib/axios";
 
 // ==========================================================
@@ -16,6 +11,7 @@ import { injectStore, setGlobalAccessToken } from "@/lib/axios";
 export const store = configureStore({
   reducer: {
     auth: authReducer,
+    map: mapReducer,
   },
   middleware: (getDefaultMiddleware) =>
     getDefaultMiddleware({ serializableCheck: false }),
@@ -24,14 +20,12 @@ export const store = configureStore({
 // ==========================================================
 // 3. TYPES (Phải định nghĩa ngay sau khi có store)
 // ==========================================================
-export type RootState = ReturnType<typeof store.getState>;
-export type AppDispatch = typeof store.dispatch;
 
 // ==========================================================
 // 4. HOOKS (Phải đặt SAU Types thì mới dùng được RootState/AppDispatch)
 // ==========================================================
-export const useAppDispatch = () => useDispatch<AppDispatch>();
-export const useAppSelector: TypedUseSelectorHook<RootState> = useSelector;
+export type RootState = ReturnType<typeof store.getState>;
+export type AppDispatch = typeof store.dispatch;
 
 // ==========================================================
 // 5. SIDE EFFECTS (Đồng bộ với Axios)

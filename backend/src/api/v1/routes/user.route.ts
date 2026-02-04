@@ -5,6 +5,7 @@ import {
   UpdateUserRequest,
 } from "@/dto/request/user.request";
 import validationMiddleware from "@/middleware/validate.middleware";
+import upload from "@/middleware/upload.middleware";
 
 const router = Router();
 
@@ -12,13 +13,21 @@ const router = Router();
 router
   .route("/")
   .get(userCtrl.getUsers)
-  .post(validationMiddleware(CreateUserRequest), userCtrl.createUser);
+  .post(
+    upload.single("avatar"),
+    validationMiddleware(CreateUserRequest),
+    userCtrl.createUser,
+  );
 
 // URL: /api/users/:id
 router
   .route("/:id")
   .get(userCtrl.getUser)
-  .patch(validationMiddleware(UpdateUserRequest), userCtrl.updateUser)
+  .patch(
+    upload.single("avatar"),
+    validationMiddleware(UpdateUserRequest),
+    userCtrl.updateUser,
+  )
   .delete(userCtrl.deleteUser);
 
 export default router;

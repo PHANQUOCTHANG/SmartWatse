@@ -1,12 +1,8 @@
 import api from "@/lib/axios";
-import {
-  IUser,
-  UserFilterParams,
-  CreateUserDTO,
-  UpdateUserDTO,
-} from "../types";
+import { IUser, UserFilterParams } from "../types";
 import { PagedResponse } from "@/types";
 import { buildFormData } from "@/utils/form-data";
+import { UserFormValues } from "@/features/user/schemas/user.schema";
 
 export const userApi = {
   // 1. GET LIST (Phân trang & Search)
@@ -14,7 +10,7 @@ export const userApi = {
     // Backend trả về: { status: "success", data: [], total: ... }
     // Axios trả về: { data: { status, data, total... } }
     const { data } = await api.get("/users", { params });
-
+    console.log(data);
     // Map response backend về format frontend cần
     return data;
   },
@@ -26,7 +22,7 @@ export const userApi = {
   },
 
   // 3. CREATE (Multipart/Form-data)
-  create: async (payload: CreateUserDTO): Promise<IUser> => {
+  create: async (payload: UserFormValues): Promise<IUser> => {
     const formData = buildFormData(payload);
 
     const { data } = await api.post("/users", formData, {
@@ -36,7 +32,7 @@ export const userApi = {
   },
 
   // 4. UPDATE (Multipart/Form-data)
-  update: async (id: string, payload: UpdateUserDTO): Promise<IUser> => {
+  update: async (id: string, payload: UserFormValues): Promise<IUser> => {
     // Nếu payload có avatar (File) thì dùng FormData
     // Nếu chỉ update text, dùng JSON cũng được, nhưng để đồng bộ ta dùng FormData luôn
     const formData = buildFormData(payload);

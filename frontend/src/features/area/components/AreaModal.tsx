@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { createPortal } from "react-dom";
 import { Controller } from "react-hook-form";
 import {
@@ -6,21 +6,13 @@ import {
   Loader2,
   Edit,
   Plus,
-  Building2, // Icon Quận
-  Map, // Icon Phường
-  MapPin,
+  Building2,
+  Map as MapIcon,
   ArrowUpRight,
+  Check,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-// Hooks
-import { useAreaModalLogic } from "../hooks/useAreaModalLogic"; // Bạn cần tạo file này tương tự useBinModalLogic
-import { useParentAreas } from "../hooks/useAreas"; // Hook lấy danh sách Quận để chọn
-
-// Types
-import { IArea, AreaType } from "../types";
-
-// UI Components
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
@@ -32,6 +24,11 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
+import { useAreaModalLogic } from "../hooks/useAreaModalLogic";
+import { IArea, AreaType } from "../types";
+import { AreaBoundaryEditor } from "@/features/area/components/AreaBoundaryEditor";
+import { MapAreaSelect } from "@/features/area/components/MapAreaSelect";
+
 interface AreaModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -41,7 +38,6 @@ interface AreaModalProps {
 const AreaModal: React.FC<AreaModalProps> = (props) => {
   const { isOpen, onClose, areaToEdit } = props;
 
-  // 1. Logic Form (Submit, Validation)
   const {
     form: {
       register,
@@ -51,217 +47,200 @@ const AreaModal: React.FC<AreaModalProps> = (props) => {
     },
     isEditing,
     isPending,
+    existingAreas,
     onSubmit,
   } = useAreaModalLogic(props);
 
-  // 2. Data cho Dropdown (Lấy danh sách các Quận để làm cha)
-  const { data: parentAreas, isLoading: isLoadingParents } = useParentAreas();
-
-  // Watch giá trị Type để ẩn/hiện field ParentId
   const selectedType = watch("type");
+  const parentId = watch("parentId"); // 🔥 Theo dõi parentId thay đổi
+
+  // --- LOGIC: Tìm Parent Area để lấy ranh giới ---
+  // existingAreas chứa toàn bộ danh sách (do useQuery lấy limit 1000)
+  const parentArea = useMemo(
+    () => existingAreas.find((a) => a.id === parentId),
+    [existingAreas, parentId],
+  );
 
   if (!isOpen) return null;
 
   return createPortal(
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
-      {/* Overlay */}
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 font-sans">
       <div
-        className="fixed inset-0 bg-black/80 backdrop-blur-sm animate-in fade-in duration-300"
+        className="fixed inset-0 bg-black/80 backdrop-blur-sm animate-in fade-in"
         onClick={onClose}
       />
 
-      {/* Modal Content */}
-      <div className="relative z-[101] w-full max-w-lg bg-background border border-border rounded-2xl shadow-2xl flex flex-col max-h-[90vh] animate-in zoom-in-95 duration-200 ring-1 ring-white/10 overflow-hidden">
+      <div className="relative z-[101] w-full max-w-5xl bg-white rounded-2xl shadow-2xl flex flex-col max-h-[90vh] animate-in zoom-in-95 overflow-hidden">
         {/* HEADER */}
-        <div className="flex items-center justify-between px-6 py-5 border-b border-border bg-background shrink-0">
+        <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100 bg-gray-50/50">
           <div className="flex items-center gap-3">
-            <div className="p-2.5 bg-primary/10 rounded-xl text-primary border border-primary/20 shadow-sm">
-              {isEditing ? (
-                <Edit className="size-5" />
-              ) : (
-                <Plus className="size-5" />
+            <div
+              className={cn(
+                "p-2 rounded-lg",
+                isEditing
+                  ? "bg-amber-100 text-amber-600"
+                  : "bg-blue-100 text-blue-600",
               )}
+            >
+              {isEditing ? <Edit size={20} /> : <Plus size={20} />}
             </div>
             <div>
-              <h3 className="text-lg font-bold leading-none text-foreground">
+              <h3 className="text-lg font-bold text-gray-800">
                 {isEditing ? "Cập nhật Khu vực" : "Thêm Khu vực Mới"}
               </h3>
-              <p className="text-xs font-medium text-muted-foreground mt-1">
-                {isEditing
-                  ? "Chỉnh sửa thông tin hành chính."
-                  : "Thiết lập đơn vị hành chính mới cho hệ thống."}
+              <p className="text-xs text-gray-500">
+                Định nghĩa ranh giới hành chính
               </p>
             </div>
           </div>
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={onClose}
-            className="h-9 w-9 rounded-full hover:bg-destructive/10 hover:text-destructive transition-colors"
-          >
-            <X className="size-5" />
+          <Button variant="ghost" size="icon" onClick={onClose}>
+            <X size={20} className="text-gray-400" />
           </Button>
         </div>
 
         {/* BODY */}
-        <div className="p-6 overflow-y-auto custom-scrollbar bg-muted/10">
-          <form id="area-form" onSubmit={onSubmit} className="space-y-6">
-            {/* 1. Tên & Loại */}
-            <div className="space-y-4">
-              {/* Name */}
-              <div className="space-y-2">
-                <Label
-                  htmlFor="name"
-                  className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5"
-                >
-                  <MapPin className="size-3.5" /> Tên khu vực{" "}
-                  <span className="text-destructive">*</span>
-                </Label>
-                <Input
-                  id="name"
-                  {...register("name")}
-                  placeholder="Ví dụ: Quận 1, Phường Bến Nghé..."
-                  className={cn(
-                    errors.name &&
-                      "border-destructive focus-visible:ring-destructive/20",
+        <div className="flex-1 overflow-y-auto custom-scrollbar p-6">
+          <form
+            id="area-form"
+            onSubmit={onSubmit}
+            className="flex flex-col lg:flex-row gap-6 h-full"
+          >
+            {/* CỘT TRÁI: INPUTS */}
+            <div className="w-full lg:w-1/3 space-y-5">
+              <div className="space-y-4 p-4 bg-gray-50 rounded-xl border border-gray-100">
+                <h4 className="text-xs font-bold uppercase text-gray-500">
+                  Thông tin chung
+                </h4>
+                <div className="space-y-2">
+                  <Label className="text-xs">
+                    Tên khu vực <span className="text-red-500">*</span>
+                  </Label>
+                  <Input
+                    {...register("name")}
+                    placeholder="VD: Phường Bến Nghé"
+                  />
+                  {errors.name && (
+                    <p className="text-[10px] text-red-500">
+                      {errors.name.message}
+                    </p>
                   )}
-                />
-                {errors.name && (
-                  <p className="text-[10px] text-destructive font-bold animate-in slide-in-from-left-1">
-                    {errors.name.message}
-                  </p>
-                )}
-              </div>
+                </div>
 
-              {/* Type */}
-              <div className="space-y-2">
-                <Label className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5">
-                  <Map className="size-3.5" /> Cấp hành chính{" "}
-                  <span className="text-destructive">*</span>
-                </Label>
-                <Controller
-                  control={control}
-                  name="type"
-                  render={({ field }) => (
-                    <Select
-                      onValueChange={field.onChange}
-                      defaultValue={field.value}
-                    >
-                      <SelectTrigger
-                        className={cn(errors.type && "border-destructive")}
+                <div className="space-y-2">
+                  <Label className="text-xs">Cấp hành chính</Label>
+                  <Controller
+                    control={control}
+                    name="type"
+                    render={({ field }) => (
+                      <Select
+                        onValueChange={field.onChange}
+                        defaultValue={field.value}
                       >
-                        <SelectValue placeholder="Chọn cấp hành chính" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value={AreaType.DISTRICT}>
-                          <div className="flex items-center gap-2">
-                            <Building2 className="size-4 text-blue-500" />
-                            <span>Quận / Huyện</span>
-                          </div>
-                        </SelectItem>
-                        <SelectItem value={AreaType.WARD}>
-                          <div className="flex items-center gap-2">
-                            <Map className="size-4 text-green-500" />
-                            <span>Phường / Xã</span>
-                          </div>
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
+                        <SelectTrigger className="bg-white">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent className="z-[200]">
+                          <SelectItem value={AreaType.DISTRICT}>
+                            <div className="flex gap-2">
+                              <Building2 size={14} />
+                              Quận/Huyện
+                            </div>
+                          </SelectItem>
+                          <SelectItem value={AreaType.WARD}>
+                            <div className="flex gap-2">
+                              <MapIcon size={14} />
+                              Phường/Xã
+                            </div>
+                          </SelectItem>
+                        </SelectContent>
+                      </Select>
+                    )}
+                  />
+                </div>
+
+                {/* 🔥 PARENT SELECTOR (MAP BASED) */}
+                <div
+                  className={cn(
+                    "space-y-2 transition-all",
+                    selectedType === AreaType.WARD
+                      ? "opacity-100"
+                      : "opacity-50 pointer-events-none",
                   )}
-                />
-                {errors.type && (
-                  <p className="text-[10px] text-destructive font-bold">
-                    {errors.type.message}
-                  </p>
-                )}
+                >
+                  <Label className="text-xs flex items-center gap-1">
+                    <ArrowUpRight size={12} /> Trực thuộc Quận/Huyện
+                  </Label>
+                  <Controller
+                    control={control}
+                    name="parentId"
+                    render={({ field, fieldState }) => (
+                      <MapAreaSelect
+                        value={field.value || ""}
+                        onChange={(val) => {
+                          field.onChange(val);
+                        }}
+                        typeToSelect={AreaType.DISTRICT}
+                        disabled={selectedType !== AreaType.WARD}
+                        error={fieldState.error?.message}
+                        placeholder="Chọn Quận quản lý..."
+                      />
+                    )}
+                  />
+                  {parentArea && (
+                    <div className="text-[10px] text-green-600 flex items-center gap-1 bg-green-50 p-2 rounded border border-green-100">
+                      <Check size={12} /> Đã chọn: <b>{parentArea.name}</b> (Xem
+                      khung đỏ bên phải)
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
 
-            {/* 2. Parent Selection (Logic hiển thị động) */}
-            <div
-              className={cn(
-                "space-y-4 pt-4 border-t border-dashed border-border transition-all duration-300",
-                selectedType === AreaType.WARD
-                  ? "opacity-100"
-                  : "opacity-50 grayscale pointer-events-none",
-              )}
-            >
-              <div className="space-y-2">
-                <Label className="text-xs font-bold uppercase tracking-wider flex items-center gap-1.5 text-primary">
-                  <ArrowUpRight className="size-3.5" /> Trực thuộc Quận/Huyện
-                </Label>
-                <p className="text-[10px] text-muted-foreground">
-                  {selectedType === AreaType.WARD
-                    ? "Bắt buộc: Chọn Quận/Huyện quản lý Phường/Xã này."
-                    : "Không khả dụng: Cấp Quận/Huyện là cấp cao nhất."}
-                </p>
+            {/* CỘT PHẢI: MAP EDITOR */}
+            <div className="w-full lg:w-2/3 flex flex-col h-[500px] lg:h-auto">
+              <Label className="text-xs font-bold uppercase text-gray-600 mb-2 flex justify-between">
+                <span>
+                  Ranh giới địa lý <span className="text-red-500">*</span>
+                </span>
+                {errors.boundary && (
+                  <span className="text-red-500 normal-case">
+                    {errors.boundary.message}
+                  </span>
+                )}
+              </Label>
 
+              <div className="flex-1 rounded-xl overflow-hidden border border-gray-300 shadow-inner relative">
                 <Controller
                   control={control}
-                  name="parentId"
+                  name="boundary"
                   render={({ field }) => (
-                    <Select
-                      // Nếu không phải là Ward thì disable hoặc reset value
-                      disabled={
-                        selectedType !== AreaType.WARD || isLoadingParents
-                      }
-                      onValueChange={field.onChange}
-                      value={field.value || undefined} // Handle null value
-                    >
-                      <SelectTrigger
-                        className={cn(errors.parentId && "border-destructive")}
-                      >
-                        <SelectValue
-                          placeholder={
-                            isLoadingParents
-                              ? "Đang tải danh sách..."
-                              : "Chọn đơn vị trực thuộc"
-                          }
-                        />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {parentAreas?.map((parent: any) => (
-                          <SelectItem key={parent.value} value={parent.value}>
-                            {parent.label}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                    <AreaBoundaryEditor
+                      value={field.value}
+                      onChange={field.onChange}
+                      existingAreas={existingAreas}
+                      parentBoundary={parentArea?.boundary} // 🔥 Truyền ranh giới cha vào để vẽ tham chiếu
+                      error={errors.boundary?.message}
+                    />
                   )}
                 />
-                {errors.parentId && selectedType === AreaType.WARD && (
-                  <p className="text-[10px] text-destructive font-bold">
-                    {errors.parentId.message}
-                  </p>
-                )}
               </div>
             </div>
           </form>
         </div>
 
         {/* FOOTER */}
-        <div className="flex items-center justify-end gap-3 p-5 border-t border-border bg-background shrink-0 z-20">
-          <Button
-            variant="outline"
-            type="button"
-            onClick={onClose}
-            className="font-bold border-input bg-background hover:bg-accent hover:text-foreground"
-          >
+        <div className="flex items-center justify-end gap-3 px-6 py-4 border-t border-gray-100 bg-gray-50 shrink-0">
+          <Button variant="outline" onClick={onClose} className="bg-white">
             Hủy bỏ
           </Button>
           <Button
             type="submit"
             form="area-form"
             disabled={isPending}
-            className="font-bold shadow-md px-6 bg-primary text-primary-foreground hover:bg-primary/90 transition-all active:scale-95 min-w-[120px]"
+            className="bg-blue-600 hover:bg-blue-700 font-bold min-w-[120px]"
           >
-            {isPending ? (
-              <Loader2 className="mr-2 size-4 animate-spin" />
-            ) : isEditing ? (
-              "Lưu thay đổi"
-            ) : (
-              "Tạo mới"
-            )}
+            {isPending && <Loader2 className="mr-2 size-4 animate-spin" />}{" "}
+            {isEditing ? "Lưu thay đổi" : "Tạo khu vực"}
           </Button>
         </div>
       </div>

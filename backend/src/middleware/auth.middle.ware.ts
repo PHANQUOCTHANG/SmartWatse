@@ -8,7 +8,7 @@ interface JwtPayload {
   role: string;
 }
 
-interface AuthRequest extends Request {
+export interface AuthRequest extends Request {
   user?: JwtPayload;
 }
 
@@ -21,7 +21,7 @@ const JWT_SECRET = process.env.JWT_SECRET || "abcdefghijklmnopqrstuvwxyz";
 export const requireAuth = (
   req: AuthRequest,
   res: Response,
-  next: NextFunction
+  next: NextFunction,
 ) => {
   const authHeader = req.headers.authorization;
 
@@ -47,9 +47,7 @@ export const requireRole = (...roles: string[]) => {
     }
 
     if (!roles.includes(req.user.role)) {
-      return next(
-        new AppError("Forbidden. You do not have permission.", 403)
-      );
+      return next(new AppError("Forbidden. You do not have permission.", 403));
     }
 
     next();

@@ -1,22 +1,24 @@
 import { useState } from "react";
 import { keepPreviousData, useMutation, useQuery } from "@tanstack/react-query";
 import { userApi } from "../api/userApi";
-import { UserFilterParams, CreateUserDTO, UpdateUserDTO } from "../types";
+import { UserFilterParams } from "../types";
 import { userKeys } from "../utils/userKeys";
 import { APP_CONFIG } from "@/config/constants";
 import { toast } from "sonner";
 import { queryClient } from "@/lib/queryClient";
 import { handleError } from "@/utils/handleError";
+import { UserFormValues } from "@/features/user/schemas/user.schema";
 
 export const useUsers = (initialLimit = APP_CONFIG.PAGINATION_LIMIT) => {
   // --- STATE: Bộ lọc ---
   const [filterParams, setFilterParams] = useState<UserFilterParams>({
     page: 1,
     limit: initialLimit,
-    keyword: "", // map với keyword
+    search: "", // map với keyword
     role: undefined,
+    sort: "-createdAt",
   });
-
+  console.log(filterParams);
   // --- A. QUERY: Lấy danh sách Users ---
   const { data, isLoading, isFetching } = useQuery({
     queryKey: userKeys.list(filterParams),
@@ -56,7 +58,7 @@ export const useUsers = (initialLimit = APP_CONFIG.PAGINATION_LIMIT) => {
 
   // --- B. MUTATION: Tạo mới ---
   const createMutation = useMutation({
-    mutationFn: (payload: CreateUserDTO) => userApi.create(payload),
+    mutationFn: (payload: UserFormValues) => userApi.create(payload),
     onSuccess: () => {
       toast.success("Tạo người dùng thành công!");
       // Invalidate cache để load lại danh sách mới nhất
@@ -67,7 +69,7 @@ export const useUsers = (initialLimit = APP_CONFIG.PAGINATION_LIMIT) => {
 
   // --- C. MUTATION: Cập nhật ---
   const updateMutation = useMutation({
-    mutationFn: ({ id, payload }: { id: string; payload: UpdateUserDTO }) =>
+    mutationFn: ({ id, payload }: { id: string; payload: UserFormValues }) =>
       userApi.update(id, payload),
     onSuccess: () => {
       toast.success("Cập nhật thông tin thành công");
@@ -106,10 +108,10 @@ export const useUsers = (initialLimit = APP_CONFIG.PAGINATION_LIMIT) => {
       deleteMutation.isPending,
 
     // Mutation Functions
-    createUser: (data: CreateUserDTO, options?: any) =>
+    createUser: (data: UserFormValues, options?: any) =>
       createMutation.mutate(data, options),
 
-    updateUser: (id: string, payload: UpdateUserDTO, options?: any) =>
+    updateUser: (id: string, payload: UserFormValues, options?: any) =>
       updateMutation.mutate({ id, payload }, options),
 
     deleteUser: (id: string, options?: any) =>

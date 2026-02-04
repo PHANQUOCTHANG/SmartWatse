@@ -110,11 +110,11 @@ export class UserRepository implements IUserRepository {
 
     const [data, total] = await Promise.all([
       User.find(filter)
+        .populate("areaId", "name")
         .sort(sort)
         .skip((page - 1) * limit)
-        .limit(limit)
-        .exec(),
-      User.countDocuments(filter).exec(),
+        .limit(limit),
+      User.countDocuments(filter),
     ]);
 
     return {

@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-// Định nghĩa Enum bằng Zod để validate (Khớp với VehicleType & VehicleStatus ở types/index.ts)
+// Định nghĩa Enum bằng Zod
 export const VehicleTypeEnum = z.enum(["COMPACTOR", "TRUCK", "COLLECTOR"]);
 export const VehicleStatusEnum = z.enum([
   "AVAILABLE",
@@ -24,17 +24,34 @@ export const vehicleSchema = z
       )
       .trim(),
 
+    // 🔥 [THÊM] Validate Area ID
+    areaId: z
+      .string("Vui lòng chọn khu vực quản lý")
+      .min(1, "Vui lòng chọn khu vực quản lý"),
+
     type: VehicleTypeEnum.refine((val) => val !== undefined, {
       message: "Vui lòng chọn loại xe",
     }),
 
-    // Sử dụng z.coerce.number() để tự động chuyển string từ input -> number
+    // Sử dụng z.coerce.number() để tự động chuyển string -> number
     capacity: z.coerce
-      .number({ invalid_type_error: "Trọng tải phải là số" })
+      .number()
       .min(1, "Trọng tải phải lớn hơn 0")
       .max(50000, "Trọng tải không hợp lý (Max 50 tấn)"),
 
-    // Status là optional khi tạo (mặc định AVAILABLE), nhưng bắt buộc khi sửa
+    // 🔥 [THÊM] Validate Tọa độ (Latitude)
+    latitude: z.coerce
+      .number()
+      .min(-90, "Vĩ độ không hợp lệ")
+      .max(90, "Vĩ độ không hợp lệ"),
+
+    // 🔥 [THÊM] Validate Tọa độ (Longitude)
+    longitude: z.coerce
+      .number()
+      .min(-180, "Kinh độ không hợp lệ")
+      .max(180, "Kinh độ không hợp lệ"),
+
+    // Status là optional khi tạo (mặc định AVAILABLE)
     status: VehicleStatusEnum.optional().default("AVAILABLE"),
 
     // Fuel Level (0 - 100%)
@@ -45,7 +62,7 @@ export const vehicleSchema = z
       .optional()
       .default(100),
 
-    // Current Load (Dùng khi admin muốn sửa thủ công tải trọng hiện tại)
+    // Current Load
     currentLoad: z.coerce
       .number()
       .min(0, "Tải trọng hiện tại không được âm")
@@ -54,15 +71,19 @@ export const vehicleSchema = z
   })
   .refine(
     (data) => {
-      // Logic Custom: Tải trọng hiện tại không được lớn hơn Tải trọng thiết kế
-      if (data.currentLoad !== undefined && data.capacity) {
-        return data.currentLoad <= data.capacity;
-      }
-      return true;
+      // Ép kiểu an toàn để so sánh
+      const cap = Number(data.capacity);
+      const load = Number(data.currentLoad);
+
+      // Nếu capacity chưa hợp lệ (NaN hoặc <= 0), tạm thời bỏ qua rule này
+      // (để các rule min/max của capacity tự xử lý hiển thị lỗi)
+      if (!cap || cap <= 0) return true;
+
+      return load <= cap;
     },
     {
-      message: "Tải trọng hiện tại không được vượt quá sức chứa của xe",
-      path: ["currentLoad"], // Hiển thị lỗi ở field currentLoad
+      message: "Tải trọng hiện tại vượt quá sức chứa xe",
+      path: ["currentLoad"], // Lỗi sẽ hiện đỏ ở ô Current Load
     },
   );
 

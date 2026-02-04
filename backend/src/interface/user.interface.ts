@@ -18,8 +18,14 @@ export interface IUser {
   email: string;
   passwordHash: string;
   role: UserRole;
+
   phone?: string;
-  areaId?: number;
+
+  address?: string;
+  avatar?: string;
+
+  areaId?: string;
+
   status: UserStatus;
   createdAt: Date;
 }

@@ -1,38 +1,26 @@
 import { z } from "zod";
+import { AreaType } from "../types";
 
-// Enum khớp với Backend
-export const AreaTypeEnum = z.enum(["DISTRICT", "WARD"]);
+export const areaSchema = z.object({
+  name: z.string().min(1, "Tên khu vực là bắt buộc"),
+  type: z.nativeEnum(AreaType),
+  parentId: z.string().nullable().optional(),
 
-// --- 1. CREATE / UPDATE FORM SCHEMA ---
-export const areaSchema = z
-  .object({
-    name: z
-      .string()
-      .min(1, "Tên khu vực là bắt buộc")
-      .max(100, "Tên không được quá 100 ký tự")
-      .trim(),
+  // 🔥 FIX: Validate mảng 3 chiều trực tiếp
+  boundary: z
+    .array(z.array(z.array(z.number())))
+    .optional()
+    .refine(
+      (coords) => {
+        // Cho phép undefined hoặc mảng rỗng (nếu backend cho phép null)
+        if (!coords || coords.length === 0) return true;
+        // Nếu có vẽ, phải đủ 3 điểm để tạo thành hình khép kín
+        return coords[0].length >= 3;
+      },
+      {
+        message: "Vùng phải có ít nhất 3 điểm",
+      },
+    ),
+});
 
-    type: AreaTypeEnum.refine((val) => val !== undefined, {
-      message: "Vui lòng chọn loại khu vực",
-    }),
-
-    // parentId có thể là string (ObjectId), null hoặc undefined
-    // Trong form, nếu chọn DISTRICT thì parentId thường là null/empty
-    parentId: z.string().optional().nullable(),
-  })
-  .refine(
-    (data) => {
-      // RULE: Nếu là Phường/Xã (WARD) -> Bắt buộc phải có Cha (DISTRICT)
-      if (data.type === "WARD") {
-        return !!data.parentId && data.parentId.trim() !== "";
-      }
-      return true;
-    },
-    {
-      message: "Vui lòng chọn Quận/Huyện trực thuộc",
-      path: ["parentId"], // Hiển thị lỗi ngay tại field parentId
-    },
-  );
-
-// --- 2. TYPES ---
 export type AreaFormValues = z.infer<typeof areaSchema>;

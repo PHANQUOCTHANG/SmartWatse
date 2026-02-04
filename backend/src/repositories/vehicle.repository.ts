@@ -1,6 +1,6 @@
 import { BaseQuery, IPaginatedResult } from "@/interface/query.interface";
 import { Vehicle, IVehicleDocument } from "@/models/vehicle.model";
-import { IVehicle } from "@/interface/vehicle.interface";
+import { IVehicle, VehicleFilter } from "@/interface/vehicle.interface";
 
 export interface IVehicleRepository {
   create(data: Partial<IVehicle>): Promise<IVehicleDocument>;
@@ -12,6 +12,12 @@ export interface IVehicleRepository {
   ): Promise<IVehicleDocument | null>;
   deleteById(id: string): Promise<void>;
   findAll(query: BaseQuery): Promise<IPaginatedResult<IVehicleDocument>>;
+  updateLocation(
+    id: string,
+    lat: number,
+    lng: number,
+    heading: number,
+  ): Promise<IVehicleDocument | null>;
 }
 
 export class VehicleRepository implements IVehicleRepository {
@@ -43,10 +49,20 @@ export class VehicleRepository implements IVehicleRepository {
   }
 
   // Lấy danh sách xe có phân trang và hỗ trợ tìm kiếm theo biển số
-  async findAll(query: BaseQuery): Promise<IPaginatedResult<IVehicleDocument>> {
-    const { page = 1, limit = 10, search, sort = "-createdAt" } = query;
-    const filter: any = {};
-    if (search) filter.plateNumber = { $regex: search, $options: "i" };
+  async findAll(
+    query: BaseQuery<VehicleFilter>,
+  ): Promise<IPaginatedResult<IVehicleDocument>> {
+    const {
+      page = 1,
+      limit = 10,
+      search,
+      sort = "-createdAt",
+      filter: VehicleFilter = {},
+    } = query;
+    const filter: any = { ...VehicleFilter };
+    if (search) {
+      filter.$or = [{ plateNumber: { $regex: search, $options: "i" } }];
+    }
 
     const [data, total] = await Promise.all([
       Vehicle.find(filter)
@@ -72,14 +88,18 @@ export class VehicleRepository implements IVehicleRepository {
     id: string,
     lat: number,
     lng: number,
+    heading: number,
   ): Promise<IVehicleDocument | null> {
     return Vehicle.findByIdAndUpdate(
       id,
       {
-        location: {
-          type: "Point",
-          coordinates: [lng, lat], // Mongo lưu Longitude trước
-          lastUpdated: new Date(),
+        $set: {
+          location: {
+            type: "Point",
+            coordinates: [lng, lat], // ⚠️ MongoDB GeoJSON: [Longitude, Latitude]
+            lastUpdated: new Date(),
+          },
+          heading: heading,
         },
       },
       { new: true },
