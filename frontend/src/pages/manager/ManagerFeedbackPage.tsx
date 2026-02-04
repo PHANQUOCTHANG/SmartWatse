@@ -8,6 +8,7 @@ import {
   FeedbackViewModal,
 } from "../../features/feedback/components";
 import { feedbackApi } from "../../features/feedback/api/feedbackApi";
+import { FeedbackStatus } from "../../features/feedback/types";
 
 const ManagerFeedbackPage = () => {
   const [selectedFeedbackId, setSelectedFeedbackId] = useState<string | null>(
@@ -36,7 +37,9 @@ const ManagerFeedbackPage = () => {
 
   const handleStatusChange = async (feedbackId: string, status: string) => {
     try {
-      await feedbackApi.update(feedbackId, { status: status as any });
+      await feedbackApi.update(feedbackId, {
+        status: status as FeedbackStatus,
+      });
     } catch (error) {
       console.error("Failed to update status:", error);
       throw error;
@@ -85,6 +88,9 @@ const ManagerFeedbackPage = () => {
           onStatusFilter={(status) => updateFilter("status", status)}
           onAreaFilter={(areaId) => updateFilter("areaId", areaId)}
           onBinFilter={(binId) => updateFilter("binId", binId)}
+          onCollectionPointFilter={(collectionPointId) =>
+            updateFilter("collectionPointId", collectionPointId)
+          }
           onDateRangeFilter={(startDate, endDate) => {
             updateFilter("startDate", startDate);
             updateFilter("endDate", endDate);
@@ -94,6 +100,7 @@ const ManagerFeedbackPage = () => {
           defaultStatus={filterParams.status}
           defaultAreaId={filterParams.areaId}
           defaultBinId={filterParams.binId}
+          defaultCollectionPointId={filterParams.collectionPointId}
           defaultStartDate={filterParams.startDate}
           defaultEndDate={filterParams.endDate}
         />
@@ -127,7 +134,7 @@ const ManagerFeedbackPage = () => {
               }}
               onStatusChange={handleStatusChange}
               onDelete={handleDeleteFeedback}
-              onRefresh={refetch}
+              onRefresh={() => refetch().then(() => {})}
             />
           </>
         )}

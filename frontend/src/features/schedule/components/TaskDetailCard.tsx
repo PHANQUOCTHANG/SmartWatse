@@ -1,8 +1,17 @@
-import { Pencil, Clock, MapPin, Calendar, AlertCircle, X } from "lucide-react";
+import {
+  Pencil,
+  Clock,
+  MapPin,
+  Calendar,
+  AlertCircle,
+  X,
+  Trash2,
+} from "lucide-react";
 import { useState, useEffect } from "react";
 import { areaApi } from "@/features/area/api/areaApi";
 import { scheduleApi } from "@/features/schedule/api/scheduleApi";
 import { toast } from "sonner";
+import DeleteConfirmModal from "@/components/DeleteConfirmModal";
 
 interface TaskDetailCardProps {
   schedule?: any;
@@ -57,12 +66,15 @@ export default function TaskDetailCard({
   const [areas, setAreas] = useState<any[]>([]);
   const [isLoadingAreas, setIsLoadingAreas] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [formData, setFormData] = useState(
     schedule
       ? {
           name: schedule.name || "",
           areaId: schedule.areaId?.id || schedule.areaId?._id || "",
-          date: new Date(schedule.scheduledDate).toISOString().split("T")[0],
+          scheduledDate: new Date(schedule.scheduledDate)
+            .toISOString()
+            .split("T")[0],
           startTime: schedule.startTime || "",
           endTime: schedule.endTime || "",
           frequency: schedule.frequency || "",
@@ -70,7 +82,7 @@ export default function TaskDetailCard({
       : {
           name: "",
           areaId: "",
-          date: "",
+          scheduledDate: "",
           startTime: "",
           endTime: "",
           frequency: "",
@@ -85,7 +97,9 @@ export default function TaskDetailCard({
       setFormData({
         name: schedule.name || "",
         areaId: schedule.areaId?.id || schedule.areaId?._id || "",
-        date: new Date(schedule.scheduledDate).toISOString().split("T")[0],
+        scheduledDate: new Date(schedule.scheduledDate)
+          .toISOString()
+          .split("T")[0],
         startTime: schedule.startTime || "",
         endTime: schedule.endTime || "",
         frequency: schedule.frequency || "",
@@ -126,11 +140,29 @@ export default function TaskDetailCard({
     onEditChange?.(false);
   };
 
+  const handleDelete = async () => {
+    if (!schedule?.id) return;
+
+    try {
+      setIsSubmitting(true);
+      await scheduleApi.delete(schedule.id);
+      toast.success("Đã xóa lịch trình thành công");
+      setIsDeleteModalOpen(false);
+      // Chỉ đóng panel, không reload
+      onClose?.();
+    } catch (error) {
+      console.error("Lỗi khi xóa lịch trình:", error);
+      toast.error("Không thể xóa lịch trình");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
     // Validation
-    if (!formData.name || !formData.areaId || !formData.date) {
+    if (!formData.name || !formData.areaId || !formData.scheduledDate) {
       toast.error("Vui lòng điền đầy đủ các trường bắt buộc");
       return;
     }
@@ -141,7 +173,7 @@ export default function TaskDetailCard({
       const payload = {
         name: formData.name,
         areaId: formData.areaId,
-        scheduledDate: formData.date,
+        scheduledDate: formData.scheduledDate,
         startTime: formData.startTime,
         endTime: formData.endTime,
         frequency: formData.frequency,
@@ -151,6 +183,8 @@ export default function TaskDetailCard({
 
       toast.success("Cập nhật lịch trình thành công");
       handleCancel();
+
+      // Refresh cả lịch và chi tiết
       onRefresh?.();
     } catch (error: any) {
       console.error("Lỗi khi cập nhật lịch trình:", error);
@@ -230,9 +264,9 @@ export default function TaskDetailCard({
               </label>
               <input
                 type="date"
-                value={formData.date || ""}
+                value={formData.scheduledDate || ""}
                 onChange={(e) =>
-                  setFormData({ ...formData, date: e.target.value })
+                  setFormData({ ...formData, scheduledDate: e.target.value })
                 }
                 disabled={isSubmitting}
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none disabled:bg-gray-50"
@@ -341,6 +375,15 @@ export default function TaskDetailCard({
             >
               {isSubmitting ? "Đang lưu..." : "Lưu"}
             </button>
+            <button
+              type="button"
+              onClick={() => setIsDeleteModalOpen(true)}
+              disabled={isSubmitting}
+              className="px-3 py-2 border border-red-300 rounded-lg text-xs font-medium text-red-600 hover:bg-red-50 transition disabled:opacity-50"
+              title="Xóa lịch trình"
+            >
+              <Trash2 size={16} />
+            </button>
           </div>
         </form>
       </div>
@@ -365,6 +408,15 @@ export default function TaskDetailCard({
           >
             <Pencil size={14} />
             Chỉnh sửa
+          </button>
+          <button
+            onClick={() => setIsDeleteModalOpen(true)}
+            className="flex items-center gap-1 text-sm text-red-600 hover:underline disabled:opacity-50"
+            disabled={isSubmitting}
+            title="Xóa lịch trình"
+          >
+            <Trash2 size={14} />
+            Xóa
           </button>
           {onClose && (
             <button
@@ -442,6 +494,15 @@ export default function TaskDetailCard({
           </div>
         </div>
       </div>
+
+      {/* Delete Confirm Modal */}
+      <DeleteConfirmModal
+        isOpen={isDeleteModalOpen}
+        taskName={schedule.name}
+        isDeleting={isSubmitting}
+        onConfirm={handleDelete}
+        onCancel={() => setIsDeleteModalOpen(false)}
+      />
     </div>
   );
 }

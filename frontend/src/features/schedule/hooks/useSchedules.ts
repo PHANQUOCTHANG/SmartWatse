@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { keepPreviousData, useMutation, useQuery } from "@tanstack/react-query";
 import { scheduleApi } from "../api/scheduleApi";
 import type { ScheduleFilterParams } from "../types";
@@ -12,12 +12,13 @@ import { handleError } from "@/utils/handleError";
 export const useSchedules = (
   initialLimit = APP_CONFIG.PAGINATION_LIMIT,
   initialFilters?: Partial<ScheduleFilterParams>,
+  enabled = true,
 ) => {
   const [filterParams, setFilterParams] = useState<ScheduleFilterParams>({
     page: 1,
     limit: initialLimit,
     keyword: "",
-    district: undefined,
+    areaId: undefined,
     frequency: undefined,
     startDate: undefined,
     ...initialFilters,
@@ -29,6 +30,7 @@ export const useSchedules = (
     queryFn: () => scheduleApi.getAll(filterParams),
     placeholderData: keepPreviousData,
     staleTime: 1000 * 60,
+    enabled,
   });
 
   const handlePageChange = (p: number) =>
@@ -37,13 +39,16 @@ export const useSchedules = (
   const handleSearch = (keyword: string) =>
     setFilterParams((prev) => ({ ...prev, keyword, page: 1 }));
 
-  const updateFilter = (key: keyof ScheduleFilterParams, value: any) => {
-    setFilterParams((prev) => ({
-      ...prev,
-      [key]: value === "all" ? undefined : value,
-      page: 1,
-    }));
-  };
+  const updateFilter = useCallback(
+    (key: keyof ScheduleFilterParams, value: any) => {
+      setFilterParams((prev) => ({
+        ...prev,
+        [key]: value === "all" ? undefined : value,
+        page: 1,
+      }));
+    },
+    [],
+  );
 
   const schedules = data?.data || [];
   const meta = {

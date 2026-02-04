@@ -61,9 +61,10 @@ export class CitizenReportService implements ICitizenReportService {
       id: r._id.toString(),
       citizenId: r.citizenId,
       areaId: r.areaId,
+      collectionPointId: r.collectionPointId,
       binId: r.binId,
       description: r.description,
-      imageUrl: r.imageUrl,
+      imageUrls: r.imageUrls,
       status: r.status,
       createdAt: r.createdAt,
     };

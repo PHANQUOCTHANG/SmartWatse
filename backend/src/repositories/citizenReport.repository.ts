@@ -32,6 +32,7 @@ export class CitizenReportRepository implements ICitizenReportRepository {
     return CitizenReport.findById(id)
       .populate("citizenId", "-passwordHash")
       .populate("areaId")
+      .populate("collectionPointId")
       .populate("binId")
       .exec();
   }
@@ -44,6 +45,7 @@ export class CitizenReportRepository implements ICitizenReportRepository {
     })
       .populate("citizenId", "-passwordHash")
       .populate("areaId")
+      .populate("collectionPointId")
       .populate("binId")
       .exec();
   }
@@ -62,6 +64,7 @@ export class CitizenReportRepository implements ICitizenReportRepository {
       limit = 10,
       search,
       sort = { createdAt: -1 },
+      citizenId,
       areaId,
       binId,
       status,
@@ -72,6 +75,11 @@ export class CitizenReportRepository implements ICitizenReportRepository {
     // Xây dựng filter object
     const filter: any = {};
 
+    // Lọc theo người dân gửi báo cáo
+    if (citizenId) {
+      filter.citizenId = citizenId;
+    }
+
     // Lọc theo trạng thái
     if (status) {
       filter.status = status;
@@ -80,6 +88,12 @@ export class CitizenReportRepository implements ICitizenReportRepository {
     // Lọc theo khu vực
     if (areaId) {
       filter.areaId = areaId;
+    }
+
+    // Lọc theo điểm thu gom
+    const collectionPointId = (query as any).collectionPointId;
+    if (collectionPointId) {
+      filter.collectionPointId = collectionPointId;
     }
 
     // Lọc theo thùng rác
@@ -110,6 +124,7 @@ export class CitizenReportRepository implements ICitizenReportRepository {
       CitizenReport.find(filter)
         .populate("citizenId", "-passwordHash")
         .populate("areaId")
+        .populate("collectionPointId")
         .populate("binId")
         .sort(sort as any)
         .skip((page - 1) * limit)
@@ -121,4 +136,3 @@ export class CitizenReportRepository implements ICitizenReportRepository {
     return { data, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 }
-  

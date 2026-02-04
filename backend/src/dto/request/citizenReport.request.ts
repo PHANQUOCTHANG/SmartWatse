@@ -4,6 +4,7 @@ import {
   IsEnum,
   IsOptional,
   MaxLength,
+  IsArray,
 } from "class-validator";
 import { ReportStatus } from "../../interface/citizenReport.interface";
 
@@ -17,6 +18,10 @@ export class CreateReportRequest {
   areaId?: string;
 
   @IsOptional()
+  @IsString({ message: "ID điểm thu gom phải là chuỗi hợp lệ" })
+  collectionPointId?: string;
+
+  @IsOptional()
   @IsString({ message: "ID thùng rác phải là chuỗi hợp lệ" })
   binId?: string;
 
@@ -26,8 +31,12 @@ export class CreateReportRequest {
   description!: string;
 
   @IsOptional()
-  @IsString({ message: "Đường dẫn ảnh phải là chuỗi ký tự" })
-  imageUrl?: string;
+  @IsArray({ message: "Hình ảnh phải là mảng" })
+  @IsString({
+    message: "Mỗi hình ảnh phải là chuỗi ký tự (URL từ Cloudinary)",
+    each: true,
+  })
+  imageUrls?: string[];
 }
 
 export class UpdateReportRequest {

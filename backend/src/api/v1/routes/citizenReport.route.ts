@@ -5,6 +5,7 @@ import {
   UpdateReportRequest,
 } from "@/dto/request/citizenReport.request";
 import validationMiddleware from "@/middleware/validate.middleware";
+import upload from "@/middleware/upload.middleware";
 
 const router = Router();
 
@@ -12,7 +13,11 @@ const router = Router();
 router
   .route("/")
   .get(reportCtrl.getReports)
-  .post(validationMiddleware(CreateReportRequest), reportCtrl.createReport);
+  .post(
+    upload.array("images", 5),
+    validationMiddleware(CreateReportRequest),
+    reportCtrl.createReport,
+  );
 
 // URL: /api/citizen-reports/:id
 router

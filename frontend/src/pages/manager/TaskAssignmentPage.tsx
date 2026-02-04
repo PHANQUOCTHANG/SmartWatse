@@ -6,7 +6,7 @@ import TaskFilterBar from "../../features/task-assignment/components/TaskFilterB
 import TaskPagination from "../../features/task-assignment/components/TaskPagination";
 import CreateTaskModal from "../../features/task-assignment/components/CreateTaskModal";
 import EditTaskModal from "../../features/task-assignment/components/EditTaskModal";
-import DeleteConfirmModal from "../../features/task-assignment/components/DeleteConfirmModal";
+import DeleteConfirmModal from "../../components/DeleteConfirmModal";
 import { useTasks } from "../../features/task-assignment/hooks/useTasks";
 import type { TaskFilterParams } from "../../features/task-assignment/types";
 import { APP_CONFIG } from "@/config/constants";

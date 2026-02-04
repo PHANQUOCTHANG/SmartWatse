@@ -28,8 +28,14 @@ export const feedbackApi = {
   },
 
   // Tạo phản ánh mới
-  create: async (payload: CreateFeedbackDTO): Promise<IFeedback> => {
-    const { data } = await api.post(API_BASE, payload);
+  create: async (payload: CreateFeedbackDTO | FormData): Promise<IFeedback> => {
+    const config =
+      payload instanceof FormData
+        ? {
+            headers: { "Content-Type": "multipart/form-data" },
+          }
+        : undefined;
+    const { data } = await api.post(API_BASE, payload, config);
     return data.data;
   },
 

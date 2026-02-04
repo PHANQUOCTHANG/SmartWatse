@@ -1,21 +1,5 @@
 import { z } from "zod";
 
-// --- CONSTANTS ---
-const ACCEPTED_DISTRICTS = [
-  "q1",
-  "q2",
-  "q3",
-  "q4",
-  "q5",
-  "q6",
-  "q7",
-  "q8",
-  "q9",
-  "q10",
-  "q11",
-  "q12",
-];
-
 // --- ENUMS ---
 export const ScheduleFrequencyEnum = z.enum([
   "hàng_ngày",
@@ -23,11 +7,7 @@ export const ScheduleFrequencyEnum = z.enum([
   "hàng_tháng",
 ]);
 
-export const ScheduleStatusEnum = z.enum([
-  "PENDING",
-  "DONE",
-  "IN_PROGRESS",
-]);
+export const ScheduleStatusEnum = z.enum(["PENDING", "DONE", "IN_PROGRESS"]);
 
 // --- MAIN SCHEMA ---
 export const scheduleSchema = z.object({
@@ -38,16 +18,13 @@ export const scheduleSchema = z.object({
     .max(200, "Tên lịch trình quá dài")
     .trim(),
 
-  district: z
+  areaId: z
     .string()
-    .min(1, "Vui lòng chọn Quận/Phường")
-    .refine(
-      (value) => ACCEPTED_DISTRICTS.includes(value),
-      "Quận/Phường không hợp lệ",
-    ),
+    .min(1, "Vui lòng chọn khu vực")
+    .max(500, "Mã khu vực không hợp lệ"),
 
   // 2. TIMING
-  date: z
+  scheduledDate: z
     .string()
     .min(1, "Vui lòng chọn ngày thực hiện")
     .refine((date) => {

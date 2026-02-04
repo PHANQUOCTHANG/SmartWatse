@@ -5,34 +5,43 @@ import {
   useCallback,
   forwardRef,
   useImperativeHandle,
+  useEffect,
 } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
-import type {
-  CalendarApi,
-  EventClickArg,
-  DatesSetArg,
-} from "@fullcalendar/core";
+import type { CalendarApi, DatesSetArg } from "@fullcalendar/core";
 import viLocale from "@fullcalendar/core/locales/vi";
 import { getEventClass } from "./calender/eventStyles";
 import { useSchedules } from "../hooks/useSchedules";
 import { queryClient } from "@/lib/queryClient";
 import { scheduleKeys } from "../utils/scheduleKeys";
+import type { ISchedule } from "../types";
 
 const ScheduleCalendar = forwardRef<
   { refetch: () => void },
-  { onScheduleClick?: (s: any) => void }
->(({ onScheduleClick }, ref) => {
+  { onScheduleClick?: (s: ISchedule) => void; selectedAreaId?: string }
+>(({ onScheduleClick, selectedAreaId }, ref) => {
   const calendarRef = useRef<FullCalendar | null>(null);
   const initialMonth = useMemo(
     () => new Date().toISOString().substring(0, 7),
     [],
   );
-  const { schedules, isLoading, updateFilter } = useSchedules(undefined, {
-    startDate: initialMonth,
-  });
+  const { schedules, isLoading, updateFilter } = useSchedules(
+    undefined,
+    {
+      startDate: initialMonth,
+      areaId: selectedAreaId || undefined,
+    },
+    true,
+  );
+
+  // Cập nhật filter khi selectedAreaId thay đổi
+  useEffect(() => {
+    if (!selectedAreaId) updateFilter("areaId", "default");
+    else updateFilter("areaId", selectedAreaId || undefined);
+  }, [selectedAreaId, updateFilter]);
 
   useImperativeHandle(ref, () => ({
     refetch: () => {
@@ -112,8 +121,8 @@ const ScheduleCalendar = forwardRef<
   const events = useMemo(() => {
     if (!schedules || !Array.isArray(schedules)) return [];
     return schedules
-      .map((s: any) => {
-        const dateRaw = s.scheduledDate || s.date;
+      .map((s: ISchedule) => {
+        const dateRaw = (s.scheduledDate || (s as any).date) as string;
         if (!dateRaw || !s.name) return null;
         const dateObj = new Date(dateRaw);
         if (isNaN(dateObj.getTime())) return null;
@@ -141,7 +150,7 @@ const ScheduleCalendar = forwardRef<
     <div className="bg-white rounded-xl border border-gray-200 p-4 shadow-sm h-full flex flex-col gap-4">
       <div className="flex flex-col xl:flex-row items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-3">
-          <h2 className="text-xl font-bold text-gray-800 capitalize min-w-[200px]">
+          <h2 className="text-xl font-bold text-gray-800 capitalize min-w-50">
             {viewTitle}
           </h2>
 
@@ -208,7 +217,7 @@ const ScheduleCalendar = forwardRef<
         </div>
       </div>
 
-      <div className="border rounded-xl overflow-hidden relative flex-grow bg-gray-50">
+      <div className="border rounded-xl overflow-hidden relative grow bg-gray-50">
         {isLoading && (
           <div className="absolute inset-0 z-20 flex items-center justify-center bg-white/60 backdrop-blur-[2px]">
             <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin"></div>

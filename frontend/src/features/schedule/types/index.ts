@@ -45,7 +45,7 @@ export interface ScheduleFilterParams {
   page?: number;
   limit?: number;
   keyword?: string;
-  district?: string;
+  areaId?: string;
   frequency?: string;
   status?: string;
   startDate?: string;

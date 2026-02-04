@@ -18,6 +18,7 @@ export interface IUser {
 
 // Area type
 export interface IArea {
+  id?: string;
   _id?: string;
   name: string;
   type: string;
@@ -27,13 +28,16 @@ export interface IArea {
 
 // Bin type
 export interface IBin {
+  id?: string;
   _id?: string;
   code: string;
   collectionPointId: string;
-  location: {
+  location?: {
     type: string;
     coordinates: [number, number];
   };
+  latitude?: number;
+  longitude?: number;
   address?: string;
   binType: string;
   capacity: number;
@@ -47,9 +51,10 @@ export interface IFeedback {
   id: string; // ID MongoDB
   citizenId: IUser;
   areaId?: IArea;
+  collectionPointId?: any; // Điểm thu gom
   binId?: IBin;
   description: string; // Nội dung phản ánh
-  imageUrl?: string; // URL hình ảnh minh chứng
+  imageUrls?: string[]; // URLs hình ảnh minh chứng
   status: FeedbackStatus; // Trạng thái xử lý
   createdAt: string; // ISO date string
   updatedAt?: string; // ISO date string
@@ -59,9 +64,10 @@ export interface IFeedback {
 export interface CreateFeedbackDTO {
   citizenId: string;
   areaId?: string;
+  collectionPointId?: string;
   binId?: string;
   description: string;
-  imageUrl?: string;
+  imageUrls?: string[];
 }
 
 // DTO cập nhật phản ánh
@@ -78,6 +84,7 @@ export interface FeedbackFilterParams {
   status?: string;
   areaId?: string;
   binId?: string;
+  collectionPointId?: string;
   citizenId?: string;
   startDate?: string; // ISO date string
   endDate?: string; // ISO date string

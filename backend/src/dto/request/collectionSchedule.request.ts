@@ -1,5 +1,13 @@
-import { IsNotEmpty, IsString, IsDateString, IsOptional, IsEnum, MaxLength } from "class-validator";
+import {
+  IsNotEmpty,
+  IsString,
+  IsDateString,
+  IsOptional,
+  IsEnum,
+  MaxLength,
+} from "class-validator";
 import { ScheduleFrequency } from "../../interface/collectionSchedule.interface";
+import { Transform } from "class-transformer";
 
 // DTO định nghĩa dữ liệu đầu vào khi khởi tạo lịch trình thu gom mới
 export class CreateScheduleRequest {
@@ -10,10 +18,15 @@ export class CreateScheduleRequest {
 
   @IsNotEmpty({ message: "Mã khu vực không được để trống" })
   @IsString({ message: "Mã khu vực phải là một chuỗi ký tự hợp lệ" })
+  @Transform(({ obj }) => obj.areaId || obj.district) // Accept both areaId and district
   areaId!: string;
 
   @IsNotEmpty({ message: "Ngày thực hiện không được để trống" })
-  @IsDateString({}, { message: "Ngày thực hiện không đúng định dạng (YYYY-MM-DD)" })
+  @IsDateString(
+    {},
+    { message: "Ngày thực hiện không đúng định dạng (YYYY-MM-DD)" },
+  )
+  @Transform(({ obj }) => obj.scheduledDate || obj.date) // Accept both scheduledDate and date
   scheduledDate!: string;
 
   @IsNotEmpty({ message: "Giờ bắt đầu không được để trống" })
@@ -25,7 +38,9 @@ export class CreateScheduleRequest {
   endTime!: string;
 
   @IsNotEmpty({ message: "Tần suất lặp lại là bắt buộc" })
-  @IsEnum(ScheduleFrequency, { message: "Tần suất lặp lại không hợp lệ (DAILY, WEEKLY, MONTHLY)" })
+  @IsEnum(ScheduleFrequency, {
+    message: "Tần suất lặp lại không hợp lệ (hàng_ngày, hàng_tuần, hàng_tháng)",
+  })
   frequency!: ScheduleFrequency;
 }
 
@@ -41,7 +56,10 @@ export class UpdateScheduleRequest {
   areaId?: string;
 
   @IsOptional()
-  @IsDateString({}, { message: "Ngày thực hiện không đúng định dạng (YYYY-MM-DD)" })
+  @IsDateString(
+    {},
+    { message: "Ngày thực hiện không đúng định dạng (YYYY-MM-DD)" },
+  )
   scheduledDate?: string;
 
   @IsOptional()

@@ -1,293 +1,354 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import clsx from "clsx";
-
-// Mock data - In production, fetch from API
-const REPORT_DETAIL = {
-  id: "RP-2023-088",
-  displayId: "#RP-2023-088",
-  title: "Rác thải ủn ủ tại ngã tư Lê Lợi",
-  status: "Đang xử lý",
-  statusColor: "bg-orange-500",
-  description:
-    "Rác thải được để lại ở ngã tư Lê Lợi gây ô nhiễm môi trường và mất vệ sinh đô thị. Cần được xử lý gấp.",
-  location: {
-    address: "Ngã tư Lê Lợi, Nguyễn Huệ, Phường Bến Nghé, Quận 1",
-    lat: 10.7769,
-    lng: 106.7009,
-  },
-  date: "2 giờ trước",
-  reportedAt: "24/10/2023 14:30",
-  images: [
-    "https://via.placeholder.com/800x600/1a1a1a/ffffff?text=Garbage+1",
-    "https://via.placeholder.com/800x600/2d2d2d/ffffff?text=Garbage+2",
-  ],
-  progress: 45,
-  priority: "Cao",
-  category: "Rác thải bừa bãi",
-
-  // Timeline updates
-  updates: [
-    {
-      id: 1,
-      status: "Tiếp nhận",
-      time: "24/10/2023 14:30",
-      description:
-        "Phản ánh của bạn đã được tiếp nhận và đưa vào hệ thống xử lý.",
-      by: "Hệ thống",
-      type: "success",
-    },
-    {
-      id: 2,
-      status: "Đã giao cho đơn vị",
-      time: "24/10/2023 15:00",
-      description: "Đã giao cho đội vệ sinh khu vực Quận 1 xử lý.",
-      by: "Admin",
-      type: "info",
-    },
-    {
-      id: 3,
-      status: "Đang xử lý",
-      time: "24/10/2023 16:45",
-      description: "Đội vệ sinh đã đến địa điểm và bắt đầu xử lý.",
-      by: "Staff - Trần Văn B",
-      type: "processing",
-    },
-  ],
-
-  comments: [
-    {
-      id: 1,
-      author: "Nguyễn Văn A",
-      avatar: "NA",
-      time: "1 giờ trước",
-      text: "Cảm ơn đã xử lý nhanh, hy vọng sẽ sạch sẽ hơn!",
-      isOwner: true,
-    },
-    {
-      id: 2,
-      author: "Trần Văn B",
-      avatar: "TB",
-      time: "30 phút trước",
-      text: "Dạ, hiện tại chúng tôi đang tiến hành dọn dẹp. Sẽ xong trước 18:00 hôm nay.",
-      isStaff: true,
-    },
-  ],
-};
+import {
+  ArrowLeft,
+  MapPin,
+  Clock,
+  AlertCircle,
+  CheckCircle2,
+  Loader,
+  MessageSquare,
+  ImageIcon,
+} from "lucide-react";
+import { feedbackApi } from "@/features/feedback/api/feedbackApi";
+import { IFeedback, FeedbackStatus } from "@/features/feedback/types";
+import { toast } from "sonner";
 
 export default function CitizenReportDetailPage() {
-  const { id } = useParams();
+  const { reportId } = useParams<{ reportId: string }>();
   const navigate = useNavigate();
+  const [feedback, setFeedback] = useState<IFeedback | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const [activeTab, setActiveTab] = useState("overview");
   const [commentText, setCommentText] = useState("");
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
 
-  const getStatusColor = (status: string) => {
+  useEffect(() => {
+    const fetchFeedback = async () => {
+      if (!reportId) return;
+      try {
+        setIsLoading(true);
+        const data = await feedbackApi.getById(reportId);
+        setFeedback(data);
+      } catch (error) {
+        console.error("Failed to fetch feedback:", error);
+        toast.error("Không thể tải chi tiết phản ánh");
+        navigate("/my-reports");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchFeedback();
+  }, [reportId, navigate]);
+
+  const getStatusInfo = (status: string) => {
     switch (status) {
-      case "Vừa gửi":
+      case FeedbackStatus.NEW:
         return {
-          bg: "bg-blue-100",
-          text: "text-blue-700",
-          icon: "info",
-          color: "bg-blue-500",
+          label: "Mới",
+          color:
+            "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300",
+          bgColor: "bg-blue-500",
+          icon: AlertCircle,
         };
-      case "Đang xử lý":
+      case FeedbackStatus.PROCESSING:
         return {
-          bg: "bg-orange-100",
-          text: "text-orange-700",
-          icon: "schedule",
-          color: "bg-orange-500",
+          label: "Đang xử lý",
+          color:
+            "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-300",
+          bgColor: "bg-orange-500",
+          icon: Loader,
         };
-      case "Đã hoàn thành":
+      case FeedbackStatus.RESOLVED:
         return {
-          bg: "bg-green-100",
-          text: "text-green-700",
-          icon: "check_circle",
-          color: "bg-green-500",
+          label: "Đã xử lý",
+          color:
+            "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-300",
+          bgColor: "bg-green-500",
+          icon: CheckCircle2,
         };
       default:
         return {
-          bg: "bg-gray-100",
-          text: "text-gray-700",
-          icon: "help",
-          color: "bg-gray-400",
+          label: "Chờ tiếp nhận",
+          color:
+            "bg-gray-100 text-gray-700 dark:bg-gray-700 dark:text-gray-300",
+          bgColor: "bg-gray-500",
+          icon: AlertCircle,
         };
     }
   };
 
-  const statusStyle = getStatusColor(REPORT_DETAIL.status);
+  const getProgressPercentage = (status: string) => {
+    switch (status) {
+      case FeedbackStatus.NEW:
+        return 33;
+      case FeedbackStatus.PROCESSING:
+        return 66;
+      case FeedbackStatus.RESOLVED:
+        return 100;
+      default:
+        return 0;
+    }
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-[#101822] flex items-center justify-center p-4">
+        <div className="text-center">
+          <Loader className="w-12 h-12 animate-spin text-blue-500 mx-auto mb-4" />
+          <p className="text-gray-600 dark:text-gray-400">
+            Đang tải dữ liệu...
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!feedback) {
+    return (
+      <div className="min-h-screen bg-gray-50 dark:bg-[#101822] flex items-center justify-center p-4">
+        <div className="text-center">
+          <p className="text-gray-600 dark:text-gray-400 mb-4">
+            Không tìm thấy phản ánh
+          </p>
+          <button
+            onClick={() => navigate("/my-reports")}
+            className="px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition"
+          >
+            Quay lại
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  const statusInfo = getStatusInfo(feedback.status);
+  const progress = getProgressPercentage(feedback.status);
+  const images = feedback.imageUrls || [];
+  const currentImage = images[currentImageIndex] || "";
 
   return (
-    <div className="w-full min-h-screen bg-gray-50 p-4 md:p-8">
-      <div className="max-w-4xl mx-auto flex flex-col gap-6">
-        {/* MAIN CARD */}
-        <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
-          {/* IMAGE SECTION */}
-          <div className="relative h-64 md:h-96 overflow-hidden bg-gray-200">
-            <img
-              src={REPORT_DETAIL.images[0]}
-              alt={REPORT_DETAIL.title}
-              className="w-full h-full object-cover"
-            />
-            {/* STATUS BADGE */}
-            <div className="absolute top-6 left-6">
-              <span
-                className={clsx(
-                  "inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold backdrop-blur-sm",
-                  statusStyle.bg,
-                  statusStyle.text
-                )}
-              >
+    <div className="min-h-screen bg-gray-50 dark:bg-[#101822] p-4 md:p-8">
+      <div className="mx-auto">
+        {/* Header */}
+        <div className="flex items-center gap-4 mb-6">
+          <button
+            onClick={() => navigate("/my-reports")}
+            className="p-2 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-lg transition"
+          >
+            <ArrowLeft className="w-5 h-5" />
+          </button>
+          <h1 className="text-2xl font-bold dark:text-white">
+            Chi tiết phản ánh
+          </h1>
+        </div>
+
+        {/* Main Card */}
+        <div className="bg-white dark:bg-[#1a222d] rounded-2xl border border-gray-200 dark:border-[#2a3441] shadow-sm overflow-hidden">
+          {/* Image Section */}
+          {images.length > 0 && (
+            <div className="relative h-80 bg-gray-900 overflow-hidden">
+              <img
+                src={currentImage}
+                alt="Feedback evidence"
+                className="w-full h-full object-cover"
+              />
+
+              {/* Status Badge */}
+              <div className="absolute top-4 left-4">
                 <span
-                  className={clsx("size-3 rounded-full", statusStyle.color)}
-                />
-                {REPORT_DETAIL.status}
-              </span>
-            </div>
-
-            {/* PRIORITY BADGE */}
-            <div className="absolute top-6 right-6">
-              <span className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full text-sm font-bold bg-red-100 text-red-700 backdrop-blur-sm border border-red-200">
-                <span className="material-symbols-outlined text-base">
-                  priority_high
+                  className={`inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-bold ${statusInfo.color}`}
+                >
+                  <div
+                    className={`w-2.5 h-2.5 rounded-full ${statusInfo.bgColor}`}
+                  />
+                  {statusInfo.label}
                 </span>
-                {REPORT_DETAIL.priority}
-              </span>
-            </div>
+              </div>
 
-            {/* IMAGE COUNTER */}
-            <div className="absolute bottom-6 right-6 px-3 py-2 bg-black/50 text-white rounded-lg text-sm font-bold">
-              1 / {REPORT_DETAIL.images.length}
-            </div>
-          </div>
+              {/* Image Counter */}
+              {images.length > 1 && (
+                <div className="absolute bottom-4 right-4 bg-black/60 text-white px-3 py-1.5 rounded-lg text-sm font-bold">
+                  {currentImageIndex + 1} / {images.length}
+                </div>
+              )}
 
-          {/* CONTENT SECTION */}
+              {/* Image Navigation */}
+              {images.length > 1 && (
+                <>
+                  <button
+                    onClick={() =>
+                      setCurrentImageIndex(
+                        (prev) => (prev - 1 + images.length) % images.length,
+                      )
+                    }
+                    className="absolute left-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition"
+                  >
+                    ‹
+                  </button>
+                  <button
+                    onClick={() =>
+                      setCurrentImageIndex((prev) => (prev + 1) % images.length)
+                    }
+                    className="absolute right-4 top-1/2 -translate-y-1/2 bg-black/50 hover:bg-black/70 text-white p-2 rounded-full transition"
+                  >
+                    ›
+                  </button>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* Content Section */}
           <div className="p-6 md:p-8 space-y-6">
-            {/* HEADER */}
+            {/* Header Info */}
             <div>
-              <div className="flex items-start justify-between mb-3">
-                <span className="text-sm font-bold text-gray-500">
-                  {REPORT_DETAIL.displayId}
+              <div className="flex items-center justify-between mb-3">
+                <span className="text-sm font-bold text-gray-500 dark:text-gray-400">
+                  {feedback.id}
                 </span>
-                <span className="text-sm text-gray-400">
-                  {REPORT_DETAIL.reportedAt}
-                </span>
-              </div>
-              <h1 className="text-3xl md:text-4xl font-black text-gray-900 mb-2">
-                {REPORT_DETAIL.title}
-              </h1>
-              <div className="flex flex-wrap gap-3 mt-4">
-                <span className="px-3 py-1.5 bg-primary/10 text-primary text-xs font-bold rounded-lg">
-                  {REPORT_DETAIL.category}
+                <span className="text-sm text-gray-400 dark:text-gray-500">
+                  {new Date(feedback.createdAt).toLocaleDateString("vi-VN", {
+                    year: "numeric",
+                    month: "2-digit",
+                    day: "2-digit",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  })}
                 </span>
               </div>
+              <h2 className="text-2xl md:text-3xl font-bold dark:text-white mb-3">
+                {feedback.description?.substring(0, 60) || "Phản ánh"}
+              </h2>
             </div>
 
-            {/* LOCATION */}
-            <div className="border-t border-gray-200 pt-6">
+            {/* Location */}
+            <div className="border-t border-gray-200 dark:border-[#2a3441] pt-6">
               <div className="flex gap-4">
-                <div className="flex-shrink-0">
-                  <div className="flex items-center justify-center h-12 w-12 rounded-lg bg-primary/10">
-                    <span className="material-symbols-outlined text-primary text-xl">
-                      location_on
-                    </span>
+                <div className="shrink-0">
+                  <div className="flex items-center justify-center h-12 w-12 rounded-lg bg-blue-100 dark:bg-blue-900/30">
+                    <MapPin className="w-6 h-6 text-blue-600 dark:text-blue-400" />
                   </div>
                 </div>
                 <div className="flex-1">
-                  <p className="text-sm font-bold text-gray-600 uppercase tracking-wide">
+                  <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1">
                     Địa điểm
                   </p>
-                  <p className="text-lg font-bold text-gray-900 mt-1">
-                    {REPORT_DETAIL.location.address}
+                  <p className="text-lg font-semibold dark:text-white">
+                    {feedback.areaId?.name ||
+                      feedback.binId?.code ||
+                      "Không xác định"}
                   </p>
-                  <button className="mt-3 text-primary font-bold text-sm hover:underline flex items-center gap-1">
-                    <span className="material-symbols-outlined text-base">
-                      open_in_new
-                    </span>
-                    Xem trên bản đồ
-                  </button>
+                  {feedback.binId?.address && (
+                    <p className="text-sm text-gray-600 dark:text-gray-400 mt-1">
+                      {feedback.binId.address}
+                    </p>
+                  )}
                 </div>
               </div>
             </div>
 
-            {/* PROGRESS BAR */}
-            <div className="border-t border-gray-200 pt-6">
+            {/* Progress */}
+            <div className="border-t border-gray-200 dark:border-[#2a3441] pt-6">
               <div className="flex items-center justify-between mb-3">
-                <p className="text-sm font-bold text-gray-600 uppercase tracking-wide">
+                <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest">
                   Tiến độ xử lý
                 </p>
-                <p className="text-2xl font-black text-primary">
-                  {REPORT_DETAIL.progress}%
+                <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">
+                  {progress}%
                 </p>
               </div>
-              <div className="w-full h-3 bg-gray-200 rounded-full overflow-hidden">
+              <div className="w-full h-3 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
                 <div
-                  className={clsx(
-                    "h-full transition-all duration-300",
-                    statusStyle.color
-                  )}
-                  style={{ width: `${REPORT_DETAIL.progress}%` }}
+                  className={`h-full transition-all duration-300 ${statusInfo.bgColor}`}
+                  style={{ width: `${progress}%` }}
                 />
               </div>
             </div>
 
-            {/* TABS */}
-            <div className="border-t border-gray-200 pt-6">
-              <div className="flex gap-4 mb-6 border-b border-gray-200">
+            {/* Tabs */}
+            <div className="border-t border-gray-200 dark:border-[#2a3441] pt-6">
+              <div className="flex gap-6 mb-6 border-b border-gray-200 dark:border-[#2a3441] -mx-6 md:-mx-8 px-6 md:px-8">
                 {[
-                  { id: "overview", label: "Tổng quan", icon: "info" },
-                  { id: "timeline", label: "Lịch sử xử lý", icon: "timeline" },
-                  { id: "comments", label: "Bình luận", icon: "comment" },
+                  { id: "overview", label: "Tổng quan" },
+                  { id: "images", label: "Hình ảnh" },
+                  { id: "comments", label: "Bình luận" },
                 ].map((tab) => (
                   <button
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id)}
-                    className={clsx(
-                      "flex items-center gap-2 px-4 py-3 font-bold text-sm transition-all border-b-2 -mb-[2px]",
+                    className={`flex items-center gap-2 px-4 py-3 font-semibold text-sm transition-colors border-b-2 -mb-0.5 ${
                       activeTab === tab.id
-                        ? "text-primary border-primary"
-                        : "text-gray-600 border-transparent hover:text-gray-900"
-                    )}
+                        ? "text-blue-600 dark:text-blue-400 border-blue-600 dark:border-blue-400"
+                        : "text-gray-600 dark:text-gray-400 border-transparent hover:text-gray-900 dark:hover:text-gray-300"
+                    }`}
                   >
-                    <span className="material-symbols-outlined text-lg">
-                      {tab.icon}
-                    </span>
                     {tab.label}
                   </button>
                 ))}
               </div>
 
-              {/* TAB CONTENT */}
+              {/* Tab Content */}
               {activeTab === "overview" && (
                 <div className="space-y-6">
                   <div>
-                    <h3 className="text-lg font-bold text-gray-900 mb-3">
+                    <h3 className="text-lg font-bold dark:text-white mb-3">
                       Mô tả chi tiết
                     </h3>
-                    <p className="text-gray-700 leading-relaxed">
-                      {REPORT_DETAIL.description}
+                    <p className="text-gray-700 dark:text-gray-300 leading-relaxed whitespace-pre-wrap">
+                      {feedback.description}
                     </p>
                   </div>
 
-                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-gray-50 p-6 rounded-xl">
-                    <StatItem label="Trạng thái" value={REPORT_DETAIL.status} />
-                    <StatItem label="Ưu tiên" value={REPORT_DETAIL.priority} />
-                    <StatItem
-                      label="Loại"
-                      value={REPORT_DETAIL.category.split(" ")[0]}
-                    />
-                    <StatItem label="Ngày gửi" value="24/10/2023" />
+                  <div className="grid grid-cols-2 md:grid-cols-4 gap-4 bg-gray-50 dark:bg-[#2a3441] p-6 rounded-xl">
+                    <div>
+                      <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1">
+                        Trạng thái
+                      </p>
+                      <p className="text-sm font-bold dark:text-white">
+                        {statusInfo.label}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1">
+                        Khu vực
+                      </p>
+                      <p className="text-sm font-bold dark:text-white">
+                        {feedback.areaId?.name || "—"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1">
+                        Thùng rác
+                      </p>
+                      <p className="text-sm font-bold dark:text-white">
+                        {feedback.binId?.code || "—"}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-xs font-bold text-gray-500 dark:text-gray-400 uppercase tracking-widest mb-1">
+                        Ngày gửi
+                      </p>
+                      <p className="text-sm font-bold dark:text-white">
+                        {new Date(feedback.createdAt).toLocaleDateString(
+                          "vi-VN",
+                        )}
+                      </p>
+                    </div>
                   </div>
+                </div>
+              )}
 
-                  {/* IMAGE GALLERY */}
-                  <div>
-                    <h3 className="text-lg font-bold text-gray-900 mb-4">
-                      Hình ảnh phản ánh
-                    </h3>
+              {activeTab === "images" && (
+                <div>
+                  {images.length > 0 ? (
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {REPORT_DETAIL.images.map((img, idx) => (
+                      {images.map((img, idx) => (
                         <div
                           key={idx}
-                          className="relative rounded-lg overflow-hidden bg-gray-200 aspect-video hover:shadow-lg transition cursor-pointer group"
+                          className="relative rounded-lg overflow-hidden bg-gray-200 dark:bg-gray-700 aspect-video hover:shadow-lg transition cursor-pointer group"
+                          onClick={() => setCurrentImageIndex(idx)}
                         >
                           <img
                             src={img}
@@ -295,121 +356,50 @@ export default function CitizenReportDetailPage() {
                             className="w-full h-full object-cover group-hover:scale-105 transition"
                           />
                           <span className="absolute top-2 right-2 bg-black/50 text-white px-2 py-1 rounded text-xs font-bold">
-                            {idx + 1}/{REPORT_DETAIL.images.length}
+                            {idx + 1}/{images.length}
                           </span>
                         </div>
                       ))}
                     </div>
-                  </div>
-                </div>
-              )}
-
-              {activeTab === "timeline" && (
-                <div className="space-y-6">
-                  {REPORT_DETAIL.updates.map((update, idx) => (
-                    <div key={update.id} className="flex gap-6">
-                      {/* Timeline dot and line */}
-                      <div className="flex flex-col items-center">
-                        <div
-                          className={clsx(
-                            "size-4 rounded-full border-4 border-white z-10",
-                            update.type === "success"
-                              ? "bg-green-500"
-                              : update.type === "processing"
-                              ? "bg-orange-500"
-                              : "bg-blue-500"
-                          )}
-                        />
-                        {idx < REPORT_DETAIL.updates.length - 1 && (
-                          <div className="w-1 h-16 bg-gradient-to-b from-gray-300 to-transparent mt-2" />
-                        )}
-                      </div>
-
-                      {/* Content */}
-                      <div className="flex-1 pb-6">
-                        <div className="flex items-start justify-between mb-2">
-                          <div>
-                            <p className="font-bold text-gray-900">
-                              {update.status}
-                            </p>
-                            <p className="text-sm text-gray-500">{update.by}</p>
-                          </div>
-                          <span className="text-xs text-gray-400">
-                            {update.time}
-                          </span>
-                        </div>
-                        <p className="text-gray-700 mt-2">
-                          {update.description}
-                        </p>
-                      </div>
+                  ) : (
+                    <div className="text-center py-12">
+                      <ImageIcon className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                      <p className="text-gray-500 dark:text-gray-400">
+                        Không có hình ảnh
+                      </p>
                     </div>
-                  ))}
+                  )}
                 </div>
               )}
 
               {activeTab === "comments" && (
                 <div className="space-y-6">
-                  {/* COMMENTS LIST */}
-                  <div className="space-y-4">
-                    {REPORT_DETAIL.comments.map((comment) => (
-                      <div
-                        key={comment.id}
-                        className="flex gap-4 pb-4 border-b border-gray-200 last:border-b-0"
-                      >
-                        <div
-                          className={clsx(
-                            "size-10 rounded-full flex items-center justify-center font-bold text-sm text-white shrink-0",
-                            comment.isStaff
-                              ? "bg-gradient-to-br from-orange-400 to-orange-600"
-                              : "bg-gradient-to-br from-blue-400 to-blue-600"
-                          )}
-                        >
-                          {comment.avatar}
-                        </div>
-                        <div className="flex-1">
-                          <div className="flex items-center gap-2 mb-1">
-                            <p className="font-bold text-gray-900">
-                              {comment.author}
-                            </p>
-                            {comment.isStaff && (
-                              <span className="px-2 py-0.5 bg-orange-100 text-orange-700 text-[10px] font-bold rounded-full">
-                                Staff
-                              </span>
-                            )}
-                            {comment.isOwner && (
-                              <span className="px-2 py-0.5 bg-blue-100 text-blue-700 text-[10px] font-bold rounded-full">
-                                Người báo cáo
-                              </span>
-                            )}
-                          </div>
-                          <p className="text-sm text-gray-500 mb-2">
-                            {comment.time}
-                          </p>
-                          <p className="text-gray-700">{comment.text}</p>
-                        </div>
-                      </div>
-                    ))}
+                  <div className="text-center py-8">
+                    <MessageSquare className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+                    <p className="text-gray-500 dark:text-gray-400 mb-4">
+                      Chưa có bình luận nào
+                    </p>
                   </div>
 
-                  {/* COMMENT INPUT */}
-                  <div className="border-t border-gray-200 pt-6">
+                  {/* Comment Input */}
+                  <div className="border-t border-gray-200 dark:border-[#2a3441] pt-6">
                     <div className="flex gap-4">
-                      <div className="size-10 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center font-bold text-sm text-white shrink-0">
-                        NA
+                      <div className="w-10 h-10 rounded-full bg-linear-to-br from-blue-400 to-blue-600 flex items-center justify-center text-sm font-bold text-white shrink-0">
+                        U
                       </div>
                       <div className="flex-1">
                         <textarea
                           value={commentText}
                           onChange={(e) => setCommentText(e.target.value)}
                           placeholder="Viết bình luận của bạn..."
-                          className="w-full px-4 py-3 border border-gray-200 rounded-xl outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition resize-none"
+                          className="w-full px-4 py-3 border border-gray-200 dark:border-[#2a3441] dark:bg-[#2a3441] dark:text-white rounded-xl outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 transition resize-none"
                           rows={3}
                         />
                         <div className="flex justify-end gap-2 mt-3">
-                          <button className="px-4 py-2 text-gray-600 font-bold hover:bg-gray-100 rounded-lg transition">
+                          <button className="px-4 py-2 text-gray-600 dark:text-gray-400 font-semibold hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg transition">
                             Hủy
                           </button>
-                          <button className="px-4 py-2 bg-primary text-white font-bold rounded-lg hover:bg-primary/90 transition">
+                          <button className="px-4 py-2 bg-blue-500 text-white font-semibold rounded-lg hover:bg-blue-600 transition">
                             Bình luận
                           </button>
                         </div>
@@ -422,29 +412,13 @@ export default function CitizenReportDetailPage() {
           </div>
         </div>
 
-        {/* ACTION BUTTONS */}
-        <div className="flex gap-4">
-          <button className="flex-1 px-6 py-3 border-2 border-gray-300 text-gray-700 font-bold rounded-xl hover:bg-gray-100 transition flex items-center justify-center gap-2">
-            <span className="material-symbols-outlined">edit</span>
-            Chỉnh sửa
-          </button>
-          <button className="flex-1 px-6 py-3 border-2 border-red-300 text-red-600 font-bold rounded-xl hover:bg-red-50 transition flex items-center justify-center gap-2">
-            <span className="material-symbols-outlined">delete</span>
+        {/* Action Buttons */}
+        <div className="flex justify-center mt-6">
+          <button className="px-6 py-3 border-2 border-red-300 dark:border-red-600 text-red-600 dark:text-red-400 font-semibold rounded-xl hover:bg-red-50 dark:hover:bg-red-900/20 transition">
             Xóa phản ánh
           </button>
         </div>
       </div>
-    </div>
-  );
-}
-
-function StatItem({ label, value }: { label: string; value: string }) {
-  return (
-    <div>
-      <p className="text-xs text-gray-600 font-bold uppercase tracking-wide mb-1">
-        {label}
-      </p>
-      <p className="text-sm font-bold text-gray-900">{value}</p>
     </div>
   );
 }

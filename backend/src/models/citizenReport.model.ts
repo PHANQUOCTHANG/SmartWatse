@@ -10,9 +10,10 @@ const citizenReportSchema = new Schema<ICitizenReportDocument>(
   {
     citizenId: { type: Schema.Types.ObjectId, ref: "User", required: true },
     areaId: { type: Schema.Types.ObjectId, ref: "Area" },
+    collectionPointId: { type: Schema.Types.ObjectId, ref: "CollectionPoint" },
     binId: { type: Schema.Types.ObjectId, ref: "Bin" },
     description: { type: String, required: true },
-    imageUrl: { type: String },
+    imageUrls: [{ type: String }],
     status: {
       type: String,
       enum: Object.values(ReportStatus),

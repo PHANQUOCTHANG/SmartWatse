@@ -5,7 +5,12 @@ import ClientLayout from "@/layouts/client/ClientLayout";
 import { GuestRoute } from "@/app/routes/GuestRoute";
 import ProtectedRoute from "@/app/routes/ProtectedRoute";
 import { guestAuthRoutes, protectedAuthRoutes } from "@/features/auth/routes";
-import { MANAGER_PATHS, STAFF_PATHS, ADMIN_PATHS } from "@/config/paths";
+import {
+  MANAGER_PATHS,
+  STAFF_PATHS,
+  ADMIN_PATHS,
+  CITIZEN_PATHS,
+} from "@/config/paths";
 import { RoleBasedHome } from "@/app/routes/RoleBasedHome";
 
 // Manager Pages
@@ -34,6 +39,16 @@ import {
 import StaffTaskHistoryPage from "@/pages/staff/StaffTaskHistoryPage";
 import CollectionPointManagementPage from "@/pages/admin/CollectionPointManagementPage";
 import MapMonitorPage from "@/pages/admin/MapMonitor";
+
+// Citizen Pages
+import {
+  CitizenHomePage,
+  CitizenReportCreatePage,
+  CitizenReportPage,
+  CitizenReportDetailPage,
+  CitizenSchedulePage,
+  CitizenNotificationPage,
+} from "@/pages/citizen";
 
 export const router = createBrowserRouter([
   {
@@ -128,6 +143,38 @@ export const router = createBrowserRouter([
               { path: STAFF_PATHS.MY_ROUTE, element: <StaffMapPage /> },
               { path: STAFF_PATHS.HISTORY, element: <StaffTaskHistoryPage /> },
               { path: STAFF_PATHS.PROFILE, element: <StaffProfilePage /> },
+            ],
+          },
+
+          // Citizen Routes
+          {
+            path: CITIZEN_PATHS.ROOT,
+            element: <ProtectedRoute requiredRole={"CITIZEN"} />,
+            children: [
+              {
+                index: true,
+                element: <CitizenHomePage />,
+              },
+              {
+                path: CITIZEN_PATHS.REPORT_CREATE,
+                element: <CitizenReportCreatePage />,
+              },
+              {
+                path: CITIZEN_PATHS.MY_REPORTS,
+                element: <CitizenReportPage />,
+              },
+              {
+                path: `${CITIZEN_PATHS.MY_REPORTS}/:reportId`,
+                element: <CitizenReportDetailPage />,
+              },
+              {
+                path: CITIZEN_PATHS.NOTIFICATIONS,
+                element: <CitizenNotificationPage />,
+              },
+              {
+                path: CITIZEN_PATHS.MAP_LOOKUP,
+                element: <CitizenSchedulePage />,
+              },
             ],
           },
         ],

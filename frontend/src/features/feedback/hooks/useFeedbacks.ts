@@ -30,6 +30,7 @@ export const useFeedbacks = (
     status: searchParams.get("status") || undefined,
     areaId: searchParams.get("areaId") || undefined,
     binId: searchParams.get("binId") || undefined,
+    collectionPointId: searchParams.get("collectionPointId") || undefined,
     citizenId: searchParams.get("citizenId") || undefined,
     startDate: searchParams.get("startDate") || undefined,
     endDate: searchParams.get("endDate") || undefined,
@@ -54,6 +55,9 @@ export const useFeedbacks = (
     }
     if (filterParams.binId) {
       newSearchParams.set("binId", filterParams.binId);
+    }
+    if (filterParams.collectionPointId) {
+      newSearchParams.set("collectionPointId", filterParams.collectionPointId);
     }
     if (filterParams.citizenId) {
       newSearchParams.set("citizenId", filterParams.citizenId);
@@ -101,6 +105,7 @@ export const useFeedbacks = (
       status: undefined,
       areaId: undefined,
       binId: undefined,
+      collectionPointId: undefined,
       citizenId: undefined,
       startDate: undefined,
       endDate: undefined,
@@ -199,6 +204,7 @@ export const useFeedbacks = (
     updateFilter,
     handleClearFilters,
     refetch,
+    refreshFeedbacks: refetch,
 
     // Mutations
     create: createMutation.mutate,

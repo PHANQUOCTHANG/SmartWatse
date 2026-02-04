@@ -6,12 +6,14 @@ interface ScheduleRightPanelProps {
   selectedSchedule?: any;
   onClose?: () => void;
   onRefresh?: () => void;
+  onRefreshDetail?: () => void;
 }
 
 export default function ScheduleRightPanel({
   selectedSchedule,
   onClose,
   onRefresh,
+  onRefreshDetail,
 }: ScheduleRightPanelProps) {
   const [isEditing, setIsEditing] = useState(false);
 
@@ -23,7 +25,7 @@ export default function ScheduleRightPanel({
         onClose={onClose}
         isEditing={isEditing}
         onEditChange={setIsEditing}
-        onRefresh={onRefresh}
+        onRefresh={onRefreshDetail || onRefresh}
       />
     </div>
   );

@@ -1,15 +1,13 @@
+import React, { useState, useEffect } from "react";
 import { X } from "lucide-react";
-import { useState, useEffect } from "react";
 import { areaApi } from "@/features/area/api/areaApi";
 import { scheduleApi } from "@/features/schedule/api/scheduleApi";
 import { toast } from "sonner";
-
-// Enum chuẩn để đồng bộ với Backend
-enum ScheduleFrequency {
-  DAILY = "DAILY",
-  WEEKLY = "WEEKLY",
-  MONTHLY = "MONTHLY",
-}
+import {
+  RecurrenceFrequency,
+  getFrequencyLabel,
+} from "../utils/recurringHelper";
+import { ScheduleFormValues } from "@/features/schedule/schemas/schedule.schema";
 
 interface CreateScheduleModalProps {
   isOpen: boolean;
@@ -18,24 +16,34 @@ interface CreateScheduleModalProps {
   onRefresh?: () => void;
 }
 
+interface CreateScheduleFormData {
+  name: string;
+  areaId: string; // Changed from district to areaId
+  scheduledDate: string; // This is correct
+  startTime: string;
+  endTime: string;
+  frequency: RecurrenceFrequency;
+}
+
 export default function CreateScheduleModal({
   isOpen,
   onClose,
   onSuccess,
   onRefresh,
 }: CreateScheduleModalProps) {
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<CreateScheduleFormData>({
     name: "",
-    areaId: "", // Lưu trữ ID (ObjectId), không phải tên
-    scheduledDate: "",
+    areaId: "",
+    scheduledDate: new Date().toISOString().substring(0, 10),
     startTime: "08:00",
-    endTime: "17:00",
-    frequency: ScheduleFrequency.DAILY,
+    endTime: "09:00",
+    frequency: "hàng_ngày",
   });
 
-  const [areas, setAreas] = useState<any[]>([]);
+  const [areas, setAreas] = useState<Array<{ id: string; name: string }>>([]);
   const [isLoadingAreas, setIsLoadingAreas] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [errors, setErrors] = useState<Partial<CreateScheduleFormData>>({});
 
   // Lấy danh sách khu vực khi mở Modal
   useEffect(() => {
@@ -44,10 +52,10 @@ export default function CreateScheduleModal({
         try {
           setIsLoadingAreas(true);
           const response = await areaApi.getAll({ page: 1, limit: 100 });
-          // Đảm bảo response.data là mảng
           setAreas(Array.isArray(response.data) ? response.data : []);
-        } catch (error) {
+        } catch {
           toast.error("Không thể tải danh sách khu vực");
+          setAreas([]);
         } finally {
           setIsLoadingAreas(false);
         }
@@ -56,141 +64,165 @@ export default function CreateScheduleModal({
     }
   }, [isOpen]);
 
+  const validateForm = (): boolean => {
+    const newErrors: Partial<CreateScheduleFormData> = {};
+
+    if (!formData.name?.trim()) {
+      newErrors.name = "Vui lòng nhập tên lịch trình";
+    }
+    if (!formData.areaId) {
+      newErrors.areaId = "Vui lòng chọn khu vực";
+    }
+    if (!formData.scheduledDate) {
+      newErrors.scheduledDate = "Vui lòng chọn ngày bắt đầu";
+    }
+    if (!formData.startTime) {
+      newErrors.startTime = "Vui lòng chọn giờ bắt đầu";
+    }
+    if (!formData.endTime) {
+      newErrors.endTime = "Vui lòng chọn giờ kết thúc";
+    }
+    if (formData.startTime >= formData.endTime) {
+      newErrors.endTime = "Giờ kết thúc phải sau giờ bắt đầu";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
 
-    // Kiểm tra dữ liệu bắt buộc
-    if (!formData.name || !formData.areaId || !formData.scheduledDate) {
-      toast.error("Vui lòng nhập tên, ngày và chọn khu vực");
-      return;
-    }
+    if (!validateForm()) return;
 
     try {
       setIsSubmitting(true);
 
-      const payload = {
-        ...formData,
-        // Đảm bảo gửi ISO String để Backend lưu vào kiểu Date
-        scheduledDate: new Date(formData.scheduledDate).toISOString(),
-      };
+      // Gọi API tạo lịch
+      await scheduleApi.create({
+        name: formData.name,
+        areaId: formData.areaId,
+        scheduledDate: formData.scheduledDate,
+        startTime: formData.startTime,
+        endTime: formData.endTime,
+        frequency: formData.frequency,
+      } as ScheduleFormValues);
 
-      console.log("📤 Payload sent to API:", payload);
+      toast.success("Tạo lịch thu gom thành công!");
 
-      await scheduleApi.create(payload);
+      // Reset form
+      setFormData({
+        name: "",
+        areaId: "",
+        scheduledDate: new Date().toISOString().substring(0, 10),
+        startTime: "08:00",
+        endTime: "09:00",
+        frequency: "hàng_ngày",
+      });
+      setErrors({});
 
-      toast.success("Đã tạo lịch trình thu gom");
+      onClose();
       onRefresh?.();
-      onSuccess?.(); // Gọi hàm load lại dữ liệu ở trang Lịch
-      handleClose();
-    } catch (error: any) {
-      const msg = error.response?.data?.message || "Lỗi khi lưu dữ liệu";
-      toast.error(`❌ ${msg}`);
+      onSuccess?.();
+    } catch (error) {
+      toast.error("Lỗi tạo lịch trình");
+      console.error(error);
     } finally {
       setIsSubmitting(false);
     }
   };
 
-  const handleClose = () => {
-    setFormData({
-      name: "",
-      areaId: "",
-      scheduledDate: "",
-      startTime: "08:00",
-      endTime: "17:00",
-      frequency: ScheduleFrequency.DAILY,
-    });
-    onClose();
-  };
-
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 bg-black/50 backdrop-blur-sm flex items-center justify-center z-[100] p-4">
-      <div className="bg-white rounded-2xl shadow-xl w-full max-w-md overflow-hidden animate-in zoom-in duration-200">
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <div className="bg-white dark:bg-[#1a222d] rounded-2xl shadow-2xl max-w-md w-full max-h-[90vh] overflow-y-auto">
         {/* Header */}
-        <div className="px-6 py-4 border-b flex items-center justify-between bg-gray-50/50">
-          <h2 className="text-lg font-bold text-gray-900">
-            Thêm lịch trình mới
+        <div className="flex items-center justify-between p-6 border-b border-[#e5e7eb] dark:border-[#2a3441] sticky top-0 bg-white dark:bg-[#1a222d] z-10">
+          <h2 className="text-xl font-bold text-[#111418] dark:text-white">
+            Tạo lịch thu gom
           </h2>
           <button
-            onClick={handleClose}
-            className="p-1 hover:bg-gray-200 rounded-full transition"
+            onClick={onClose}
+            className="p-1 hover:bg-gray-100 dark:hover:bg-[#2a3441] rounded-lg transition-colors"
           >
-            <X size={20} className="text-gray-500" />
+            <X size={20} className="text-[#60728a]" />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        {/* Form */}
+        <form onSubmit={handleSubmit} className="p-6 space-y-5">
           {/* Tên lịch trình */}
           <div>
-            <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
-              Tên lịch trình
+            <label className="block text-sm font-medium text-[#111418] dark:text-white mb-2">
+              Tên lịch trình <span className="text-red-500">*</span>
             </label>
             <input
               type="text"
-              required
               value={formData.name}
               onChange={(e) =>
                 setFormData({ ...formData, name: e.target.value })
               }
-              placeholder="VD: Thu gom rác Phường 1"
-              className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none transition"
+              placeholder="Ví dụ: Thu gom rác hữu cơ"
+              className="w-full px-4 py-2.5 bg-white dark:bg-[#0f1419] border border-[#e5e7eb] dark:border-[#2a3441] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-[#111418] dark:text-white placeholder-[#94a3b8]"
             />
+            {errors.name && (
+              <p className="text-red-500 text-xs mt-1">{errors.name}</p>
+            )}
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
-            {/* Ngày thực hiện */}
-            <div>
-              <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
-                Ngày bắt đầu
-              </label>
-              <input
-                type="date"
-                required
-                value={formData.scheduledDate}
-                onChange={(e) =>
-                  setFormData({ ...formData, scheduledDate: e.target.value })
-                }
-                className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
-              />
-            </div>
-
-            {/* Khu vực - Đây là phần FIX LỖI areaId */}
-            <div>
-              <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
-                Khu vực
-              </label>
-              <select
-                required
-                value={formData.areaId}
-                onChange={(e) =>
-                  setFormData({ ...formData, areaId: e.target.value })
-                }
-                className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none bg-white"
-              >
-                <option value="">
-                  {isLoadingAreas ? "Đang tải..." : "Chọn khu vực"}
+          {/* Khu vực */}
+          <div>
+            <label className="block text-sm font-medium text-[#111418] dark:text-white mb-2">
+              Khu vực <span className="text-red-500">*</span>
+            </label>
+            <select
+              value={formData.areaId}
+              onChange={(e) =>
+                setFormData({ ...formData, areaId: e.target.value })
+              }
+              disabled={isLoadingAreas}
+              className="w-full px-4 py-2.5 bg-white dark:bg-[#0f1419] border border-[#e5e7eb] dark:border-[#2a3441] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-[#111418] dark:text-white disabled:opacity-50"
+            >
+              <option value="">
+                {isLoadingAreas ? "Đang tải..." : "Chọn khu vực"}
+              </option>
+              {areas.map((area) => (
+                <option key={area.id} value={area.id}>
+                  {area.name}
                 </option>
-                {areas.map(
-                  (area) => (
-                    console.log(area),
-                    (
-                      // QUAN TRỌNG: value={area._id} để gửi ID về server thay vì gửi tên
-                      <option key={area.id} value={area.id}>
-                        {area.name}
-                      </option>
-                    )
-                  ),
-                )}
-              </select>
-            </div>
+              ))}
+            </select>
+            {errors.areaId && (
+              <p className="text-red-500 text-xs mt-1">{errors.areaId}</p>
+            )}
           </div>
 
+          {/* Ngày bắt đầu */}
+          <div>
+            <label className="block text-sm font-medium text-[#111418] dark:text-white mb-2">
+              Ngày bắt đầu <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="date"
+              value={formData.scheduledDate}
+              onChange={(e) =>
+                setFormData({ ...formData, scheduledDate: e.target.value })
+              }
+              className="w-full px-4 py-2.5 bg-white dark:bg-[#0f1419] border border-[#e5e7eb] dark:border-[#2a3441] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-[#111418] dark:text-white"
+            />
+            {errors.scheduledDate && (
+              <p className="text-red-500 text-xs mt-1">
+                {errors.scheduledDate}
+              </p>
+            )}
+          </div>
+
+          {/* Giờ bắt đầu và kết thúc */}
           <div className="grid grid-cols-2 gap-4">
-            {/* Giờ bắt đầu */}
             <div>
-              <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
-                Giờ bắt đầu
+              <label className="block text-sm font-medium text-[#111418] dark:text-white mb-2">
+                Giờ bắt đầu <span className="text-red-500">*</span>
               </label>
               <input
                 type="time"
@@ -198,13 +230,12 @@ export default function CreateScheduleModal({
                 onChange={(e) =>
                   setFormData({ ...formData, startTime: e.target.value })
                 }
-                className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                className="w-full px-4 py-2.5 bg-white dark:bg-[#0f1419] border border-[#e5e7eb] dark:border-[#2a3441] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-[#111418] dark:text-white"
               />
             </div>
-            {/* Giờ kết thúc */}
             <div>
-              <label className="block text-xs font-bold text-gray-500 uppercase mb-1">
-                Giờ kết thúc
+              <label className="block text-sm font-medium text-[#111418] dark:text-white mb-2">
+                Giờ kết thúc <span className="text-red-500">*</span>
               </label>
               <input
                 type="time"
@@ -212,53 +243,73 @@ export default function CreateScheduleModal({
                 onChange={(e) =>
                   setFormData({ ...formData, endTime: e.target.value })
                 }
-                className="w-full px-4 py-2 border rounded-xl focus:ring-2 focus:ring-blue-500 outline-none"
+                className="w-full px-4 py-2.5 bg-white dark:bg-[#0f1419] border border-[#e5e7eb] dark:border-[#2a3441] rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500/50 text-[#111418] dark:text-white"
               />
             </div>
           </div>
+          {errors.startTime && (
+            <p className="text-red-500 text-xs">{errors.startTime}</p>
+          )}
+          {errors.endTime && (
+            <p className="text-red-500 text-xs">{errors.endTime}</p>
+          )}
 
-          {/* Tần suất */}
+          {/* Kiểu lặp */}
           <div>
-            <label className="block text-xs font-bold text-gray-500 uppercase mb-2">
-              Tần suất lặp lại
+            <label className="block text-sm font-medium text-[#111418] dark:text-white mb-3">
+              Kiểu lặp <span className="text-red-500">*</span>
             </label>
-            <div className="flex gap-2">
-              {[
-                { v: ScheduleFrequency.DAILY, l: "Hàng ngày" },
-                { v: ScheduleFrequency.WEEKLY, l: "Hàng tuần" },
-                { v: ScheduleFrequency.MONTHLY, l: "Hàng tháng" },
-              ].map((opt) => (
+            <div className="grid grid-cols-3 gap-2">
+              {(
+                [
+                  "hàng_ngày",
+                  "hàng_tuần",
+                  "hàng_tháng",
+                ] as RecurrenceFrequency[]
+              ).map((freq) => (
                 <button
-                  key={opt.v}
+                  key={freq}
                   type="button"
-                  onClick={() => setFormData({ ...formData, frequency: opt.v })}
-                  className={`flex-1 py-2 text-xs font-bold rounded-lg border transition ${
-                    formData.frequency === opt.v
-                      ? "bg-blue-600 text-white border-blue-600 shadow-md"
-                      : "bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100"
+                  onClick={() => setFormData({ ...formData, frequency: freq })}
+                  className={`px-3 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                    formData.frequency === freq
+                      ? "bg-blue-500 text-white shadow-lg"
+                      : "bg-gray-100 dark:bg-[#2a3441] text-[#60728a] dark:text-[#94a3b8] hover:bg-gray-200 dark:hover:bg-[#3a4451]"
                   }`}
                 >
-                  {opt.l}
+                  {getFrequencyLabel(freq)}
                 </button>
               ))}
             </div>
+
+            {/* Mô tả kiểu lặp */}
+            <div className="mt-3 p-3 bg-blue-50 dark:bg-blue-900/20 border border-blue-200 dark:border-blue-800 rounded-lg">
+              <p className="text-xs text-blue-900 dark:text-blue-200 font-medium">
+                {formData.frequency === "hàng_ngày" &&
+                  "📅 Lịch sẽ lặp mỗi ngày từ ngày bắt đầu"}
+                {formData.frequency === "hàng_tuần" &&
+                  `📅 Lịch sẽ lặp vào mỗi ${["Chủ Nhật", "Thứ Hai", "Thứ Ba", "Thứ Tư", "Thứ Năm", "Thứ Sáu", "Thứ Bảy"][new Date(formData.scheduledDate).getDay()]}`}
+                {formData.frequency === "hàng_tháng" &&
+                  `📅 Lịch sẽ lặp vào ngày ${new Date(formData.scheduledDate).getDate()} hàng tháng`}
+              </p>
+            </div>
           </div>
 
-          {/* Nút bấm */}
-          <div className="flex gap-3 pt-4">
+          {/* Buttons */}
+          <div className="flex gap-3 pt-4 border-t border-[#e5e7eb] dark:border-[#2a3441]">
             <button
               type="button"
-              onClick={handleClose}
-              className="flex-1 py-2.5 border border-gray-300 rounded-xl text-sm font-bold text-gray-600 hover:bg-gray-50 transition"
+              onClick={onClose}
+              className="flex-1 px-4 py-2.5 bg-gray-100 dark:bg-[#2a3441] text-[#111418] dark:text-white rounded-lg font-medium hover:bg-gray-200 dark:hover:bg-[#3a4451] transition-all"
             >
-              Hủy bỏ
+              Hủy
             </button>
             <button
               type="submit"
-              disabled={isSubmitting}
-              className="flex-1 py-2.5 bg-blue-600 text-white rounded-xl text-sm font-bold hover:bg-blue-700 transition disabled:opacity-50 shadow-lg shadow-blue-100"
+              disabled={isSubmitting || isLoadingAreas}
+              className="flex-1 px-4 py-2.5 bg-blue-500 text-white rounded-lg font-medium hover:bg-blue-600 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isSubmitting ? "Đang lưu..." : "Lưu lịch trình"}
+              {isSubmitting ? "Đang tạo..." : "Tạo lịch"}
             </button>
           </div>
         </form>

@@ -6,13 +6,20 @@ import { Request, Response } from "express";
 // POST | Tiếp nhận và khởi tạo báo cáo mới từ công dân
 export const createReport = asyncHandler(
   async (req: Request, res: Response) => {
-    const data = await citizenReportService.create(req.body);
+    // Lấy URLs từ các file đã upload qua Cloudinary
+    const imageUrls =
+      (req.files as Express.Multer.File[])?.map((file: any) => file.path) || [];
+
+    const data = await citizenReportService.create({
+      ...req.body,
+      imageUrls,
+    });
 
     res.status(201).json({
       status: "success",
       data,
     });
-  }
+  },
 );
 
 // GET | Truy vấn danh sách các phản ánh (Hỗ trợ phân trang và lọc trạng thái)
@@ -47,7 +54,7 @@ export const updateReport = asyncHandler(
       status: "success",
       data,
     });
-  }
+  },
 );
 
 // DELETE | Loại bỏ bản ghi báo cáo khỏi hệ thống quản lý
@@ -60,5 +67,5 @@ export const deleteReport = asyncHandler(
       status: "success",
       data: null,
     });
-  }
+  },
 );
