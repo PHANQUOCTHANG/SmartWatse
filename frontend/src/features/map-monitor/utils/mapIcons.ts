@@ -20,7 +20,7 @@ export const getBinColor = (type: BinType) => {
 export const getBinStatusEffect = (status: BinStatus) => {
   switch (status) {
     case BinStatus.FULL:
-    case BinStatus.OVERLOAD:
+    case BinStatus.OVERFLOW:
       return "animate-pulse ring-4 ring-red-500 ring-opacity-50"; // Nhấp nháy đỏ báo động
     case BinStatus.BROKEN:
     case BinStatus.MAINTENANCE:

@@ -1,11 +1,15 @@
-// Trạng thái của task thu gom
+// src/features/task-assignment/types.ts
+
+// ... (Giữ nguyên các Enum TaskStatus, VehicleStatus, VehicleType, UserRole, BinStatus, BinType)
+
+// [KEEP] Enum giữ nguyên
 export enum TaskStatus {
   PENDING = "PENDING",
   IN_PROGRESS = "IN_PROGRESS",
+  CANCELLED = "CANCELLED",
   DONE = "DONE",
 }
 
-// Trạng thái của phương tiện
 export enum VehicleStatus {
   AVAILABLE = "AVAILABLE",
   IN_USE = "IN_USE",
@@ -14,14 +18,12 @@ export enum VehicleStatus {
   OFFLINE = "OFFLINE",
 }
 
-// Loại phương tiện
 export enum VehicleType {
   COMPACTOR = "COMPACTOR",
   TRUCK = "TRUCK",
   ELECTRIC = "ELECTRIC",
 }
 
-// Vai trò người dùng
 export enum UserRole {
   ADMIN = "ADMIN",
   MANAGER = "MANAGER",
@@ -29,7 +31,6 @@ export enum UserRole {
   CITIZEN = "CITIZEN",
 }
 
-// Trạng thái thùng rác
 export enum BinStatus {
   ACTIVE = "ACTIVE",
   FULL = "FULL",
@@ -38,35 +39,49 @@ export enum BinStatus {
   MAINTENANCE = "MAINTENANCE",
 }
 
-// Loại thùng rác
 export enum BinType {
   ORGANIC = "ORGANIC",
   INORGANIC = "INORGANIC",
   RECYCLE = "RECYCLE",
 }
 
-// Thông tin task thu gom
+// [UPDATE] Cập nhật Interface ITask để khớp với JSON
 export interface ITask {
   _id?: string;
   id?: string;
-  scheduleId?: string; // Lịch trình tham chiếu (tùy chọn)
+  scheduleId?: string;
   schedule?: {
     _id?: string;
     id?: string;
     name?: string;
+    // [ADDED] Thêm thời gian từ JSON
+    startTime?: string;
+    endTime?: string;
+    scheduledDate?: string | Date;
     areaId?: {
       _id?: string;
       id?: string;
       name?: string;
+      // [ADDED] Thêm boundary để vẽ map (nếu cần)
+      boundary?: {
+        type: "Polygon";
+        coordinates: number[][][];
+      };
     };
   };
-  binId?: string; // Thùng rác cần thu gom (bắt buộc)
-  staffIds?: string[]; // Danh sách nhân viên được giao
+  binId?: string;
+  staffIds?: string[];
+  // [UPDATE] Bổ sung thông tin staff chi tiết
   staffs?: Array<{
     _id?: string;
     id?: string;
     fullName?: string;
     name?: string;
+    // [ADDED] Các trường cần cho UI Detail
+    email?: string;
+    phoneNumber?: string;
+    avatar?: string;
+    role?: UserRole | string;
   }>;
   vehicleId?: string;
   vehicle?: IVehicle;
@@ -77,7 +92,7 @@ export interface ITask {
   updatedAt?: string | Date;
 }
 
-// Thông tin nhân viên được giao task
+// [KEEP] Các Interface khác giữ nguyên
 export interface IStaff {
   _id?: string;
   id?: string;
@@ -91,7 +106,6 @@ export interface IStaff {
   updatedAt?: string | Date;
 }
 
-// Thông tin phương tiện thu gom
 export interface IVehicle {
   _id?: string;
   id?: string;
@@ -110,7 +124,6 @@ export interface IVehicle {
   updatedAt?: string | Date;
 }
 
-// Thông tin thùng rác
 export interface IBin {
   _id?: string;
   id?: string;
@@ -130,7 +143,6 @@ export interface IBin {
   updatedAt?: string | Date;
 }
 
-// Thông tin lịch trình thu gom
 export interface ISchedule {
   _id?: string;
   id?: string;
@@ -144,7 +156,6 @@ export interface ISchedule {
   updatedAt?: string | Date;
 }
 
-// Payload tạo/cập nhật task
 export interface CreateTaskDTO {
   scheduleId?: string;
   staffIds: string[];
@@ -152,11 +163,10 @@ export interface CreateTaskDTO {
   note?: string;
 }
 
-// Tham số lọc task
 export interface TaskFilterParams {
   page?: number;
   limit?: number;
-  keyword?: string;
+  search?: string;
   status?: string;
   staffId?: string;
   scheduleId?: string;
@@ -164,4 +174,11 @@ export interface TaskFilterParams {
   areaId?: string;
   startDate?: string;
   endDate?: string;
+}
+export interface HistoryFilterParams {
+  search?: string;
+  status: string; // "ALL" | "DONE" | "CANCELLED"
+  date?: Date;
+  page: number; // [ADDED]
+  limit: number; // [ADDED]
 }

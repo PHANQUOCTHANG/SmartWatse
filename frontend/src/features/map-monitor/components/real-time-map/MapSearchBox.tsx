@@ -1,8 +1,7 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect } from "react";
 import { Search, X, Loader2, MapPin } from "lucide-react";
 import { useMap } from "react-leaflet";
 import { Input } from "@/components/ui/input";
-import { cn } from "@/lib/utils";
 
 // Interface kết quả từ Nominatim
 interface SearchResult {

@@ -10,8 +10,11 @@ export const createTask = asyncHandler(async (req, res) => {
 
 // GET | /api/v1/collection-tasks | Lấy danh sách nhiệm vụ (phân trang, lọc)
 export const getTasks = asyncHandler(async (req, res) => {
-   const query = normalizeQueryCollectionTask(req.query);
-    const data = await collectionTaskService.findAll(query);
+  console.log("Normalized Query:", req.query);
+  const query = normalizeQueryCollectionTask(req.query);
+  console.log("Normalized Query:", query);
+
+  const data = await collectionTaskService.findAll(query);
   res.status(200).json({ status: "success", ...data });
 });
 

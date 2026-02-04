@@ -16,6 +16,7 @@ interface MapState {
     bins: boolean;
     vehicles: boolean;
     areas: boolean;
+    points: boolean;
   };
 
   // Data hiển thị
@@ -41,7 +42,7 @@ interface MapState {
 const initialState: MapState = {
   isLoading: false,
   error: null,
-  layers: { bins: true, vehicles: true, areas: true },
+  layers: { bins: true, vehicles: true, areas: true, points: true },
   vehicles: {},
   bins: {},
   areas: [],
