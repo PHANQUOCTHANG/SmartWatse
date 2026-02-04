@@ -7,25 +7,26 @@ export enum TaskStatus {
   DONE = "DONE",
 }
 
-
 export interface QueryCollectionTask extends BaseQuery {
   areaId?: Types.ObjectId;
-  startDate?: string | Date; 
+  startDate?: string | Date;
   endDate?: string | Date;
   status?: TaskStatus;
+  staffId?: Types.ObjectId;
 }
 
 export const normalizeQueryCollectionTask = (
   query: any,
 ): QueryCollectionTask => {
   const base = normalizeQuery(query);
-  
+
   return {
     ...base,
     areaId: query.areaId || undefined,
-    startDate: query.startDate || undefined, 
+    startDate: query.startDate || undefined,
     endDate: query.endDate || undefined,
-    status : query.status || undefined
+    status: query.status || undefined,
+    staffId: query.staffId || undefined,
   };
 };
 

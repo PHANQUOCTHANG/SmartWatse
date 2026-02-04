@@ -50,6 +50,7 @@ export class CollectionTaskRepository implements ICollectionTaskRepository {
       sort = { createdAt: -1 },
       areaId,
       status,
+      staffId,
       startDate,
       endDate,
     } = query;
@@ -58,9 +59,11 @@ export class CollectionTaskRepository implements ICollectionTaskRepository {
 
     // 1. Lọc theo search (staffIds hoặc binId)
     if (search) {
-      filter.$or = [{ staffIds: search }, { binId: search }];
+      filter.$or = [{ staffId: search }, { binId: search }];
     }
-
+    if (staffId) {
+      filter.staffIds = staffId;
+    }
     // 2. Lọc theo status
     if (status) {
       filter.status = status;

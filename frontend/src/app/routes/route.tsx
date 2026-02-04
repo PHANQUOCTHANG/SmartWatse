@@ -30,15 +30,13 @@ import AreaManagementPage from "@/pages/admin/AreaManagementPage";
 import VehicleManagementPage from "@/pages/admin/VehicleManagementPage";
 
 // Staff Pages
-import {
-  StaffTaskListPage,
-  StaffTaskDetailPage,
-  StaffMapPage,
-  StaffProfilePage,
-} from "@/pages/staff";
+import { StaffMapPage, StaffProfilePage } from "@/pages/staff";
 import StaffTaskHistoryPage from "@/pages/staff/StaffTaskHistoryPage";
 import CollectionPointManagementPage from "@/pages/admin/CollectionPointManagementPage";
 import MapMonitorPage from "@/pages/admin/MapMonitor";
+import StaffCollectionTaskPage from "@/pages/staff/StaffCollectionTaskPage";
+import StaffCollectionTaskDetailPage from "@/pages/staff/StaffCollectionTaskDetailPage";
+import UnifiedMapPage from "@/features/map-monitor/components/real-time-map/UnifiedMapPage";
 
 // Citizen Pages
 import {
@@ -90,7 +88,7 @@ export const router = createBrowserRouter([
               },
               {
                 path: MANAGER_PATHS.MAP_MONITOR,
-                element: <ManagerMapMonitorPage />,
+                element: <UnifiedMapPage />,
               },
               {
                 path: MANAGER_PATHS.SCHEDULE,
@@ -113,7 +111,7 @@ export const router = createBrowserRouter([
               { index: true, element: <AdminDashboardPage /> },
               { path: ADMIN_PATHS.USERS, element: <UsersPage /> },
               { path: ADMIN_PATHS.AREAS, element: <AreaManagementPage /> },
-              { path: ADMIN_PATHS.MAP_MONITOR, element: <MapMonitorPage /> },
+              { path: ADMIN_PATHS.MAP_MONITOR, element: <UnifiedMapPage /> },
               { path: ADMIN_PATHS.BINS, element: <BinsPage /> },
               {
                 path: ADMIN_PATHS.VEHICLES,
@@ -135,12 +133,12 @@ export const router = createBrowserRouter([
                 index: true,
                 element: <Navigate to={STAFF_PATHS.TASKS} replace />,
               },
-              { path: STAFF_PATHS.TASKS, element: <StaffTaskListPage /> },
+              { path: STAFF_PATHS.TASKS, element: <StaffCollectionTaskPage /> },
               {
                 path: `${STAFF_PATHS.TASKS}/:taskId`,
-                element: <StaffTaskDetailPage />,
+                element: <StaffCollectionTaskDetailPage />,
               },
-              { path: STAFF_PATHS.MY_ROUTE, element: <StaffMapPage /> },
+              { path: STAFF_PATHS.MY_ROUTE, element: <UnifiedMapPage /> },
               { path: STAFF_PATHS.HISTORY, element: <StaffTaskHistoryPage /> },
               { path: STAFF_PATHS.PROFILE, element: <StaffProfilePage /> },
             ],

@@ -1,284 +1,260 @@
-import { useState, useMemo } from "react";
-import HistoryStats from "@/features/task/components/history/HistoryStats";
-import HistoryTable from "@/features/task/components/history/HistoryTable";
+import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
+import { format } from "date-fns";
 import {
-  TaskHistoryItem,
-  TaskHistoryStats,
-} from "@/features/task/types/task-history.type";
+  History,
+  ArrowRight,
+  MapPin,
+  MoreHorizontal,
+  FileClock,
+} from "lucide-react";
 
-const MOCK_STATS: TaskHistoryStats = {
-  monthlyTasks: 24,
-  taskDiff: 2,
-  totalWeight: "1,250 kg",
-  avgWeightPerDay: "52kg",
-  avgTimePerRoute: "45 phút",
-  timeDiff: "5 phút",
-};
+// Components
+import PageHeader from "@/components/ui/PageHeader";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuLabel,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 
-// Dữ liệu mẫu với nhiều bản ghi để test phân trang
-const MOCK_HISTORY: TaskHistoryItem[] = [
-  {
-    id: "#WM-2023-089",
-    date: "20/10/2023",
-    timeRange: "08:30 - 09:15",
-    area: "Quận 1 - Zone A",
-    weight: "450 kg",
-    status: "Hoàn thành",
-    progress: { current: 45, total: 45 },
-  },
-  {
-    id: "#WM-2023-088",
-    date: "19/10/2023",
-    timeRange: "14:00 - 15:20",
-    area: "Quận 3 - P. Võ Thị Sáu",
-    weight: "310 kg",
-    status: "Hoàn thành",
-    progress: { current: 32, total: 32 },
-  },
-  {
-    id: "#WM-2023-087",
-    date: "18/10/2023",
-    timeRange: "09:30 - 10:45",
-    area: "Q. Bình Thạnh - P.12",
-    weight: "540 kg",
-    status: "Cảnh báo đầy",
-    progress: { current: 45, total: 50 },
-  },
-  {
-    id: "#WM-2023-086",
-    date: "17/10/2023",
-    timeRange: "10:00 - 11:30",
-    area: "Quận 5 - Zone B",
-    weight: "380 kg",
-    status: "Hoàn thành",
-    progress: { current: 38, total: 38 },
-  },
-  {
-    id: "#WM-2023-085",
-    date: "16/10/2023",
-    timeRange: "07:45 - 09:00",
-    area: "Quận 10 - P. Hòa Bình",
-    weight: "420 kg",
-    status: "Hoàn thành",
-    progress: { current: 42, total: 42 },
-  },
-  {
-    id: "#WM-2023-084",
-    date: "15/10/2023",
-    timeRange: "15:30 - 16:45",
-    area: "Quận 4 - Zone C",
-    weight: "490 kg",
-    status: "Hoàn thành",
-    progress: { current: 49, total: 49 },
-  },
-  {
-    id: "#WM-2023-083",
-    date: "14/10/2023",
-    timeRange: "08:00 - 09:30",
-    area: "Quận 1 - Zone D",
-    weight: "360 kg",
-    status: "Hoàn thành",
-    progress: { current: 36, total: 36 },
-  },
-  {
-    id: "#WM-2023-082",
-    date: "13/10/2023",
-    timeRange: "13:00 - 14:20",
-    area: "Quận 7 - P. 1",
-    weight: "530 kg",
-    status: "Cảnh báo đầy",
-    progress: { current: 48, total: 50 },
-  },
-  {
-    id: "#WM-2023-081",
-    date: "12/10/2023",
-    timeRange: "09:15 - 10:45",
-    area: "Quận 6 - Zone E",
-    weight: "410 kg",
-    status: "Hoàn thành",
-    progress: { current: 41, total: 41 },
-  },
-  {
-    id: "#WM-2023-080",
-    date: "11/10/2023",
-    timeRange: "14:30 - 15:50",
-    area: "Quận 8 - P. 2",
-    weight: "470 kg",
-    status: "Hoàn thành",
-    progress: { current: 47, total: 47 },
-  },
-  {
-    id: "#WM-2023-079",
-    date: "10/10/2023",
-    timeRange: "07:30 - 09:00",
-    area: "Quận 2 - Zone F",
-    weight: "390 kg",
-    status: "Hoàn thành",
-    progress: { current: 39, total: 39 },
-  },
-  {
-    id: "#WM-2023-078",
-    date: "09/10/2023",
-    timeRange: "15:00 - 16:30",
-    area: "Quận 12 - P. 5",
-    weight: "510 kg",
-    status: "Hoàn thành",
-    progress: { current: 51, total: 51 },
-  },
-  {
-    id: "#WM-2023-077",
-    date: "08/10/2023",
-    timeRange: "08:45 - 10:15",
-    area: "Quận 9 - Zone G",
-    weight: "440 kg",
-    status: "Hoàn thành",
-    progress: { current: 44, total: 44 },
-  },
-  {
-    id: "#WM-2023-076",
-    date: "07/10/2023",
-    timeRange: "13:30 - 14:50",
-    area: "Quận 11 - P. 8",
-    weight: "480 kg",
-    status: "Hoàn thành",
-    progress: { current: 48, total: 48 },
-  },
-  {
-    id: "#WM-2023-075",
-    date: "06/10/2023",
-    timeRange: "09:00 - 10:30",
-    area: "Thủ Đức - Zone H",
-    weight: "520 kg",
-    status: "Cảnh báo đầy",
-    progress: { current: 49, total: 50 },
-  },
-];
+// Logic & Types
+import { useStaffHistory } from "@/features/task-assignment/hooks/useStaffHistory";
+import Pagination from "@/utils/pagination";
+import { ITask, TaskStatus } from "@/features/task-assignment/types";
+import {
+  HistoryFilterParams,
+  StaffTaskHistoryFilter,
+} from "@/features/task-assignment/components/StaffTaskHistoryFilter";
 
-export default function StaffTaskHistoryPage() {
-  const [searchTerm, setSearchTerm] = useState("");
-  const [fromDate, setFromDate] = useState("");
-  const [toDate, setToDate] = useState("");
-  const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+const StaffTaskHistoryPage = () => {
+  const navigate = useNavigate();
 
-  // Filter logic: search + date range
-  const filteredHistory = useMemo(() => {
-    const term = searchTerm.trim().toLowerCase();
+  // 1. STATE QUẢN LÝ TOÀN BỘ FILTER (Page & Limit nằm ở đây)
+  const [filterParams, setFilterParams] = useState<HistoryFilterParams>({
+    keyword: "",
+    status: "ALL",
+    date: undefined,
+    page: 1,
+    limit: 10,
+  });
 
-    return MOCK_HISTORY.filter((item) => {
-      // Search filter (area, id)
-      const searchMatch =
-        !term ||
-        item.area.toLowerCase().includes(term) ||
-        item.id.toLowerCase().includes(term);
+  // 2. GỌI HOOK (Truyền state vào hook)
+  const { tasks, meta, isLoading, refetch } = useStaffHistory(filterParams);
 
-      // Date range filter
-      let dateMatch = true;
-      if (fromDate || toDate) {
-        const itemDate = new Date(item.date.split("/").reverse().join("-"));
-        if (fromDate) {
-          const from = new Date(fromDate);
-          dateMatch = dateMatch && itemDate >= from;
-        }
-        if (toDate) {
-          const to = new Date(toDate);
-          dateMatch = dateMatch && itemDate <= to;
-        }
-      }
-
-      return searchMatch && dateMatch;
-    });
-  }, [searchTerm, fromDate, toDate]);
-
-  // Pagination
-  const totalPages = Math.ceil(filteredHistory.length / itemsPerPage);
-  const paginatedHistory = filteredHistory.slice(
-    (currentPage - 1) * itemsPerPage,
-    currentPage * itemsPerPage
-  );
+  // 3. Helper render badge
+  const renderStatusBadge = (status: string) => {
+    if (status === TaskStatus.DONE) {
+      return (
+        <Badge className="bg-emerald-100 text-emerald-700 hover:bg-emerald-100 border-emerald-200">
+          Hoàn thành
+        </Badge>
+      );
+    }
+    if (status === TaskStatus.CANCELLED) {
+      return (
+        <Badge
+          variant="destructive"
+          className="bg-red-100 text-red-700 hover:bg-red-100 border-red-200"
+        >
+          Đã hủy
+        </Badge>
+      );
+    }
+    return <Badge variant="outline">{status}</Badge>;
+  };
 
   return (
-    <div className="flex-1 overflow-y-auto p-8 bg-background-light">
-      <div className="max-w-7xl mx-auto flex flex-col gap-6">
-        <HistoryStats stats={MOCK_STATS} />
+    <div className="max-w-6xl mx-auto p-4 md:p-6 space-y-6 animate-in fade-in duration-500 pb-20">
+      {/* HEADER */}
+      <PageHeader
+        title="Nhật ký công việc"
+        subtitle="Tra cứu lịch sử và hiệu suất thực hiện nhiệm vụ."
+      />
 
-        {/* Filter Bar */}
-        <div className="flex flex-col md:flex-row gap-4 bg-white p-4 rounded-xl border border-[#dbe6df] shadow-sm">
-          <div className="relative flex-1">
-            <span className="absolute left-3 top-1/2 -translate-y-1/2 material-symbols-outlined text-[#61896f]">
-              search
-            </span>
-            <input
-              type="text"
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setCurrentPage(1);
-              }}
-              placeholder="Tìm kiếm khu vực hoặc mã..."
-              className="w-full pl-10 pr-4 py-2.5 bg-[#f0f4f2] border border-[#dbe6df] rounded-lg text-sm"
-            />
-          </div>
+      {/* FILTER CONTROL */}
+      <StaffTaskHistoryFilter
+        filters={filterParams}
+        onChange={setFilterParams}
+        onRefresh={refetch}
+      />
 
-          <div className="flex gap-2">
-            <input
-              type="date"
-              value={fromDate}
-              onChange={(e) => {
-                setFromDate(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="px-4 py-2.5 bg-[#f0f4f2] border border-[#dbe6df] rounded-lg text-sm"
-              placeholder="Từ ngày"
-            />
-            <input
-              type="date"
-              value={toDate}
-              onChange={(e) => {
-                setToDate(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="px-4 py-2.5 bg-[#f0f4f2] border border-[#dbe6df] rounded-lg text-sm"
-              placeholder="Đến ngày"
-            />
-          </div>
-        </div>
-
-        <HistoryTable items={paginatedHistory} />
-
-        {/* Pagination */}
-        {totalPages > 1 && (
-          <div className="flex items-center justify-center gap-2 mt-6">
-            <button
-              onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-              disabled={currentPage === 1}
-              className="px-4 py-2 rounded-lg border border-[#dbe6df] disabled:opacity-50 hover:bg-[#f0f4f2]"
-            >
-              Trước
-            </button>
-            {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
-              <button
-                key={page}
-                onClick={() => setCurrentPage(page)}
-                className={`px-3 py-2 rounded-lg ${
-                  currentPage === page
-                    ? "bg-primary text-white font-bold"
-                    : "border border-[#dbe6df] hover:bg-[#f0f4f2]"
-                }`}
-              >
-                {page}
-              </button>
+      {/* DATA TABLE */}
+      <div className="bg-white rounded-xl border shadow-sm overflow-hidden">
+        {isLoading ? (
+          <div className="p-4 space-y-3">
+            {[1, 2, 3, 4, 5].map((i) => (
+              <Skeleton key={i} className="h-12 w-full bg-slate-100" />
             ))}
-            <button
-              onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
-              disabled={currentPage === totalPages}
-              className="px-4 py-2 rounded-lg border border-[#dbe6df] disabled:opacity-50 hover:bg-[#f0f4f2]"
-            >
-              Sau
-            </button>
+          </div>
+        ) : tasks.length === 0 ? (
+          <div className="flex flex-col items-center justify-center py-16 text-slate-400">
+            <div className="bg-slate-50 p-4 rounded-full mb-3">
+              <FileClock className="size-8 opacity-50" />
+            </div>
+            <p className="font-medium">Không tìm thấy dữ liệu lịch sử.</p>
+            <p className="text-xs mt-1">
+              Thử thay đổi bộ lọc hoặc tìm kiếm từ khóa khác.
+            </p>
+          </div>
+        ) : (
+          <div className="overflow-x-auto">
+            <Table>
+              <TableHeader className="bg-slate-50/50">
+                <TableRow>
+                  <TableHead className="w-[100px]">Mã NV</TableHead>
+                  <TableHead className="min-w-[200px]">
+                    Nhiệm vụ / Khu vực
+                  </TableHead>
+                  <TableHead className="min-w-[150px]">Thời gian</TableHead>
+                  <TableHead>Phương tiện</TableHead>
+                  <TableHead>Trạng thái</TableHead>
+                  <TableHead className="text-right">Hành động</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {tasks.map((task: ITask) => (
+                  <TableRow
+                    key={task.id}
+                    className="group hover:bg-slate-50/60 transition-colors cursor-pointer md:cursor-auto"
+                    onClick={() =>
+                      window.innerWidth < 768 &&
+                      navigate(`/staff/tasks/${task.id}`)
+                    }
+                  >
+                    <TableCell className="font-mono text-xs font-medium text-slate-500">
+                      #{task.id?.slice(-6).toUpperCase()}
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-col">
+                        <span className="font-bold text-slate-800 line-clamp-1">
+                          {task.schedule?.name || "Nhiệm vụ thu gom"}
+                        </span>
+                        <div className="flex items-center gap-1 text-xs text-slate-500 mt-0.5">
+                          <MapPin size={10} className="text-indigo-500" />
+                          <span className="truncate max-w-[180px]">
+                            {task.schedule?.areaId?.name ||
+                              "Chưa cập nhật khu vực"}
+                          </span>
+                        </div>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex flex-col text-sm">
+                        <span className="font-medium text-slate-700">
+                          {task.schedule?.scheduledDate
+                            ? format(
+                                new Date(task.schedule.scheduledDate),
+                                "dd/MM/yyyy",
+                              )
+                            : "--/--/----"}
+                        </span>
+                        <span className="text-xs text-slate-400 font-mono mt-0.5">
+                          {task.actualStartTime
+                            ? format(new Date(task.actualStartTime), "HH:mm")
+                            : "--:--"}
+                          {" - "}
+                          {task.actualEndTime
+                            ? format(new Date(task.actualEndTime), "HH:mm")
+                            : "--:--"}
+                        </span>
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      {task.vehicle ? (
+                        <div className="text-xs">
+                          <div className="font-bold text-slate-700">
+                            {task.vehicle.plateNumber}
+                          </div>
+                          <div className="text-slate-400 uppercase text-[10px]">
+                            {task.vehicle.type}
+                          </div>
+                        </div>
+                      ) : (
+                        <span className="text-xs text-slate-400 italic">
+                          --
+                        </span>
+                      )}
+                    </TableCell>
+                    <TableCell>
+                      {renderStatusBadge(task.status as string)}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {/* Mobile Actions */}
+                      <div
+                        className="md:hidden"
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        <DropdownMenu>
+                          <DropdownMenuTrigger asChild>
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8"
+                            >
+                              <MoreHorizontal className="h-4 w-4" />
+                            </Button>
+                          </DropdownMenuTrigger>
+                          <DropdownMenuContent align="end">
+                            <DropdownMenuLabel>Thao tác</DropdownMenuLabel>
+                            <DropdownMenuItem
+                              onClick={() =>
+                                navigate(`/staff/tasks/${task.id}`)
+                              }
+                            >
+                              Xem chi tiết
+                            </DropdownMenuItem>
+                          </DropdownMenuContent>
+                        </DropdownMenu>
+                      </div>
+                      {/* Desktop Actions */}
+                      <div className="hidden md:block">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          className="text-indigo-600 hover:text-indigo-700 hover:bg-indigo-50 font-bold text-xs gap-1"
+                          onClick={() => navigate(`/staff/tasks/${task.id}`)}
+                        >
+                          Chi tiết <ArrowRight size={14} />
+                        </Button>
+                      </div>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
           </div>
         )}
       </div>
+
+      {/* PAGINATION */}
+      {!isLoading && tasks.length > 0 && (
+        <div className="flex justify-end pt-2">
+          <Pagination
+            currentPage={filterParams.page}
+            totalPages={meta.totalPages}
+            onPageChange={(newPage) =>
+              setFilterParams((prev) => ({ ...prev, page: newPage }))
+            }
+            totalItems={meta.total}
+            itemsPerPage={filterParams.limit}
+          />
+        </div>
+      )}
     </div>
   );
-}
+};
+
+export default StaffTaskHistoryPage;

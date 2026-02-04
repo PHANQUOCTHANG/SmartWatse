@@ -20,6 +20,7 @@ interface AuthUser {
   phoneNumber?: string;
   address?: string;
   avatar?: string;
+  areaId?: string;
 }
 
 interface AuthResult {
@@ -188,6 +189,7 @@ export class AuthService implements IAuthService {
         phoneNumber: user.phoneNumber,
         address: user.address,
         avatar: user.avatar,
+        areaId: user.areaId,
       },
     };
   }

@@ -1,8 +1,7 @@
 import { areaApi } from "@/features/area/api/areaApi";
 import { binApi } from "@/features/bin";
 import { collectionPointApi } from "@/features/collection-points/api/collectionPointApi";
-
-import { vehicleApi } from "@/features/vehicles/api/vehicleApi.ts";
+import { vehicleApi } from "@/features/vehicles/api/vehicleApi";
 
 export const mapService = {
   getAreas: async () => {
