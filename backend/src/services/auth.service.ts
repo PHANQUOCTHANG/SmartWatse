@@ -124,7 +124,6 @@ export class AuthService implements IAuthService {
     // Kiểm tra OTP hợp lệ
     const record = await this.otpRepo.findValidByEmail(email);
 
-    console.log(record);
     if (!record || !record.verified) {
       throw new AppError("Mã OTP không hợp lệ hoặc chưa được xác thực", 400);
     }

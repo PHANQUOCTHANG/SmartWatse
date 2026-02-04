@@ -1,5 +1,5 @@
 import { userService } from "@/config/container";
-import { normalizeQuery } from "@/interface/query.interface";
+import { normalizeQueryUser } from "@/interface/user.interface";
 import asyncHandler from "@/utils/asyncHandler";
 import { Request, Response } from "express";
 
@@ -16,10 +16,10 @@ export const createUser = asyncHandler(async (req: Request, res: Response) => {
 
 // GET | /api/v1/users | Lấy danh sách người dùng (Có phân trang & search)
 export const getUsers = asyncHandler(async (req: Request, res: Response) => {
-  // Chuẩn hóa query từ URL (page, limit, search, sort)
-  const query = normalizeQuery(req.query);
+  // Chuẩn hóa query từ URL (page, limit, search, sort, role, status, areaId)
+  const query = normalizeQueryUser(req.query);
 
-  // Gọi userService.findAll theo quy tắc Service rút gon
+  // Gọi userService.findAll theo quy tắc Service rút gọn
   const result = await userService.findAll(query);
 
   res.status(200).json({

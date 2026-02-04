@@ -8,8 +8,6 @@ export enum AreaType {
 export interface IArea {
   name: string;
   type: AreaType;
-
   parentId?: string | Types.ObjectId | null;
-
   createdAt: Date;
 }

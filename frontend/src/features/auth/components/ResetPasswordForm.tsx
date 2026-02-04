@@ -70,15 +70,15 @@ const ResetPasswordForm = () => {
     strengthScore <= 1
       ? "bg-red-500"
       : strengthScore === 2
-      ? "bg-yellow-500"
-      : "bg-emerald-500";
+        ? "bg-yellow-500"
+        : "bg-emerald-500";
   const strengthWidth = (strengthScore / 3) * 100;
 
   // 3. Submit Handler
   const onSubmit = async (data: ResetPasswordInput) => {
     if (!emailFromState) {
       toast.error(
-        "❌ Email không hợp lệ. Vui lòng qua lại từ trang verify OTP."
+        "❌ Email không hợp lệ. Vui lòng qua lại từ trang verify OTP.",
       );
       console.warn("⚠️ Email rỗng, không thể reset password");
       return;
@@ -102,9 +102,9 @@ const ResetPasswordForm = () => {
 
       console.log("📤 Payload sent to API:", payload);
       await authApi.resetPassword(emailFromState, data.password, otpFromState);
-      
-      console.log("✅ Password reset successfully");
-      toast.success("✅ Đặt lại mật khẩu thành công!", {
+
+      console.log("Password reset successfully");
+      toast.success("Đặt lại mật khẩu thành công!", {
         description: "Vui lòng đăng nhập với mật khẩu mới.",
       });
 
@@ -158,7 +158,7 @@ const ResetPasswordForm = () => {
                 placeholder="Nhập ít nhất 8 ký tự"
                 className={cn(
                   "pr-10 h-10 text-sm bg-white text-gray-900 border border-gray-200 focus:border-[#1A73E8] focus:ring-1 focus:ring-[#1A73E8]/20 rounded-lg",
-                  errors.password && "border-red-500 bg-red-50"
+                  errors.password && "border-red-500 bg-red-50",
                 )}
                 {...register("password")}
                 onFocus={() => setIsFocused(true)}
@@ -183,7 +183,7 @@ const ResetPasswordForm = () => {
                 <div
                   className={cn(
                     "h-full transition-all duration-300",
-                    strengthColor
+                    strengthColor,
                   )}
                   style={{ width: `${strengthWidth}%` }}
                 />
@@ -207,7 +207,7 @@ const ResetPasswordForm = () => {
                 placeholder="Nhập lại mật khẩu mới"
                 className={cn(
                   "pr-10 h-10 text-sm bg-white text-gray-900 border border-gray-200 focus:border-[#1A73E8] focus:ring-1 focus:ring-[#1A73E8]/20 rounded-lg",
-                  errors.confirmPassword && "border-red-500 bg-red-50"
+                  errors.confirmPassword && "border-red-500 bg-red-50",
                 )}
                 {...register("confirmPassword")}
               />
@@ -247,7 +247,7 @@ const ResetPasswordForm = () => {
                 <span
                   className={cn(
                     "text-xs transition-colors",
-                    req.met ? "text-gray-700 font-medium" : "text-gray-400"
+                    req.met ? "text-gray-700 font-medium" : "text-gray-400",
                   )}
                 >
                   {req.label}

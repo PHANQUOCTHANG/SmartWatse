@@ -1,59 +1,97 @@
-import { AlertTriangle, Loader2, CheckCircle } from "lucide-react"
+import React from "react";
+import { AlertCircle, Clock, CheckCircle, BarChart3 } from "lucide-react";
+import { FeedbackStats } from "../types";
 
-type CardProps = {
-  title: string
-  value: number
-  icon: React.ReactNode
-  bgColor: string
+interface StatCardProps {
+  title: string;
+  value: number | string;
+  icon: React.ReactNode;
+  bgColor: string;
+  textColor: string;
 }
 
-const Card = ({ title, value, icon, bgColor }: CardProps) => (
-  <div className="bg-white border border-gray-200 rounded-2xl p-5 flex items-center justify-between">
+const StatCard: React.FC<StatCardProps> = ({
+  title,
+  value,
+  icon,
+  bgColor,
+  textColor,
+}) => (
+  <div className="bg-white border border-gray-200 rounded-lg p-6 flex items-center justify-between hover:shadow-md transition">
     <div>
-      <p className="text-sm text-gray-500 mb-1">{title}</p>
-      <h2 className="text-3xl font-semibold text-gray-900">
-        {value}
-      </h2>
+      <p className="text-sm text-gray-600 mb-2">{title}</p>
+      <h3 className="text-3xl font-bold text-gray-900">{value}</h3>
     </div>
 
     <div
-      className={`
-        w-12 h-12
-        rounded-full
-        flex items-center justify-center
-        ${bgColor}
-      `}
+      className={`w-14 h-14 rounded-lg flex items-center justify-center ${bgColor} ${textColor}`}
     >
       {icon}
     </div>
   </div>
-)
+);
 
-const FeedbackSummary = () => {
+export const FeedbackSummary: React.FC<any> = ({
+  feedbacks = [],
+  isLoading = false,
+}) => {
+  const stats: FeedbackStats = {
+    total: feedbacks.length || 0,
+    new: feedbacks.filter((feedback) => feedback.status === "NEW").length || 0,
+    processing:
+      feedbacks.filter((feedback) => feedback.status === "PROCESSING").length ||
+      0,
+    resolved:
+      feedbacks.filter((feedback) => feedback.status === "RESOLVED").length ||
+      0,
+    completionRate: 0,
+  };
+
+  if (isLoading) {
+    return (
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+        {[1, 2, 3, 4].map((i) => (
+          <div key={i} className="bg-gray-200 rounded-lg h-24 animate-pulse" />
+        ))}
+      </div>
+    );
+  }
+
   return (
-    <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-      <Card
-        title="Chờ xử lý"
-        value={12}
-        bgColor="bg-red-100 text-red-500"
-        icon={<AlertTriangle size={22} />}
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+      <StatCard
+        title="Tổng phản ánh"
+        value={stats.total}
+        icon={<BarChart3 size={24} />}
+        bgColor="bg-blue-100"
+        textColor="text-blue-600"
       />
 
-      <Card
+      <StatCard
+        title="Mới"
+        value={stats.new}
+        icon={<AlertCircle size={24} />}
+        bgColor="bg-red-100"
+        textColor="text-red-600"
+      />
+
+      <StatCard
         title="Đang xử lý"
-        value={5}
-        bgColor="bg-yellow-100 text-yellow-500"
-        icon={<Loader2 size={22} />}
+        value={stats.processing}
+        icon={<Clock size={24} />}
+        bgColor="bg-yellow-100"
+        textColor="text-yellow-600"
       />
 
-      <Card
-        title="Đã hoàn thành"
-        value={45}
-        bgColor="bg-green-100 text-green-500"
-        icon={<CheckCircle size={22} />}
+      <StatCard
+        title="Đã giải quyết"
+        value={stats.resolved}
+        icon={<CheckCircle size={24} />}
+        bgColor="bg-green-100"
+        textColor="text-green-600"
       />
     </div>
-  )
-}
+  );
+};
 
-export default FeedbackSummary
+export default FeedbackSummary;

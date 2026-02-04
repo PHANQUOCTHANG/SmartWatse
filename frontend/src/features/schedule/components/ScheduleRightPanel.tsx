@@ -1,11 +1,30 @@
+import { useState } from "react";
 import TaskDetailCard from "./TaskDetailCard";
 import UrgentAlerts from "./UrgentAlerts";
 
-export default function ScheduleRightPanel() {
+interface ScheduleRightPanelProps {
+  selectedSchedule?: any;
+  onClose?: () => void;
+  onRefresh?: () => void;
+}
+
+export default function ScheduleRightPanel({
+  selectedSchedule,
+  onClose,
+  onRefresh,
+}: ScheduleRightPanelProps) {
+  const [isEditing, setIsEditing] = useState(false);
+
   return (
     <div className="space-y-4">
       <UrgentAlerts />
-      <TaskDetailCard />
+      <TaskDetailCard
+        schedule={selectedSchedule}
+        onClose={onClose}
+        isEditing={isEditing}
+        onEditChange={setIsEditing}
+        onRefresh={onRefresh}
+      />
     </div>
   );
 }

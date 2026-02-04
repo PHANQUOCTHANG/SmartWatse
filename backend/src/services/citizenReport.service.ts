@@ -1,5 +1,8 @@
 import { ICitizenReportRepository } from "../repositories/citizenReport.repository";
-import { CreateReportRequest, UpdateReportRequest } from "@/dto/request/citizenReport.request";
+import {
+  CreateReportRequest,
+  UpdateReportRequest,
+} from "@/dto/request/citizenReport.request";
 import { CitizenReportResponse } from "@/dto/response/citizenReport.response";
 import { BaseQuery, IPaginatedResult } from "@/interface/query.interface";
 import AppError from "../utils/appError";
@@ -22,7 +25,9 @@ export class CitizenReportService implements ICitizenReportService {
   }
 
   // Tổng hợp danh sách phản ánh để cán bộ quản lý theo dõi
-  async findAll(query: BaseQuery): Promise<IPaginatedResult<CitizenReportResponse>> {
+  async findAll(
+    query: BaseQuery,
+  ): Promise<IPaginatedResult<CitizenReportResponse>> {
     const result = await this.repo.findAll(query);
     return { ...result, data: result.data.map((r) => this.mapToResponse(r)) };
   }
@@ -35,7 +40,10 @@ export class CitizenReportService implements ICitizenReportService {
   }
 
   // Cập nhật tiến độ xử lý hoặc nội dung phản ánh
-  async update(id: string, dto: UpdateReportRequest): Promise<CitizenReportResponse> {
+  async update(
+    id: string,
+    dto: UpdateReportRequest,
+  ): Promise<CitizenReportResponse> {
     const report = await this.repo.updateById(id, dto as any);
     if (!report) throw new AppError("Báo cáo không tồn tại", 404);
     return this.mapToResponse(report);
@@ -51,8 +59,9 @@ export class CitizenReportService implements ICitizenReportService {
   private mapToResponse(r: any): CitizenReportResponse {
     return {
       id: r._id.toString(),
-      citizenId: r.citizenId.toString(),
-      binId: r.binId?.toString(),
+      citizenId: r.citizenId,
+      areaId: r.areaId,
+      binId: r.binId,
       description: r.description,
       imageUrl: r.imageUrl,
       status: r.status,

@@ -1,10 +1,20 @@
-import { IsNotEmpty, IsString, IsEnum, IsOptional, MaxLength } from "class-validator";
+import {
+  IsNotEmpty,
+  IsString,
+  IsEnum,
+  IsOptional,
+  MaxLength,
+} from "class-validator";
 import { ReportStatus } from "../../interface/citizenReport.interface";
 
 export class CreateReportRequest {
   @IsNotEmpty({ message: "ID người gửi không được để trống" })
   @IsString({ message: "ID người gửi phải là chuỗi hợp lệ" })
   citizenId!: string;
+
+  @IsOptional()
+  @IsString({ message: "ID khu vực phải là chuỗi hợp lệ" })
+  areaId?: string;
 
   @IsOptional()
   @IsString({ message: "ID thùng rác phải là chuỗi hợp lệ" })

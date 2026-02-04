@@ -1,36 +1,23 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
-
-// 1. Core Imports
 import { NotFoundPage } from "@/pages";
 import { RootLayout } from "@/layouts";
 import ClientLayout from "@/layouts/client/ClientLayout";
-
-// 2. Auth & Route Guards
 import { GuestRoute } from "@/app/routes/GuestRoute";
 import ProtectedRoute from "@/app/routes/ProtectedRoute";
 import { guestAuthRoutes, protectedAuthRoutes } from "@/features/auth/routes";
-
-// 3. Config Paths
 import { MANAGER_PATHS, STAFF_PATHS, ADMIN_PATHS } from "@/config/paths";
-
-// 4. Page Imports (Manager)
-import MapMonitorPage from "@/pages/manager/MapMonitorPage";
-import ManagerSchedulePage from "@/features/schedule/pages/ManagerSchedulePage";
-import TaskAssignmentPage from "@/features/task-assignment/pages/TaskAssignmentPage";
-import ManagerFeedbackPage from "@/features/feedback/pages/ManagerFeedbackPage";
-import ManagerReportsPage from "@/features/reports/pages/ManagerReportsPage";
-
-// 4b. Page Imports (Admin)
-
-// 5. Page Imports (Staff)
-import {
-  StaffTaskListPage,
-  StaffTaskDetailPage,
-  StaffMapPage,
-  StaffProfilePage,
-} from "@/pages/staff";
-import StaffTaskHistoryPage from "@/pages/staff/StaffTaskHistoryPage";
 import { RoleBasedHome } from "@/app/routes/RoleBasedHome";
+
+// Manager Pages
+import {
+  MapMonitorPage,
+  ManagerSchedulePage,
+  TaskAssignmentPage,
+  ManagerFeedbackPage,
+  ManagerReportsPage,
+} from "@/pages/manager";
+
+// Admin Pages
 import AdminDashboardPage from "@/pages/admin/AdminDashboardPage";
 import UsersPage from "@/pages/admin/UserManagementPage";
 import BinsPage from "@/pages/admin/BinsPage";
@@ -38,17 +25,20 @@ import CollectionPointsPage from "@/pages/admin/CollectionPointsPage";
 import AreaManagementPage from "@/pages/admin/AreaManagementPage";
 import VehicleManagementPage from "@/pages/admin/VehicleManagementPage";
 
-// 6. Page Imports (Citizen/Public)
-// import LandingPage from "@/pages/public/LandingPage";
+// Staff Pages
+import {
+  StaffTaskListPage,
+  StaffTaskDetailPage,
+  StaffMapPage,
+  StaffProfilePage,
+} from "@/pages/staff";
+import StaffTaskHistoryPage from "@/pages/staff/StaffTaskHistoryPage";
 
 export const router = createBrowserRouter([
   {
-    // RootLayout: Chứa Context, Toast, Theme...
     element: <RootLayout />,
     children: [
-      // ===================================================
-      // 1. AUTH ROUTES (Login/Register)
-      // ===================================================
+      // Auth Routes
       {
         element: <GuestRoute />,
         children: [...guestAuthRoutes],
@@ -58,17 +48,13 @@ export const router = createBrowserRouter([
         children: [...protectedAuthRoutes],
       },
 
-      // ===================================================
-      // 2. MAIN APP ROUTES (All Roles share ClientLayout)
-      // ===================================================
+      // Main App Routes
       {
-        element: <ClientLayout />, // Tự động hiển thị Sidebar/BottomNav theo Role
+        element: <ClientLayout />,
         children: [
-          // --- ROOT PATH ("/") ---
-          // Xử lý điều hướng thông minh khi user vào trang chủ
           {
             path: "/",
-            element: <ProtectedRoute />, // <--- FIX: Tránh trang trắng
+            element: <ProtectedRoute />,
             children: [
               {
                 index: true,
@@ -77,7 +63,7 @@ export const router = createBrowserRouter([
             ],
           },
 
-          // --- A. MANAGER ROUTES ---
+          // Manager Routes
           {
             path: "manager",
             element: <ProtectedRoute requiredRole={"MANAGER"} />,
@@ -99,7 +85,8 @@ export const router = createBrowserRouter([
               { path: MANAGER_PATHS.REPORTS, element: <ManagerReportsPage /> },
             ],
           },
-          // --- D. ADMIN ROUTES ---
+
+          // Admin Routes
           {
             path: "admin",
             element: <ProtectedRoute requiredRole={"ADMIN"} />,
@@ -119,7 +106,7 @@ export const router = createBrowserRouter([
             ],
           },
 
-          // --- B. STAFF ROUTES ---
+          // Staff Routes
           {
             path: "staff",
             element: <ProtectedRoute requiredRole={"STAFF"} />,
@@ -132,22 +119,16 @@ export const router = createBrowserRouter([
               {
                 path: `${STAFF_PATHS.TASKS}/:taskId`,
                 element: <StaffTaskDetailPage />,
-              }, // Fix cú pháp params
+              },
               { path: STAFF_PATHS.MY_ROUTE, element: <StaffMapPage /> },
               { path: STAFF_PATHS.HISTORY, element: <StaffTaskHistoryPage /> },
               { path: STAFF_PATHS.PROFILE, element: <StaffProfilePage /> },
             ],
           },
-
-          // --- C. CITIZEN ROUTES ---
-          // Các route công khai hoặc dành cho người dân
-          // { path: "map-lookup", element: <MapLookupPage /> },
         ],
       },
 
-      // ===================================================
-      // 3. 404 NOT FOUND
-      // ===================================================
+      // 404 Not Found
       {
         path: "*",
         element: <NotFoundPage />,

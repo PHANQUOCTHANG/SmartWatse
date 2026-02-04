@@ -2,11 +2,12 @@
 export type UserRole = "ADMIN" | "MANAGER" | "STAFF" | "CITIZEN";
 
 export interface IUser {
-  _id: string;
+  id: string;
   fullName: string;
   username?: string; // Có thể optional nếu dùng email làm chính
   email: string;
   role: UserRole;
+  status?: string;
 
   // Thông tin cá nhân & liên lạc
   avatar?: string;
@@ -63,7 +64,7 @@ export interface UserFilterParams {
   limit?: number;
   keyword?: string; // Tìm theo tên, email, sđt
   role?: UserRole;
-  status?: "active" | "inactive";
+  status?: "ACTIVE" | "INACTIVE";
 }
 
 // 4. Staff Specific (Nếu cần quản lý kỹ hơn về nhân viên)

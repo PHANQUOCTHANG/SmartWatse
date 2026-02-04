@@ -1,54 +1,60 @@
 type Props = {
-  priority: "high" | "medium" | "low"
-  code: string
-  title: string
-  address: string
-  time: string
-  tags: string[]
-}
+  id?: string;
+  status: "PENDING" | "IN_PROGRESS" | "DONE";
+  code: string;
+  title: string;
+  address: string;
+  time: string;
+  tags: string[];
+  onEdit?: (id: string) => void;
+  onDelete?: (id: string) => void;
+};
 
-const priorityMap = {
-  high: {
+const statusMap = {
+  PENDING: {
     border: "border-red-500",
     badge: "bg-red-100 text-red-600",
-    icon: "❌",
-    label: "ƯU TIÊN CAO",
+    icon: "⌛",
+    label: "CHỜ XỬ LÝ",
   },
-  medium: {
-    border: "border-yellow-400",
-    badge: "bg-yellow-100 text-yellow-700",
-    icon: "⚠️",
-    label: "TRUNG BÌNH",
+  IN_PROGRESS: {
+    border: "border-blue-500",
+    badge: "bg-blue-100 text-blue-600",
+    icon: "⚙️",
+    label: "ĐANG THỰC HIỆN",
   },
-  low: {
+  DONE: {
     border: "border-green-500",
     badge: "bg-green-100 text-green-600",
-    icon: "♻️",
-    label: "ĐỊNH KỲ",
+    icon: "✅",
+    label: "HOÀN THÀNH",
   },
-}
+};
 
 const TaskCard = ({
-  priority,
+  id,
+  status,
   code,
   title,
   address,
   time,
   tags,
+  onEdit,
+  onDelete,
 }: Props) => {
-  const p = priorityMap[priority]
+  const s = statusMap[status];
 
   return (
     <div
-      className={`relative bg-white rounded-xl border ${p.border} border-l-4 p-4 flex justify-between gap-4`}
+      className={`relative bg-white rounded-xl border ${s.border} border-l-4 p-4 flex justify-between gap-4`}
     >
       {/* Left */}
       <div className="flex gap-4">
         {/* Icon */}
         <div
-          className={`w-10 h-10 rounded-lg flex items-center justify-center ${p.badge}`}
+          className={`w-10 h-10 rounded-lg flex items-center justify-center ${s.badge}`}
         >
-          {p.icon}
+          {s.icon}
         </div>
 
         {/* Content */}
@@ -56,25 +62,21 @@ const TaskCard = ({
           {/* Badge + code + time */}
           <div className="flex items-center gap-2 mb-1">
             <span
-              className={`text-xs font-semibold px-2 py-0.5 rounded ${p.badge}`}
+              className={`text-xs font-semibold px-2 py-0.5 rounded ${s.badge}`}
             >
-              {p.label}
+              {s.label}
             </span>
-            <span className="text-xs text-gray-400">
+            {/* <span className="text-xs text-gray-400">
               #{code}
-            </span>
+            </span> */}
             <span className="text-xs text-gray-400 flex items-center gap-1">
               🕒 {time}
             </span>
           </div>
 
-          <h3 className="font-semibold text-gray-900">
-            {title}
-          </h3>
+          <h3 className="font-semibold text-gray-900">{title}</h3>
 
-          <p className="text-sm text-gray-500 mt-0.5">
-            📍 {address}
-          </p>
+          <p className="text-sm text-gray-500 mt-0.5">📍 {address}</p>
 
           {/* Tags */}
           <div className="flex gap-2 mt-2 flex-wrap">
@@ -92,17 +94,26 @@ const TaskCard = ({
 
       {/* Action */}
       <div className="flex flex-col items-end justify-center gap-2">
-        <button className="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg flex items-center gap-1">
-          Phân công →
-        </button>
+        <div className="flex gap-2">
+          <button
+            onClick={() => onEdit?.(id || "")}
+            className="px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white text-sm rounded-lg flex items-center gap-1"
+          >
+            ✏️ Sửa
+          </button>
+          <button
+            onClick={() => onDelete?.(id || "")}
+            className="px-3 py-2 bg-red-600 hover:bg-red-700 text-white text-sm rounded-lg flex items-center gap-1"
+          >
+            🗑️ Xóa
+          </button>
+        </div>
 
         {/* drag handle */}
-        <div className="text-gray-300 cursor-grab text-lg">
-          ⋮⋮
-        </div>
+        <div className="text-gray-300 cursor-grab text-lg">⋮⋮</div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default TaskCard
+export default TaskCard;

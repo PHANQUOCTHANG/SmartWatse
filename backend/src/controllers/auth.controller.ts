@@ -51,7 +51,6 @@ export const login = asyncHandler(async (req: Request, res: Response) => {
 // POST | /api/auth/refresh | Làm mới access token
 export const refresh = asyncHandler(async (req: Request, res: Response) => {
   // Lấy refresh token từ cookie
-  console.log(req.cookies);
   const refreshToken = req.cookies.refreshToken;
   const result = await authService.refresh(refreshToken);
 

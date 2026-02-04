@@ -36,7 +36,7 @@ const ForgotPasswordForm = () => {
       setSentEmail(data.email);
       setIsSent(true);
 
-      toast.success("✅ Email sent successfully!", {
+      toast.success("Email sent successfully!", {
         description: "Vui lòng kiểm tra email để nhận mã xác thực.",
       });
 
@@ -110,7 +110,7 @@ const ForgotPasswordForm = () => {
                   className={cn(
                     "pl-10 h-12 bg-white border-gray-300 focus:border-blue-600 focus:ring-1 focus:ring-blue-600 rounded-lg text-base",
                     errors.email &&
-                      "border-red-500 focus:border-red-500 focus:ring-red-500"
+                      "border-red-500 focus:border-red-500 focus:ring-red-500",
                   )}
                   {...register("email")}
                 />

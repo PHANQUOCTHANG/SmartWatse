@@ -1,50 +1,53 @@
 import { Types } from "mongoose";
 
-// [UPDATE] Định nghĩa chặt chẽ hơn cho GeoJSON (Tuple: [Lng, Lat])
+// Định dạng GeoJSON cho vị trí địa lý [Kinh độ, Vĩ độ]
 export interface IGeoLocation {
   type: "Point";
-  coordinates: [number, number]; // [Longitude, Latitude]
+  coordinates: [number, number];
 }
 
+// Loại thùng rác
 export enum BinType {
-  ORGANIC = "ORGANIC",
-  INORGANIC = "INORGANIC",
-  RECYCLE = "RECYCLE",
+  ORGANIC = "ORGANIC", // Rác hữu cơ
+  INORGANIC = "INORGANIC", // Rác vô cơ
+  RECYCLE = "RECYCLE", // Rác tái chế
 }
 
 export enum BinStatus {
-  ACTIVE = "ACTIVE", // Thay cho NORMAL (Chuẩn hơn)
-  FULL = "FULL",
-  OVERFLOW = "OVERFLOW",
-  BROKEN = "BROKEN",
-  MAINTENANCE = "MAINTENANCE", // [NEW] Đang bảo trì
+  ACTIVE = "ACTIVE", // Hoạt động bình thường
+  FULL = "FULL", // Đầy
+  OVERFLOW = "OVERFLOW", // Trần
+  BROKEN = "BROKEN", // Hỏng
+  MAINTENANCE = "MAINTENANCE", // Đang bảo trì
 }
 
+// Interface chính cho thùng rác
 export interface IBin {
-  _id?: Types.ObjectId | string; // Optional ID cho trường hợp query
+  _id?: Types.ObjectId | string;
   code: string;
-  collectionPointId: Types.ObjectId; // Link tới bảng CollectionPoint
+  collectionPointId: Types.ObjectId; // Liên kết với điểm thu gom
 
-  // --- LOCATION ---
+  // Vị trí địa lý
   location: IGeoLocation;
   address?: string;
 
-  // --- INFO ---
+  // Thông tin cơ bản
   binType: BinType;
   capacity: number;
-  brand?: string; // [NEW] Hãng sản xuất
-  installationDate?: Date; // [NEW] Ngày lắp đặt
+  brand?: string;
+  installationDate?: Date;
 
-  // --- IOT DATA ---
-  currentLevel: number; // 0 - 100%
+  // Dữ liệu IoT
+  currentLevel: number; // Phần trăm đầy (0-100%)
   status: BinStatus;
-  battery?: number; // [NEW] 0 - 100%
-  temperature?: number; // [NEW] Độ C
+  battery?: number; // Pin thiết bị (0-100%)
+  temperature?: number; // Nhiệt độ (độ C)
 
-  // --- MEDIA ---
-  coverImage?: string; // [NEW] URL ảnh
-  notes?: string; // [NEW] Ghi chú
+  // Thông tin bổ sung
+  coverImage?: string;
+  notes?: string;
 
+  // Thời gian
   lastCollected?: Date;
   createdAt?: Date;
   updatedAt?: Date;

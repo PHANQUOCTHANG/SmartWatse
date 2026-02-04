@@ -28,7 +28,7 @@ const OtpInput = ({
   // Xử lý khi nhập số
   const handleChange = (
     index: number,
-    e: React.ChangeEvent<HTMLInputElement>
+    e: React.ChangeEvent<HTMLInputElement>,
   ) => {
     const val = e.target.value;
 
@@ -50,7 +50,7 @@ const OtpInput = ({
   // Xử lý phím Backspace
   const handleKeyDown = (
     index: number,
-    e: React.KeyboardEvent<HTMLInputElement>
+    e: React.KeyboardEvent<HTMLInputElement>,
   ) => {
     if (e.key === "Backspace") {
       e.preventDefault();
@@ -214,23 +214,23 @@ const VerifyOtpForm = () => {
 
       console.log("✅ Response received:", response);
 
-      // ✅ Lấy resetToken từ response
+      //Lấy resetToken từ response
       const resetToken = response.data?.resetToken;
 
       if (!resetToken) {
         throw new Error("Reset token không được trả về từ server");
       }
 
-      console.log("✅ Reset token received");
+      console.log("Reset token received");
 
-      toast.success("✅ Xác thực thành công!", {
+      toast.success("Xác thực thành công!", {
         description: "Tài khoản của bạn đã được xác minh.",
       });
 
-      console.log("✅ OTP verified successfully");
+      console.log("OTP verified successfully");
 
       // Chuyển sang trang reset password với resetToken
-      navigate(`/reset-password/${resetToken}`, { state: { email , otp } });
+      navigate(`/reset-password/${resetToken}`, { state: { email, otp } });
     } catch (error: any) {
       console.error("❌ OTP verification error:", error);
       const msg =
@@ -243,14 +243,14 @@ const VerifyOtpForm = () => {
     }
   };
 
-  // ✅ Xử lý gửi lại OTP
+  // Xử lý gửi lại OTP
   const handleResend = async (resetTimer: () => void) => {
     setResendLoading(true);
     try {
       console.log("📤 Resending OTP to:", email);
       await authApi.resendOtp(email);
 
-      toast.success("✅ Đã gửi lại mã OTP.", {
+      toast.success("Đã gửi lại mã OTP.", {
         description: "Vui lòng kiểm tra email của bạn.",
       });
 

@@ -34,7 +34,6 @@ export const useLogin = () => {
     try {
       // Gọi API
       const res = await authApi.login(data);
-      console.log(res);
       // Lưu vào Redux Store
       dispatch(
         login({
@@ -47,6 +46,7 @@ export const useLogin = () => {
       navigate("/");
     } catch (error: unknown) {
       const err = error as ApiErrorResponse;
+      console.log(error)
       const errorCode = err.response?.data?.errorCode;
       const message = err.response?.data?.message || "Login failed";
       // 🛑 CASE 1: TÀI KHOẢN BỊ KHÓA (MỚI THÊM)
@@ -78,7 +78,7 @@ export const useLogin = () => {
       }
 
       // CASE 2: Sai thông tin -> Báo lỗi và focus lại input
-      toast.error("Login failed", { description: message });
+      toast.error("Đăng nhập thất bại", { description: message });
 
       // Set Error thủ công để hiện viền đỏ
       form.setError("root", { message: message }); // Lỗi chung

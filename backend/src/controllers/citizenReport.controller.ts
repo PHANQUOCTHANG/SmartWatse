@@ -1,5 +1,5 @@
 import { citizenReportService } from "@/config/container";
-import { normalizeQuery } from "@/interface/query.interface";
+import { normalizeQueryCitizenReport } from "@/interface/citizenReport.interface";
 import asyncHandler from "@/utils/asyncHandler";
 import { Request, Response } from "express";
 
@@ -18,7 +18,7 @@ export const createReport = asyncHandler(
 // GET | Truy vấn danh sách các phản ánh (Hỗ trợ phân trang và lọc trạng thái)
 export const getReports = asyncHandler(async (req: Request, res: Response) => {
   // Chuẩn hóa tham số query từ URL để xử lý phân trang
-  const query = normalizeQuery(req.query);
+  const query = normalizeQueryCitizenReport(req.query);
 
   const data = await citizenReportService.findAll(query);
 

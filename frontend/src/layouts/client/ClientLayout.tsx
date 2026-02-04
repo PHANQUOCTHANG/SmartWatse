@@ -45,7 +45,7 @@ const ClientLayout = () => {
           )}
         >
           {/* Max width container để nội dung không bị bè ra quá rộng trên màn hình 4k */}
-          <div className="mx-auto max-w-7xl animate-fade-in">
+          <div className="">
             <Outlet />
           </div>
         </main>

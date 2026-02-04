@@ -5,14 +5,19 @@ import {
   UpdateUserRequest,
 } from "@/dto/request/user.request";
 import { UserResponse } from "@/dto/response/user.response";
-import { BaseQuery, IPaginatedResult } from "@/interface/query.interface";
-import { IUser, UserRole, UserStatus } from "@/interface/user.interface";
+import { IPaginatedResult } from "@/interface/query.interface";
+import {
+  IUser,
+  UserRole,
+  UserStatus,
+  QueryUser,
+} from "@/interface/user.interface";
 import AppError from "../utils/appError";
 import { IUserDocument } from "@/models/user.model";
 
 export interface IUserService {
   create(dto: CreateUserRequest): Promise<UserResponse>;
-  findAll(query: BaseQuery): Promise<IPaginatedResult<UserResponse>>;
+  findAll(query: QueryUser): Promise<IPaginatedResult<UserResponse>>;
   findById(id: string): Promise<UserResponse>;
   update(id: string, dto: UpdateUserRequest): Promise<UserResponse>;
   delete(id: string): Promise<void>;
@@ -44,7 +49,7 @@ export class UserService implements IUserService {
   }
 
   // Truy vấn và phân trang danh sách người dùng dựa trên bộ lọc từ yêu cầu của Client
-  async findAll(query: BaseQuery): Promise<IPaginatedResult<UserResponse>> {
+  async findAll(query: QueryUser): Promise<IPaginatedResult<UserResponse>> {
     const result = await this.userRepository.findAll(query);
 
     // Chuyển đổi danh sách Document sang định dạng Response DTO để trả ra ngoài tầng ứng dụng

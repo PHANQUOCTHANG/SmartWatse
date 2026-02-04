@@ -1,21 +1,21 @@
-import { BaseQuery, IPaginatedResult } from "@/interface/query.interface";
-import { IUser } from "@/interface/user.interface";
+import { IPaginatedResult } from "@/interface/query.interface";
+import { IUser, QueryUser } from "@/interface/user.interface";
 import { IUserDocument, User } from "@/models/user.model";
 
 export interface IUserRepository {
   create(data: Partial<IUser>): Promise<IUserDocument>;
   findByEmail(
     email: string,
-    includePassword?: boolean
+    includePassword?: boolean,
   ): Promise<IUserDocument | null>;
   findById(id: string): Promise<IUserDocument | null>;
   updateById(id: string, data: Partial<IUser>): Promise<IUserDocument | null>;
   updateByEmail(
     email: string,
-    data: Partial<IUser>
+    data: Partial<IUser>,
   ): Promise<IUserDocument | null>;
   deleteById(id: string): Promise<void>;
-  findAll(query: BaseQuery): Promise<IPaginatedResult<IUserDocument>>;
+  findAll(query: QueryUser): Promise<IPaginatedResult<IUserDocument>>;
 }
 
 export class UserRepository implements IUserRepository {
@@ -27,7 +27,7 @@ export class UserRepository implements IUserRepository {
   // Tìm user theo email (Có option lấy kèm passwordHash để login)
   async findByEmail(
     email: string,
-    includePassword = false
+    includePassword = false,
   ): Promise<IUserDocument | null> {
     const query = User.findOne({ email });
     if (includePassword) query.select("+passwordHash");
@@ -42,7 +42,7 @@ export class UserRepository implements IUserRepository {
   // Cập nhật user theo id
   async updateById(
     id: string,
-    data: Partial<IUser>
+    data: Partial<IUser>,
   ): Promise<IUserDocument | null> {
     return User.findByIdAndUpdate(id, data, {
       new: true,
@@ -53,7 +53,7 @@ export class UserRepository implements IUserRepository {
   // Cập nhật user theo email (Dùng cho logic Reset Password)
   async updateByEmail(
     email: string,
-    data: Partial<IUser>
+    data: Partial<IUser>,
   ): Promise<IUserDocument | null> {
     return User.findOneAndUpdate(
       { email },
@@ -61,7 +61,7 @@ export class UserRepository implements IUserRepository {
       {
         new: true,
         runValidators: true,
-      }
+      },
     ).exec();
   }
 
@@ -70,19 +70,43 @@ export class UserRepository implements IUserRepository {
     await User.findByIdAndDelete(id).exec();
   }
 
-  // Lấy danh sách user có phân trang + search + sort
-  async findAll(query: BaseQuery): Promise<IPaginatedResult<IUserDocument>> {
-    const { page = 1, limit = 10, search, sort = "-createdAt" } = query;
+  // Lấy danh sách user có phân trang + search + sort + filter
+  async findAll(query: QueryUser): Promise<IPaginatedResult<IUserDocument>> {
+    const {
+      page = 1,
+      limit = 10,
+      search,
+      sort = "-createdAt",
+      role,
+      status,
+      areaId,
+    } = query;
+
+    // Xây dựng filter từ các điều kiện
+    const filter: any = {};
 
     // Tìm kiếm theo fullName hoặc email
-    const filter = search
-      ? {
-          $or: [
-            { fullName: { $regex: search, $options: "i" } },
-            { email: { $regex: search, $options: "i" } },
-          ],
-        }
-      : {};
+    if (search) {
+      filter.$or = [
+        { fullName: { $regex: search, $options: "i" } },
+        { email: { $regex: search, $options: "i" } },
+      ];
+    }
+
+    // Filter theo role
+    if (role) {
+      filter.role = role;
+    }
+
+    // Filter theo status
+    if (status) {
+      filter.status = status;
+    }
+
+    // Filter theo areaId
+    if (areaId) {
+      filter.areaId = areaId;
+    }
 
     const [data, total] = await Promise.all([
       User.find(filter)

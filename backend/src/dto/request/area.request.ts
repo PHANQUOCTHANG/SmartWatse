@@ -7,6 +7,7 @@ import {
   MaxLength,
 } from "class-validator";
 import { AreaType } from "../../interface/area.interface";
+import { Types } from "mongoose";
 
 // DTO tạo mới khu vực
 export class CreateAreaRequest {
@@ -20,8 +21,7 @@ export class CreateAreaRequest {
   type!: AreaType;
 
   @IsOptional()
-  @IsNumber({}, { message: "Parent ID phải là một số" })
-  parentId?: string;
+  parentId?: string | null;
 }
 
 // DTO cập nhật khu vực
@@ -36,6 +36,5 @@ export class UpdateAreaRequest {
   type?: AreaType;
 
   @IsOptional()
-  @IsNumber()
-  parentId?: string;
+  parentId?: string | null;
 }

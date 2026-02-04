@@ -108,21 +108,21 @@ const managerSidebarItems = [
         icon: CalendarDays,
       },
 
-      {
-        label: "Phân công",
-        path: `${MANAGER_PATHS.ROOT}/assignments`,
-        icon: ListTodo,
-      }, // Giả sử có path này
+      // {
+      //   label: "Phân công",
+      //   path: `${MANAGER_PATHS.ROOT}/assignments`,
+      //   icon: ListTodo,
+      // }, // Giả sử có path này
     ],
   },
   {
     title: "Sự cố & Phản ánh",
     items: [
-      {
-        label: "Cảnh báo thiết bị",
-        path: `${MANAGER_PATHS.ROOT}/${MANAGER_PATHS.ALERTS}`,
-        icon: FileWarning,
-      },
+      // {
+      //   label: "Cảnh báo thiết bị",
+      //   path: `${MANAGER_PATHS.ROOT}/${MANAGER_PATHS.ALERTS}`,
+      //   icon: FileWarning,
+      // },
       {
         label: "Phản ánh cư dân",
         path: `${MANAGER_PATHS.ROOT}/${MANAGER_PATHS.FEEDBACK}`,
@@ -138,11 +138,11 @@ const managerSidebarItems = [
         path: `${MANAGER_PATHS.ROOT}/${MANAGER_PATHS.REPORT}`,
         icon: Users,
       },
-      {
-        label: "Khối lượng rác",
-        path: `${MANAGER_PATHS.ROOT}/${MANAGER_PATHS.REPORT_WASTE}`,
-        icon: Trash2,
-      },
+      // {
+      //   label: "Khối lượng rác",
+      //   path: `${MANAGER_PATHS.ROOT}/${MANAGER_PATHS.REPORT_WASTE}`,
+      //   icon: Trash2,
+      // },
     ],
   },
 ];
