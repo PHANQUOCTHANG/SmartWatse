@@ -1,5 +1,5 @@
 import { Router } from "express";
-import * as shiftCtrl from "@/controllers/shift.controller";
+import * as shiftCtrl from "@/config/controllers/shift.controller";
 import validationMiddleware from "@/middleware/validate.middleware";
 import {
   CreateShiftRequest,

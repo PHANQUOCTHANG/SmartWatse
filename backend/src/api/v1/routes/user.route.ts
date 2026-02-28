@@ -1,5 +1,5 @@
 import { Router } from "express";
-import * as userCtrl from "@/controllers/user.controller";
+import * as userCtrl from "@/config/controllers/user.controller";
 import {
   CreateUserRequest,
   UpdateUserRequest,

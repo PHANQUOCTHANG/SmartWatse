@@ -1,5 +1,5 @@
 import { Router } from "express";
-import * as areaCtrl from "@/controllers/area.controller";
+import * as areaCtrl from "@/config/controllers/area.controller";
 import {
   CreateAreaRequest,
   UpdateAreaRequest,

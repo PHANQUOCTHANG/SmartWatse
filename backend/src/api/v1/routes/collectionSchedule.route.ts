@@ -1,5 +1,5 @@
 import { Router } from "express";
-import * as scheduleCtrl from "@/controllers/collectionSchedule.controller";
+import * as scheduleCtrl from "@/config/controllers/collectionSchedule.controller";
 import {
   CreateScheduleRequest,
   UpdateScheduleRequest,
@@ -14,7 +14,7 @@ router
   .get(scheduleCtrl.getSchedules)
   .post(
     validationMiddleware(CreateScheduleRequest),
-    scheduleCtrl.createSchedule
+    scheduleCtrl.createSchedule,
   );
 
 // URL: /api/collection-schedules/:id
@@ -23,7 +23,7 @@ router
   .get(scheduleCtrl.getSchedule)
   .patch(
     validationMiddleware(UpdateScheduleRequest),
-    scheduleCtrl.updateSchedule
+    scheduleCtrl.updateSchedule,
   )
   .delete(scheduleCtrl.deleteSchedule);
 

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import * as reportCtrl from "@/controllers/citizenReport.controller";
+import * as reportCtrl from "@/config/controllers/citizenReport.controller";
 import {
   CreateReportRequest,
   UpdateReportRequest,

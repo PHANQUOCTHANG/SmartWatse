@@ -93,6 +93,7 @@ export const CITIZEN_PATHS = {
 
   // Tiện ích
   MAP_LOOKUP: "map-lookup", // Tìm thùng rác gần nhất
+  SCHEDULE: "schedule", // Lịch trình thu gom
 
   // Phản ánh
   REPORT_CREATE: "report", // Gửi phản ánh mới
@@ -102,4 +103,5 @@ export const CITIZEN_PATHS = {
   PROFILE: "profile",
   NOTIFICATIONS: "notifications",
   SETTINGS: "settings",
+  
 } as const;

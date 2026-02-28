@@ -1,5 +1,10 @@
-# Logs
-logs
+# Dependencies
+node_modules/
+/.pnp
+.pnp.js
+
+# Log files
+logs/
 *.log
 npm-debug.log*
 yarn-debug.log*
@@ -7,13 +12,21 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
-node_modules
-**/dist/
-dist
-dist-ssr
-*.local
+# Build and distribution
+dist/
+dist-ssr/
+build/
+*.tsbuildinfo
 
-# Editor directories and files
+# Environment variables
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+.env*.local
+
+# IDE and Editor
 .vscode/*
 !.vscode/extensions.json
 .idea
@@ -23,3 +36,60 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+*.swp
+*.swo
+*~
+.project
+.classpath
+.c9/
+*.launch
+.settings/
+.vscode-test
+.vscode-test.json
+
+# OS specific files
+.DS_Store
+Thumbs.db
+*.cab
+.AppleDouble
+.LSOverride
+ehthumbs.db
+Desktop.ini
+
+# Temporary files
+*.local
+temp/
+tmp/
+*.tmp
+*.bak
+*.backup
+
+# Testing
+coverage/
+.nyc_output/
+*.lcov
+.jest-cache/
+
+# Build artifacts
+.cache/
+.turbo/
+
+# Package manager caches
+.npm/
+.yarn/cache/
+.yarn/install-state.gz
+.pnpm-store/
+
+# Deployment
+.vercel/
+.netlify/
+
+# IDE local settings
+.vscode-settings.json
+jsconfig.json.local
+tsconfig.json.local
+
+# Misc
+.eslintcache
+.stylelintcache
+.prettier-cache

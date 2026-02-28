@@ -1,5 +1,5 @@
 import { Router } from "express";
-import * as binCtrl from "@/controllers/bin.controller";
+import * as binCtrl from "@/config/controllers/bin.controller";
 import { CreateBinRequest, UpdateBinRequest } from "@/dto/request/bin.request";
 import validationMiddleware from "@/middleware/validate.middleware";
 import upload from "@/middleware/upload.middleware";

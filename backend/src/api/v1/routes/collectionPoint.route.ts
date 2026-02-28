@@ -1,5 +1,5 @@
 import { Router } from "express";
-import * as pointCtrl from "@/controllers/collectionPoint.controller";
+import * as pointCtrl from "@/config/controllers/collectionPoint.controller";
 import {
   CreateCollectionPointRequest,
   UpdateCollectionPointRequest,

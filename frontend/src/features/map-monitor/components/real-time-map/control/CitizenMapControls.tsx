@@ -1,7 +1,5 @@
 import React, { useState } from "react";
 import {
-  MapPin,
-  Navigation,
   Crosshair,
   Camera,
   Trash2,
@@ -11,6 +9,7 @@ import {
   X,
   Clock,
   Footprints,
+  Navigation,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
@@ -23,24 +22,20 @@ import { ScrollArea, ScrollBar } from "@/components/ui/scroll-area";
 export type BinFilterType = "ALL" | "ORGANIC" | "RECYCLE" | "INORGANIC";
 
 interface Props {
-  // Sự kiện khi người dân bấm nút tìm kiếm/lọc
   onFilterChange: (type: BinFilterType) => void;
-  // Sự kiện khi bấm nút "Vị trí của tôi"
   onLocateMe: () => void;
-  // Sự kiện khi bấm nút "Báo cáo vi phạm"
   onReportIssue: () => void;
-  // Sự kiện khi bấm "Dẫn đường" tới thùng rác đang chọn
   onNavigateToBin?: () => void;
 
-  // Trạng thái hiện tại
   selectedBin?: {
     id: string;
     address: string;
     type: string;
-    distance?: string; // VD: "200m"
-    walkTime?: string; // VD: "3 phút"
+    distance?: string;
+    walkTime?: string;
     status: "ACTIVE" | "FULL" | "MAINTENANCE";
   } | null;
+
   isNavigating?: boolean;
 }
 
@@ -54,48 +49,69 @@ export const CitizenMapControls = ({
 }: Props) => {
   const [activeFilter, setActiveFilter] = useState<BinFilterType>("ALL");
 
-  const handleFilterClick = (type: BinFilterType) => {
-    setActiveFilter(type);
-    onFilterChange(type);
+  // =========================
+  // CITIZEN ACTION HANDLER
+  // =========================
+  const citizenActions = {
+    filterBins: (type: BinFilterType) => {
+      setActiveFilter(type);
+      onFilterChange(type);
+    },
+
+    locateMe: () => {
+      onLocateMe();
+    },
+
+    reportIssue: () => {
+      onReportIssue();
+    },
+
+    navigateToBin: () => {
+      onNavigateToBin?.();
+    },
+
+    clearSelectedBin: () => {
+      onFilterChange("ALL");
+    },
   };
 
   return (
     <>
-      {/* --- 1. FLOATING ACTION BUTTONS (Right Side) --- */}
+      {/* FLOATING BUTTONS */}
       <div className="absolute right-4 bottom-48 z-[1000] flex flex-col gap-3">
-        {/* Nút báo cáo (Nổi bật nhất) */}
+        {/* Report */}
         <div className="relative group">
           <Button
-            onClick={onReportIssue}
+            onClick={citizenActions.reportIssue}
             size="icon"
-            className="h-14 w-14 rounded-full shadow-xl bg-red-600 hover:bg-red-700 text-white border-4 border-white/50 backdrop-blur-sm transition-transform active:scale-95"
+            className="h-14 w-14 rounded-full shadow-xl bg-red-600 hover:bg-red-700 text-white border-4 border-white/50"
           >
             <Camera className="size-6" />
           </Button>
+
           <span className="absolute right-full mr-2 top-1/2 -translate-y-1/2 bg-slate-900/80 text-white text-xs px-2 py-1 rounded opacity-0 group-hover:opacity-100 transition-opacity whitespace-nowrap pointer-events-none">
             Báo cáo vi phạm
           </span>
         </div>
 
-        {/* Nút định vị */}
+        {/* Locate */}
         <Button
-          onClick={onLocateMe}
+          onClick={citizenActions.locateMe}
           size="icon"
-          className="h-12 w-12 rounded-full shadow-lg bg-white text-slate-700 hover:bg-slate-50 border border-slate-200"
+          className="h-12 w-12 rounded-full shadow-lg bg-white text-slate-700 border border-slate-200"
         >
           <Crosshair className="size-6 text-blue-600" />
         </Button>
       </div>
 
-      {/* --- 2. BOTTOM SHEET (Main Control) --- */}
+      {/* BOTTOM SHEET */}
       <div className="absolute bottom-6 left-4 right-4 z-[1000] flex justify-center">
-        <Card className="w-full max-w-md bg-white/95 backdrop-blur-xl shadow-2xl rounded-2xl border-0 overflow-hidden flex flex-col animate-in slide-in-from-bottom-4 duration-500">
-          {/* A. Nếu đang chọn thùng rác -> Hiển thị chi tiết & Dẫn đường */}
+        <Card className="w-full max-w-md bg-white/95 backdrop-blur-xl shadow-2xl rounded-2xl border-0 overflow-hidden flex flex-col">
           {selectedBin ? (
             <div className="p-4">
+              {/* Header */}
               <div className="flex justify-between items-start mb-3">
                 <div className="flex items-start gap-3">
-                  {/* Icon Type */}
                   <div
                     className={cn(
                       "p-3 rounded-full flex items-center justify-center border-2 border-white shadow-sm",
@@ -114,22 +130,19 @@ export const CitizenMapControls = ({
                       <Trash2 size={20} />
                     )}
                   </div>
+
                   <div>
                     <h3 className="font-bold text-slate-800 text-sm line-clamp-1">
                       {selectedBin.address}
                     </h3>
+
                     <div className="flex items-center gap-2 mt-1">
-                      <Badge
-                        variant="outline"
-                        className="text-[10px] font-normal border-slate-200 bg-slate-50"
-                      >
+                      <Badge variant="outline" className="text-[10px]">
                         {selectedBin.type}
                       </Badge>
+
                       {selectedBin.status === "FULL" && (
-                        <Badge
-                          variant="destructive"
-                          className="text-[10px] px-1.5 h-5"
-                        >
+                        <Badge variant="destructive" className="text-[10px]">
                           Đầy rác
                         </Badge>
                       )}
@@ -137,12 +150,12 @@ export const CitizenMapControls = ({
                   </div>
                 </div>
 
-                {/* Close Button (để quay lại filter) */}
+                {/* Close */}
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 -mr-2 -mt-2 text-slate-400"
-                  onClick={() => onFilterChange("ALL")}
+                  className="h-8 w-8"
+                  onClick={citizenActions.clearSelectedBin}
                 >
                   <X size={18} />
                 </Button>
@@ -150,20 +163,22 @@ export const CitizenMapControls = ({
 
               <Separator className="mb-3" />
 
+              {/* Info + Navigate */}
               <div className="flex gap-3">
-                {/* Info Box */}
-                <div className="flex-1 bg-slate-50 rounded-xl p-2 flex items-center justify-around border border-slate-100">
+                <div className="flex-1 bg-slate-50 rounded-xl p-2 flex items-center justify-around border">
                   <div className="text-center">
-                    <div className="text-[10px] text-slate-400 font-bold uppercase flex items-center gap-1 justify-center">
+                    <div className="text-[10px] text-slate-400 uppercase flex items-center gap-1 justify-center">
                       <Footprints size={10} /> Khoảng cách
                     </div>
                     <div className="font-bold text-indigo-600 text-sm">
                       {selectedBin.distance || "--"}
                     </div>
                   </div>
+
                   <div className="w-px h-6 bg-slate-200"></div>
+
                   <div className="text-center">
-                    <div className="text-[10px] text-slate-400 font-bold uppercase flex items-center gap-1 justify-center">
+                    <div className="text-[10px] text-slate-400 uppercase flex items-center gap-1 justify-center">
                       <Clock size={10} /> Đi bộ
                     </div>
                     <div className="font-bold text-indigo-600 text-sm">
@@ -172,15 +187,14 @@ export const CitizenMapControls = ({
                   </div>
                 </div>
 
-                {/* Navigate Button */}
                 <Button
                   className={cn(
-                    "flex-1 h-auto shadow-md transition-all font-bold",
+                    "flex-1 font-bold",
                     isNavigating
                       ? "bg-red-500 hover:bg-red-600"
                       : "bg-blue-600 hover:bg-blue-700",
                   )}
-                  onClick={onNavigateToBin}
+                  onClick={citizenActions.navigateToBin}
                 >
                   {isNavigating ? (
                     <>
@@ -188,21 +202,20 @@ export const CitizenMapControls = ({
                     </>
                   ) : (
                     <>
-                      <Navigation className="mr-2 h-4 w-4 fill-current" /> Dẫn
-                      đường
+                      <Navigation className="mr-2 h-4 w-4 fill-current" />
+                      Dẫn đường
                     </>
                   )}
                 </Button>
               </div>
             </div>
           ) : (
-            /* B. Mặc định: Bộ lọc loại rác */
+            /* FILTER MODE */
             <div className="flex flex-col">
-              <div className="px-4 py-3 bg-slate-50/50 border-b border-slate-100 flex justify-between items-center">
-                <span className="text-xs font-bold text-slate-500 uppercase tracking-wide">
+              <div className="px-4 py-3 bg-slate-50 border-b">
+                <span className="text-xs font-bold text-slate-500 uppercase">
                   Tìm thùng rác gần nhất
                 </span>
-                <Info size={14} className="text-slate-400" />
               </div>
 
               <ScrollArea className="w-full whitespace-nowrap px-4 py-3">
@@ -210,30 +223,34 @@ export const CitizenMapControls = ({
                   <FilterChip
                     label="Tất cả"
                     active={activeFilter === "ALL"}
-                    onClick={() => handleFilterClick("ALL")}
+                    onClick={() => citizenActions.filterBins("ALL")}
                   />
+
                   <FilterChip
                     label="Rác hữu cơ"
                     icon={<Leaf size={14} />}
                     active={activeFilter === "ORGANIC"}
                     color="green"
-                    onClick={() => handleFilterClick("ORGANIC")}
+                    onClick={() => citizenActions.filterBins("ORGANIC")}
                   />
+
                   <FilterChip
                     label="Tái chế"
                     icon={<Recycle size={14} />}
                     active={activeFilter === "RECYCLE"}
                     color="blue"
-                    onClick={() => handleFilterClick("RECYCLE")}
+                    onClick={() => citizenActions.filterBins("RECYCLE")}
                   />
+
                   <FilterChip
                     label="Rác khác"
                     icon={<Trash2 size={14} />}
                     active={activeFilter === "INORGANIC"}
                     color="orange"
-                    onClick={() => handleFilterClick("INORGANIC")}
+                    onClick={() => citizenActions.filterBins("INORGANIC")}
                   />
                 </div>
+
                 <ScrollBar orientation="horizontal" className="invisible" />
               </ScrollArea>
             </div>
@@ -244,21 +261,20 @@ export const CitizenMapControls = ({
   );
 };
 
-// --- SUB COMPONENT ---
-
+// =========================
+// FILTER CHIP
+// =========================
 const FilterChip = ({ label, icon, active, color, onClick }: any) => {
   const activeStyles: any = {
-    green:
-      "bg-green-600 text-white border-green-600 shadow-md shadow-green-100",
-    blue: "bg-blue-600 text-white border-blue-600 shadow-md shadow-blue-100",
-    orange:
-      "bg-orange-600 text-white border-orange-600 shadow-md shadow-orange-100",
-    default: "bg-slate-800 text-white border-slate-800 shadow-md",
+    green: "bg-green-600 text-white border-green-600",
+    blue: "bg-blue-600 text-white border-blue-600",
+    orange: "bg-orange-600 text-white border-orange-600",
+    default: "bg-slate-800 text-white border-slate-800",
   };
 
   const style = active
     ? activeStyles[color] || activeStyles.default
-    : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50 hover:border-slate-300";
+    : "bg-white text-slate-600 border-slate-200 hover:bg-slate-50";
 
   return (
     <button

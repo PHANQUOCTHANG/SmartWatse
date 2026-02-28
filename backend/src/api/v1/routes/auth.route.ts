@@ -7,7 +7,7 @@ import {
   sendOtp,
   verifyOtp,
   resetPassword,
-} from "@/controllers/auth.controller";
+} from "@/config/controllers/auth.controller";
 import validationMiddleware from "@/middleware/validate.middleware";
 import {
   LoginRequestDto,

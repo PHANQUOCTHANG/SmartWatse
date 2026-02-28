@@ -158,7 +158,12 @@ export const router = createBrowserRouter([
                 element: <CitizenReportCreatePage />,
               },
               {
-                path: CITIZEN_PATHS.MY_REPORTS,
+                path: CITIZEN_PATHS.SCHEDULE,
+                element: <CitizenSchedulePage />,
+              },
+
+              {
+                path: `${CITIZEN_PATHS.MY_REPORTS}`,
                 element: <CitizenReportPage />,
               },
               {
@@ -171,7 +176,7 @@ export const router = createBrowserRouter([
               },
               {
                 path: CITIZEN_PATHS.MAP_LOOKUP,
-                element: <CitizenSchedulePage />,
+                element: <UnifiedMapPage />,
               },
             ],
           },

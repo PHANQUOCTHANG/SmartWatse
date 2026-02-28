@@ -35,6 +35,7 @@ import {
   Route,
   MapPin,
   Trash,
+  BabyIcon,
 } from "lucide-react";
 import { useAppSelector } from "@/store/hooks";
 
@@ -215,9 +216,14 @@ const citizenSidebarItems = [
         icon: Home,
       },
       {
-        label: "Tra cứu điểm gom",
+        label: "Bản đồ",
         path: `/${CITIZEN_PATHS.MAP_LOOKUP}`,
         icon: MapPinned,
+      },
+      {
+        label: "Tra cứu điểm gom",
+        path: `/${CITIZEN_PATHS.SCHEDULE}`,
+        icon: BabyIcon,
       },
       {
         label: "Gửi phản ánh",

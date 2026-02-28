@@ -1,5 +1,5 @@
 import { Router } from "express";
-import * as vehicleCtrl from "@/controllers/vehicle.controller";
+import * as vehicleCtrl from "@/config/controllers/vehicle.controller";
 import {
   CreateVehicleRequest,
   UpdateVehicleRequest,
